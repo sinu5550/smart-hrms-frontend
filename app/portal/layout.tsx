@@ -9,6 +9,8 @@ import {
   CalendarDays,
   FileSpreadsheet,
   HandCoins,
+  Coins,
+  Briefcase,
   MessageSquare,
   LogOut,
   Building2,
@@ -21,10 +23,12 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
   const navItems = [
     { label: "Punch", href: "/portal/attendance", icon: Clock },
-    { label: "DWR Report", href: "/portal/dwr", icon: FileSpreadsheet },
+    { label: "DWR", href: "/portal/dwr", icon: FileSpreadsheet },
+    { label: "Outwork", href: "/portal/outwork", icon: Briefcase },
+    { label: "Loans", href: "/portal/loans", icon: HandCoins },
     { label: "Leave", href: "/portal/leave", icon: CalendarDays },
-    { label: "Payslip", href: "/portal/payslip", icon: HandCoins },
-    { label: "Team Chat", href: "/portal/chat", icon: MessageSquare },
+    { label: "Payslip", href: "/portal/payslip", icon: Coins },
+    { label: "Chat", href: "/portal/chat", icon: MessageSquare },
     { label: "Profile", href: "/portal/profile", icon: User },
   ];
 

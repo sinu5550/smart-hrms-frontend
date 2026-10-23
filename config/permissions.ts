@@ -1,7 +1,7 @@
 export interface PermissionDefinition {
   id: string;
   name: string;
-  category: "Attendance" | "Employees" | "Organization & Settings" | "Reports & Payroll";
+  category: "Attendance" | "Employees" | "Organization & Settings" | "Biometric & Hardware" | "Reports & Payroll";
   description: string;
 }
 
@@ -76,6 +76,32 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
     name: "Manage Shift Schedules & Grace Period",
     category: "Organization & Settings",
     description: "Can create multi-shifts (day, evening, part-time), edit timings, and set defaults.",
+  },
+
+  // Biometric & Hardware
+  {
+    id: "devices.view",
+    name: "View Biometric Hardware & Live Feed",
+    category: "Biometric & Hardware",
+    description: "Can view registered Hikvision/ZKTeco machines and live punch ingestion feed.",
+  },
+  {
+    id: "devices.manage",
+    name: "Manage Biometric Machines",
+    category: "Biometric & Hardware",
+    description: "Can link, configure, and delete biometric facial and fingerprint terminals.",
+  },
+  {
+    id: "devices.wifi",
+    name: "Manage Office Wi-Fi Geofence IPs",
+    category: "Biometric & Hardware",
+    description: "Can whitelist or delete public router IPs for location-based attendance.",
+  },
+  {
+    id: "devices.qr",
+    name: "Generate & Print Office QR Codes",
+    category: "Biometric & Hardware",
+    description: "Can generate, customize, download, and print cryptographic attendance QR signs.",
   },
 
   // Reports & Payroll

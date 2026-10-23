@@ -249,15 +249,15 @@ export default function MobileAttendancePortal() {
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() => setActiveModal("SELECT_BREAK")}
-                className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-xs font-semibold transition"
+                className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 hover:bg-amber-100/80 text-xs font-semibold transition"
               >
-                <Coffee className="w-4 h-4" /> Take a Break
+                <Coffee className="w-4 h-4 text-amber-600" /> Take a Break
               </button>
               <button
                 onClick={executeCheckOut}
-                className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-700 hover:bg-rose-500/20 text-xs font-semibold transition"
+                className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 hover:bg-rose-100/80 text-xs font-semibold transition"
               >
-                <LogOut className="w-4 h-4" /> Clock Out
+                <LogOut className="w-4 h-4 text-rose-600" /> Clock Out
               </button>
             </div>
           )}
@@ -287,7 +287,7 @@ export default function MobileAttendancePortal() {
               <button
                 onClick={executeCheckIn}
                 disabled={isSubmitting}
-                className="flex-1 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white shadow-lg shadow-emerald-950"
+                className="flex-1 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-xs font-semibold text-white transition active:scale-[0.99]"
               >
                 {isSubmitting ? "Registering..." : "Confirm"}
               </button>
@@ -300,7 +300,7 @@ export default function MobileAttendancePortal() {
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm p-6 space-y-4">
             <div className="flex items-center gap-2">
-              <Coffee className="w-5 h-5 text-amber-400" />
+              <Coffee className="w-5 h-5 text-amber-500" />
               <h3 className="text-base font-bold text-slate-800">Select Break Category</h3>
             </div>
             <div className="space-y-2">
@@ -310,26 +310,26 @@ export default function MobileAttendancePortal() {
                   onClick={() => setSelectedBreakType(type)}
                   className={`w-full flex items-center justify-between p-3 rounded-xl border text-xs font-medium transition ${
                     selectedBreakType === type
-                      ? "border-amber-500 bg-amber-500/10 text-amber-700"
-                      : "border-slate-200 bg-white text-slate-800 hover:border-slate-200"
+                      ? "border-amber-500 bg-amber-50 text-amber-800 font-semibold"
+                      : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                   }`}
                 >
                   <span>{type.replace("_", " ")}</span>
-                  {selectedBreakType === type && <ChevronRight className="w-4 h-4 text-amber-400" />}
+                  {selectedBreakType === type && <ChevronRight className="w-4 h-4 text-amber-600" />}
                 </button>
               ))}
             </div>
             <div className="flex gap-2 pt-2">
               <button
                 onClick={() => setActiveModal("NONE")}
-                className="flex-1 py-2.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-800"
+                className="flex-1 py-2.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-700 hover:bg-slate-50 transition"
               >
                 Cancel
               </button>
               <button
                 onClick={executeStartBreak}
                 disabled={isSubmitting}
-                className="flex-1 py-2.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-xs font-semibold text-white shadow-lg shadow-amber-950"
+                className="flex-1 py-2.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-xs font-semibold text-white transition active:scale-[0.99]"
               >
                 {isSubmitting ? "Starting..." : "Start Break"}
               </button>
@@ -355,7 +355,7 @@ export default function MobileAttendancePortal() {
             </div>
             <button
               onClick={() => setActiveModal("NONE")}
-              className="w-full py-2.5 rounded-xl bg-white hover:bg-white text-xs font-semibold text-slate-800 transition"
+              className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-xs font-semibold text-white transition active:scale-[0.99]"
             >
               Acknowledged
             </button>

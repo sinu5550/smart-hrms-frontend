@@ -12,10 +12,16 @@ export function useAttendanceByDate(date: string) {
   });
 }
 
+import { useAuth } from "@/components/auth/AuthProvider";
+
 export function useMyTodayAttendance() {
+  const { user } = useAuth();
   return useQuery({
-    queryKey: QUERY_KEYS.attendance.myToday,
+    queryKey: QUERY_KEYS.attendance.myToday(user?.id),
     queryFn: () => AttendanceService.getTodayStatus(),
+    enabled: Boolean(user?.id),
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 }
 

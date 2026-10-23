@@ -6,6 +6,9 @@ import {
   useBiometricRawLogs,
   useRegisterBiometricDevice,
   useDeleteBiometricDevice,
+  useOfficeNetworks,
+  useAddOfficeNetwork,
+  useDeleteOfficeNetwork,
 } from "@/hooks";
 import { parseApiError } from "@/services/api";
 import { BiometricDevice } from "@/services/device.service";
@@ -24,24 +27,83 @@ import {
   Activity,
   Clock,
   MapPin,
+  ScanFace,
+  QrCode,
+  ShieldCheck,
+  Printer,
+  Download,
+  Copy,
+  ExternalLink,
 } from "lucide-react";
+import { deviceService } from "@/services/device.service";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 export default function BiometricDevicesAdminPage() {
+  const { user } = useAuth();
+  const isOwnerOrAdmin = user?.role === "ADMIN" || user?.role === "PLATFORM_ADMIN" || user?.email === user?.organization?.ownerEmail;
+  const userPerms = Array.isArray(user?.permissions) ? user.permissions : [];
+
+  const canManageDevices = isOwnerOrAdmin || userPerms.includes("devices.manage");
+  const canManageWifi = isOwnerOrAdmin || userPerms.includes("devices.wifi");
+  const canManageQr = isOwnerOrAdmin || userPerms.includes("devices.qr") || userPerms.includes("devices.view");
+  const canViewDevices = isOwnerOrAdmin || userPerms.includes("devices.view");
+
   const { data: devices = [], isLoading: isLoadingDevices } = useBiometricDevices();
   const { data: rawLogs = [], isLoading: isLoadingLogs } = useBiometricRawLogs();
+  const { data: networks = [], isLoading: isLoadingNetworks } = useOfficeNetworks();
+
   const registerDeviceMutation = useRegisterBiometricDevice();
   const deleteDeviceMutation = useDeleteBiometricDevice();
+  const addNetworkMutation = useAddOfficeNetwork();
+  const deleteNetworkMutation = useDeleteOfficeNetwork();
 
-  const [activeTab, setActiveTab] = useState<"DEVICES" | "LIVE_STREAM">("DEVICES");
+  const [activeTab, setActiveTab] = useState<"DEVICES" | "WIFI_NETWORKS" | "QR_POSTER" | "LIVE_STREAM">("DEVICES");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isWifiModalOpen, setIsWifiModalOpen] = useState(false);
+
+  // QR Code Generation state
+  const [qrData, setQrData] = useState<{
+    organization: { id: string; name: string; slug: string; employeePrefix: string; logoUrl?: string | null };
+    officeNetworks: Array<{ id: string; locationName: string; allowedPublicIp: string }>;
+    primaryIp: string;
+    qrPayload: string;
+    qrDataUrl: string;
+    staticOfficeSecret: string;
+  } | null>(null);
+  const [isLoadingQr, setIsLoadingQr] = useState(false);
+  const [copiedPayload, setCopiedPayload] = useState(false);
+
+  const loadQrCode = async () => {
+    try {
+      setIsLoadingQr(true);
+      const res = await deviceService.getQrCode();
+      setQrData(res);
+    } catch (err: any) {
+      alert("Failed to generate QR code: " + parseApiError(err));
+    } finally {
+      setIsLoadingQr(false);
+    }
+  };
+
+  const handlePrintQr = () => {
+    window.print();
+  };
+
   const [form, setForm] = useState({
     deviceName: "",
     deviceSerialNumber: "",
-    deviceModel: "ZKTeco BioStation 3 / ADMS",
-    ipAddress: "192.168.1.201",
-    port: 4370,
-    locationName: "Main Factory Entrance",
+    deviceModel: "Hikvision MinMoe (Face & Fingerprint Terminal)",
+    ipAddress: "192.168.1.64",
+    port: 8000,
+    locationName: "Main Entrance Turnstile",
   });
+
+  const [wifiForm, setWifiForm] = useState({
+    locationName: "HQ Office Wi-Fi",
+    allowedPublicIp: "",
+    subnetMask: "255.255.255.0",
+  });
+
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -55,20 +117,44 @@ export default function BiometricDevicesAdminPage() {
         deviceSerialNumber: form.deviceSerialNumber.trim(),
         deviceModel: form.deviceModel.trim(),
         ipAddress: form.ipAddress.trim() || undefined,
-        port: Number(form.port) || 4370,
+        port: Number(form.port) || 8000,
         locationName: form.locationName.trim() || "Main Gate",
       });
 
       setForm({
         deviceName: "",
         deviceSerialNumber: "",
-        deviceModel: "ZKTeco BioStation 3 / ADMS",
-        ipAddress: "192.168.1.201",
-        port: 4370,
-        locationName: "Main Factory Entrance",
+        deviceModel: "Hikvision MinMoe (Face & Fingerprint Terminal)",
+        ipAddress: "192.168.1.64",
+        port: 8000,
+        locationName: "Main Entrance Turnstile",
       });
       setIsModalOpen(false);
-      setMessage({ type: "success", text: "Biometric machine registered successfully!" });
+      setMessage({ type: "success", text: "Biometric attendance terminal registered successfully!" });
+    } catch (err: any) {
+      alert(parseApiError(err));
+    }
+  };
+
+  const handleAddWifi = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!wifiForm.allowedPublicIp.trim()) return;
+
+    try {
+      setMessage(null);
+      await addNetworkMutation.mutateAsync({
+        locationName: wifiForm.locationName.trim(),
+        allowedPublicIp: wifiForm.allowedPublicIp.trim(),
+        subnetMask: wifiForm.subnetMask.trim() || undefined,
+      });
+
+      setWifiForm({
+        locationName: "HQ Office Wi-Fi",
+        allowedPublicIp: "",
+        subnetMask: "255.255.255.0",
+      });
+      setIsWifiModalOpen(false);
+      setMessage({ type: "success", text: "Office Wi-Fi IP location registered successfully!" });
     } catch (err: any) {
       alert(parseApiError(err));
     }
@@ -84,6 +170,16 @@ export default function BiometricDevicesAdminPage() {
     }
   };
 
+  const handleDeleteWifi = async (id: string, ip: string) => {
+    if (!confirm(`Remove office Wi-Fi IP "${ip}"? Employees on this network won't be geofenced.`)) return;
+    try {
+      await deleteNetworkMutation.mutateAsync(id);
+      setMessage({ type: "success", text: `Office Wi-Fi IP ${ip} removed.` });
+    } catch (err: any) {
+      alert(parseApiError(err));
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -91,14 +187,14 @@ export default function BiometricDevicesAdminPage() {
         <div>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <Cpu className="w-6 h-6 text-emerald-700" />
-            Biometric & IoT Hardware Integration
+            Biometric Hardware & Wi-Fi Location Settings
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Connect ZKTeco, Hikvision, and RFID attendance machines for real-time punch synchronization.
+            Configure Hikvision Face/Fingerprint Terminals, Office Wi-Fi Public IPs, and Dynamic QR Attendance.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {/* Tab Switcher */}
           <div className="flex items-center p-1 bg-slate-100 border border-slate-200 rounded-lg">
             <button
@@ -110,7 +206,32 @@ export default function BiometricDevicesAdminPage() {
               }`}
             >
               <Server className="w-3.5 h-3.5" />
-              <span>Registered Terminals ({devices.length})</span>
+              <span>Biometric Terminals ({devices.length})</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("WIFI_NETWORKS")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition ${
+                activeTab === "WIFI_NETWORKS"
+                  ? "bg-white text-emerald-800 shadow-sm border border-slate-200"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <Wifi className="w-3.5 h-3.5 text-blue-600" />
+              <span>Office Wi-Fi IPs ({networks.length})</span>
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab("QR_POSTER");
+                loadQrCode();
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition ${
+                activeTab === "QR_POSTER"
+                  ? "bg-white text-emerald-800 shadow-sm border border-slate-200"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <QrCode className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Office QR Poster</span>
             </button>
             <button
               onClick={() => setActiveTab("LIVE_STREAM")}
@@ -121,17 +242,29 @@ export default function BiometricDevicesAdminPage() {
               }`}
             >
               <Activity className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
-              <span>Live Punch Ingestion</span>
+              <span>Live Ingestion Feed</span>
             </button>
           </div>
 
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg shadow-sm transition shrink-0"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Device</span>
-          </button>
+          {activeTab === "DEVICES" && canManageDevices && (
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg shadow-sm transition shrink-0"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Biometric Machine</span>
+            </button>
+          )}
+
+          {activeTab === "WIFI_NETWORKS" && canManageWifi && (
+            <button
+              onClick={() => setIsWifiModalOpen(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold rounded-lg shadow-sm transition shrink-0"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Wi-Fi IP Rule</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -219,6 +352,259 @@ export default function BiometricDevicesAdminPage() {
               </div>
             ))
           )}
+        </div>
+      )}
+
+      {/* ================= TAB 2: OFFICE WI-FI IP LOCATIONS ================= */}
+      {activeTab === "WIFI_NETWORKS" && (
+        <div className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-xs text-blue-900 flex items-start gap-3">
+            <ShieldCheck className="w-5 h-5 text-blue-700 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold">Owner Admin Wi-Fi Location Security</p>
+              <p className="text-[11px] text-blue-700 mt-0.5">
+                Only employees connected to these authorized office Wi-Fi public IP addresses can punch attendance or start/end breaks from the ESS Mobile PWA.
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                  <Wifi className="w-4 h-4 text-blue-600" />
+                  Allowed Office Wi-Fi IP Whitelist
+                </h2>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  Static public IP addresses of your company routers & internet lines.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setIsWifiModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold rounded-lg transition"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add IP Address</span>
+              </button>
+            </div>
+
+            {isLoadingNetworks ? (
+              <div className="text-center py-8 text-xs text-slate-400">Loading office Wi-Fi rules...</div>
+            ) : networks.length === 0 ? (
+              <div className="text-center py-10 space-y-3">
+                <WifiOff className="w-10 h-10 text-slate-300 mx-auto" />
+                <p className="text-sm font-semibold text-slate-700">No Office Wi-Fi IPs Registered</p>
+                <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                  Add your office Wi-Fi public IP (e.g. 103.145.120.45) so employees can clock in while connected to office Wi-Fi.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {networks.map((net) => (
+                  <div
+                    key={net.id}
+                    className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between shadow-xs"
+                  >
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-1.5">
+                        <Wifi className="w-3.5 h-3.5 text-blue-600" />
+                        <span className="text-xs font-bold text-slate-800">{net.locationName}</span>
+                      </div>
+                      <p className="text-xs font-mono font-semibold text-blue-700">{net.allowedPublicIp}</p>
+                      {net.subnetMask && (
+                        <p className="text-[10px] text-slate-400 font-mono">Mask: {net.subnetMask}</p>
+                      )}
+                    </div>
+
+                    <button
+                      onClick={() => handleDeleteWifi(net.id, net.allowedPublicIp)}
+                      className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition"
+                      title="Remove IP rule"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ================= TAB 3: OFFICE QR POSTER ================= */}
+      {activeTab === "QR_POSTER" && (
+        <div className="space-y-6">
+          {/* Action Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200 p-4 rounded-lg shadow-sm">
+            <div>
+              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <QrCode className="w-4 h-4 text-emerald-700" />
+                Office Attendance Dynamic QR Code
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Print and mount this official QR sign at your office reception or front door.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={loadQrCode}
+                disabled={isLoadingQr}
+                className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isLoadingQr ? "animate-spin" : ""}`} />
+                <span>Regenerate Signature</span>
+              </button>
+              <button
+                onClick={handlePrintQr}
+                className="flex items-center gap-1.5 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg shadow-sm transition"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Print Official Poster</span>
+              </button>
+            </div>
+          </div>
+
+          {isLoadingQr && !qrData ? (
+            <div className="bg-white border border-slate-200 rounded-lg p-12 text-center space-y-3">
+              <RefreshCw className="w-8 h-8 text-emerald-600 animate-spin mx-auto" />
+              <p className="text-xs font-bold text-slate-700">Generating cryptographic tenant QR code...</p>
+            </div>
+          ) : qrData ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Left 2 Cols: The Printable Office Sign */}
+              <div className="md:col-span-2 flex justify-center">
+                <div
+                  id="printable-office-poster"
+                  className="bg-white border-2 border-emerald-600/60 rounded-2xl p-8 max-w-md w-full shadow-lg text-center space-y-6 relative overflow-hidden"
+                >
+                  {/* Decorative Header Accent */}
+                  <div className="absolute top-0 left-0 right-0 h-3 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700" />
+
+                  {/* Organization Logo & Brand */}
+                  <div className="space-y-2 pt-2">
+                    {qrData.organization.logoUrl ? (
+                      <img
+                        src={qrData.organization.logoUrl}
+                        alt={qrData.organization.name}
+                        className="w-16 h-16 object-contain mx-auto rounded-lg border border-slate-200 p-1 bg-white shadow-xs"
+                      />
+                    ) : (
+                      <div className="w-14 h-14 rounded-xl bg-emerald-100 text-emerald-800 font-extrabold text-xl flex items-center justify-center mx-auto border border-emerald-300 shadow-xs">
+                        {qrData.organization.name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <h3 className="text-lg font-black text-slate-900 tracking-tight">
+                      {qrData.organization.name}
+                    </h3>
+                    <p className="text-xs uppercase font-extrabold text-emerald-700 tracking-wider">
+                      Official Check-In Terminal
+                    </p>
+                  </div>
+
+                  {/* High Quality Scannable QR Code */}
+                  <div className="bg-emerald-50/50 border border-emerald-200 rounded-xl p-4 inline-block mx-auto shadow-inner">
+                    <img
+                      src={qrData.qrDataUrl}
+                      alt="Office Check-in QR"
+                      className="w-64 h-64 mx-auto rounded-lg shadow-sm"
+                    />
+                  </div>
+
+                  {/* Verification Tag & Scan Instructions */}
+                  <div className="space-y-2 bg-slate-50 border border-slate-200/80 rounded-xl p-3.5">
+                    <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-800">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                      <span>Cryptographically Signed QR</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                      Open your Employee PWA Portal on your mobile phone, select <b>Scan Office QR</b>, and align your camera with this code to punch in.
+                    </p>
+                  </div>
+
+                  {/* Footer Security Badges */}
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400 font-mono">
+                    <span>Tenant ID: {qrData.organization.id.slice(0, 8)}...</span>
+                    <span>Prefix: {qrData.organization.employeePrefix}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Col: Parameters & Configuration Details */}
+              <div className="space-y-4">
+                <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm space-y-4">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Tenant Signature Parameters
+                  </h3>
+
+                  <div className="space-y-3 text-xs">
+                    <div>
+                      <span className="text-[11px] text-slate-400 font-medium">Tenant Organization</span>
+                      <p className="font-bold text-slate-800">{qrData.organization.name}</p>
+                    </div>
+
+                    <div>
+                      <span className="text-[11px] text-slate-400 font-medium">Organization UUID</span>
+                      <p className="font-mono text-[11px] text-slate-700 break-all bg-slate-50 p-1.5 rounded border border-slate-200">
+                        {qrData.organization.id}
+                      </p>
+                    </div>
+
+                    <div>
+                      <span className="text-[11px] text-slate-400 font-medium">Bound Office Wi-Fi IP</span>
+                      <p className="font-mono font-bold text-blue-700">
+                        {qrData.primaryIp} {qrData.primaryIp === "127.0.0.1" ? "(Localhost Dev)" : "(Public IP)"}
+                      </p>
+                    </div>
+
+                    <div>
+                      <span className="text-[11px] text-slate-400 font-medium">Raw Payload (Auto-Detected)</span>
+                      <div className="relative mt-1">
+                        <textarea
+                          readOnly
+                          rows={4}
+                          value={qrData.qrPayload}
+                          className="w-full text-[10px] font-mono bg-slate-50 p-2 rounded border border-slate-200 text-slate-600 resize-none focus:outline-none"
+                        />
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(qrData.qrPayload);
+                            setCopiedPayload(true);
+                            setTimeout(() => setCopiedPayload(false), 2000);
+                          }}
+                          className="absolute right-2 bottom-3 px-2 py-1 bg-white border border-slate-300 text-[10px] font-bold rounded shadow-xs hover:bg-slate-50 flex items-center gap-1"
+                        >
+                          <Copy className="w-3 h-3 text-slate-600" />
+                          <span>{copiedPayload ? "Copied!" : "Copy Payload"}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-100">
+                      <a
+                        href={qrData.qrDataUrl}
+                        download={`${qrData.organization.name.toLowerCase().replace(/\s+/g, "_")}_qr_sign.png`}
+                        className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-lg shadow-sm transition"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Download High-Res PNG</span>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-xs text-amber-900 space-y-1.5">
+                  <p className="font-bold flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-amber-700" />
+                    Office Wi-Fi IP Protection
+                  </p>
+                  <p className="text-[11px] leading-relaxed text-amber-800">
+                    When employees scan this QR code, the system verifies both the cryptographically signed tenant signature <b>and</b> ensures their device is connected to your whitelisted office router IP.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : null}
         </div>
       )}
 
@@ -351,6 +737,39 @@ export default function BiometricDevicesAdminPage() {
               </div>
 
               <div>
+                <label className="text-xs font-semibold text-slate-700">Hardware Brand & Model *</label>
+                <select
+                  value={form.deviceModel}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const isHik = val.toLowerCase().includes("hikvision");
+                    setForm({
+                      ...form,
+                      deviceModel: val,
+                      port: isHik ? 8000 : 4370,
+                    });
+                  }}
+                  className="w-full mt-1 px-3 py-2 text-xs rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-emerald-600"
+                >
+                  <option value="Hikvision MinMoe (Face & Fingerprint Terminal)">
+                    Hikvision MinMoe Face & Fingerprint Terminal (DS-K1T Series - Port 8000)
+                  </option>
+                  <option value="Hikvision Pro Series Face Terminal">
+                    Hikvision Pro Series Face Terminal (DS-K1T671 - Port 8000)
+                  </option>
+                  <option value="ZKTeco BioStation 3 / ADMS">
+                    ZKTeco BioStation 3 / ADMS (Fingerprint & RFID - Port 4370)
+                  </option>
+                  <option value="ZKTeco SpeedFace-V5L">
+                    ZKTeco SpeedFace-V5L (Face + Fingerprint - Port 4370)
+                  </option>
+                  <option value="Other Generic Biometric / Webhook Terminal">
+                    Other Generic Biometric Terminal
+                  </option>
+                </select>
+              </div>
+
+              <div>
                 <label className="text-xs font-semibold text-slate-700">Physical Location</label>
                 <input
                   type="text"
@@ -375,6 +794,109 @@ export default function BiometricDevicesAdminPage() {
                   className="px-5 py-2 text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg shadow-sm transition disabled:opacity-50"
                 >
                   {registerDeviceMutation.isPending ? "Connecting..." : "Save Terminal"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL: ADD OFFICE WI-FI IP ================= */}
+      {isWifiModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-md p-5 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Wifi className="w-4 h-4 text-blue-600" />
+                Add Office Wi-Fi IP Location
+              </h3>
+              <button
+                onClick={() => setIsWifiModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 text-sm font-bold"
+              >
+                &times;
+              </button>
+            </div>
+
+            <form onSubmit={handleAddWifi} className="space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-slate-700">Location / Branch Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Head Office 4th Floor Wi-Fi"
+                  value={wifiForm.locationName}
+                  onChange={(e) => setWifiForm({ ...wifiForm, locationName: e.target.value })}
+                  className="w-full mt-1 px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-blue-600"
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-slate-700">Allowed Public IP Address *</label>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setWifiForm({ ...wifiForm, allowedPublicIp: "127.0.0.1" })}
+                      className="text-[10px] text-blue-700 hover:underline font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-200"
+                    >
+                      + Use Localhost (127.0.0.1)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          const res = await fetch("https://api.ipify.org?format=json");
+                          const data = await res.json();
+                          if (data.ip) setWifiForm({ ...wifiForm, allowedPublicIp: data.ip });
+                        } catch {
+                          alert("Could not auto-fetch IP. You can check whatismyip.com or use 127.0.0.1 for local testing.");
+                        }
+                      }}
+                      className="text-[10px] text-emerald-700 hover:underline font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200"
+                    >
+                      ⚡ Auto-Detect My Public IP
+                    </button>
+                  </div>
+                </div>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. 103.145.120.45 or 127.0.0.1"
+                  value={wifiForm.allowedPublicIp}
+                  onChange={(e) => setWifiForm({ ...wifiForm, allowedPublicIp: e.target.value })}
+                  className="w-full mt-1.5 px-3 py-2 text-xs rounded-lg border border-slate-200 font-mono focus:outline-none focus:border-blue-600"
+                />
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Employees connected to this office router IP will be allowed to punch in. For local development, whitelist <b>127.0.0.1</b>.
+                </p>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-700">Subnet Mask (Optional)</label>
+                <input
+                  type="text"
+                  placeholder="255.255.255.0"
+                  value={wifiForm.subnetMask}
+                  onChange={(e) => setWifiForm({ ...wifiForm, subnetMask: e.target.value })}
+                  className="w-full mt-1 px-3 py-2 text-xs rounded-lg border border-slate-200 font-mono focus:outline-none focus:border-blue-600"
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsWifiModalOpen(false)}
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={addNetworkMutation.isPending}
+                  className="px-5 py-2 text-xs font-bold bg-blue-700 hover:bg-blue-800 text-white rounded-lg shadow-sm transition disabled:opacity-50"
+                >
+                  {addNetworkMutation.isPending ? "Saving..." : "Whitelist Wi-Fi IP"}
                 </button>
               </div>
             </form>

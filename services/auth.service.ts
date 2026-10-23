@@ -19,6 +19,7 @@ export interface AuthUser {
     slug: string;
     logoUrl?: string | null;
     employeePrefix: string;
+    ownerEmail?: string | null;
   } | null;
   phone?: string | null;
   avatarUrl?: string | null;
@@ -76,6 +77,21 @@ export const AuthService = {
       localStorage.removeItem("refresh_token");
       localStorage.removeItem("user_profile");
     }
+  },
+
+  async sendOtp(email: string, type: "sign-in" | "email-verification" | "forget-password" = "sign-in"): Promise<{ success: boolean; message: string }> {
+    const response = await apiClient.post<{ success: boolean; message: string }>("/auth/send-otp", { email, type });
+    return response.data;
+  },
+
+  async verifyOtp(email: string, otp: string, type: "sign-in" | "email-verification" | "forget-password" = "sign-in"): Promise<{ success: boolean; verified: boolean; session?: LoginResponse }> {
+    const response = await apiClient.post<{ success: boolean; verified: boolean; session?: LoginResponse }>("/auth/verify-otp", { email, otp, type });
+    if (response.data?.session?.accessToken) {
+      localStorage.setItem("access_token", response.data.session.accessToken);
+      localStorage.setItem("refresh_token", response.data.session.refreshToken);
+      localStorage.setItem("user_profile", JSON.stringify(response.data.session.user));
+    }
+    return response.data;
   },
 
   getUser(): AuthUser | null {

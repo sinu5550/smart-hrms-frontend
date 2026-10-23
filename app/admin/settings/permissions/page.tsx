@@ -38,6 +38,11 @@ export default function PermissionsManagementPage() {
   const { user: currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState<"roles" | "users">("roles");
 
+  const isCurrentOwner = currentUser?.role === "ADMIN" || currentUser?.role === "PLATFORM_ADMIN";
+  const currentUserPerms = Array.isArray(currentUser?.permissions) ? currentUser.permissions : [];
+  const canManagePermissions = isCurrentOwner || currentUserPerms.includes("employees.permissions");
+  const canManageRoles = isCurrentOwner || currentUserPerms.includes("employees.roles");
+
   // Custom Roles queries & mutations
   const { data: roles = [], isLoading: isLoadingRoles } = useRoles();
   const createRoleMutation = useCreateRole();
@@ -105,6 +110,13 @@ export default function PermissionsManagementPage() {
 
   const handleSaveRolePermissions = async () => {
     if (!activeRole) return;
+    if (!canManageRoles) {
+      setRoleActionMessage({
+        type: "error",
+        text: "Permission Denied: You do not have 'Manage Roles & Assign Roles' (employees.roles) privilege.",
+      });
+      return;
+    }
     try {
       setRoleActionMessage(null);
       await updateRoleMutation.mutateAsync({
@@ -121,11 +133,19 @@ export default function PermissionsManagementPage() {
   };
 
   const handleOpenCreateRole = () => {
+    if (!canManageRoles) {
+      alert("Permission Denied: You do not have 'Manage Roles & Assign Roles' (employees.roles) privilege.");
+      return;
+    }
     setRoleForm({ id: "", name: "", description: "" });
     setRoleModalOpen(true);
   };
 
   const handleOpenEditRole = (role: CustomRole) => {
+    if (!canManageRoles) {
+      alert("Permission Denied: You do not have 'Manage Roles & Assign Roles' (employees.roles) privilege.");
+      return;
+    }
     setRoleForm({ id: role.id, name: role.name, description: role.description || "" });
     setRoleModalOpen(true);
   };
@@ -133,6 +153,10 @@ export default function PermissionsManagementPage() {
   const handleSaveRoleMeta = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!roleForm.name.trim()) return;
+    if (!canManageRoles) {
+      alert("Permission Denied: You do not have 'Manage Roles & Assign Roles' (employees.roles) privilege.");
+      return;
+    }
     try {
       if (roleForm.id) {
         await updateRoleMutation.mutateAsync({
@@ -158,6 +182,10 @@ export default function PermissionsManagementPage() {
   };
 
   const handleDeleteRole = async (role: CustomRole) => {
+    if (!canManageRoles) {
+      alert("Permission Denied: You do not have 'Manage Roles & Assign Roles' (employees.roles) privilege.");
+      return;
+    }
     if (role._count && role._count.users > 0) {
       alert(`Cannot delete role "${role.name}" because ${role._count.users} employee(s) are assigned to it.`);
       return;
@@ -173,14 +201,14 @@ export default function PermissionsManagementPage() {
 
   // User tab actions
   const toggleUserPermission = (permId: string) => {
-    if (isOwner) return;
+    if (isOwner || !canManagePermissions) return;
     setSelectedUserPermissions((prev) =>
       prev.includes(permId) ? prev.filter((p) => p !== permId) : [...prev, permId]
     );
   };
 
   const handleUserSelectCategory = (categoryPermissions: PermissionDefinition[]) => {
-    if (isOwner) return;
+    if (isOwner || !canManagePermissions) return;
     const categoryIds = categoryPermissions.map((p) => p.id);
     const hasAll = categoryIds.every((id) => selectedUserPermissions.includes(id));
     if (hasAll) {
@@ -191,6 +219,7 @@ export default function PermissionsManagementPage() {
   };
 
   const handleAssignCustomRoleToUser = (customRoleId: string) => {
+    if (!canManagePermissions) return;
     setSelectedUserCustomRoleId(customRoleId);
     if (customRoleId) {
       const targetRole = roles.find((r) => r.id === customRoleId);
@@ -207,6 +236,13 @@ export default function PermissionsManagementPage() {
       setUserActionMessage({
         type: "error",
         text: "Organization Owner has permanent full access. Role and permissions cannot be edited.",
+      });
+      return;
+    }
+    if (!canManagePermissions) {
+      setUserActionMessage({
+        type: "error",
+        text: "Permission Denied: You do not possess the 'Manage Permissions & Access Control' (employees.permissions) privilege.",
       });
       return;
     }
@@ -234,6 +270,7 @@ export default function PermissionsManagementPage() {
     "Attendance",
     "Employees",
     "Organization & Settings",
+    "Biometric & Hardware",
     "Reports & Payroll",
   ];
 

@@ -26,3 +26,31 @@ export function useUpdateOrganization() {
     },
   });
 }
+
+export function useOfficeNetworks() {
+  return useQuery({
+    queryKey: ["organization", "networks"],
+    queryFn: () => OrganizationService.getNetworks(),
+  });
+}
+
+export function useAddOfficeNetwork() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: { locationName?: string; allowedPublicIp: string; subnetMask?: string }) =>
+      OrganizationService.addNetwork(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["organization", "networks"] });
+    },
+  });
+}
+
+export function useDeleteOfficeNetwork() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => OrganizationService.deleteNetwork(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["organization", "networks"] });
+    },
+  });
+}

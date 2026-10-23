@@ -60,4 +60,16 @@ export const deviceService = {
     const { data } = await apiClient.get<BiometricRawLog[]>("/devices/logs");
     return data;
   },
+
+  async getQrCode(): Promise<{
+    organization: { id: string; name: string; slug: string; employeePrefix: string; logoUrl?: string | null };
+    officeNetworks: Array<{ id: string; locationName: string; allowedPublicIp: string }>;
+    primaryIp: string;
+    qrPayload: string;
+    qrDataUrl: string;
+    staticOfficeSecret: string;
+  }> {
+    const { data } = await apiClient.get("/devices/qr-code");
+    return data;
+  },
 };

@@ -87,6 +87,11 @@ export const EmployeeService = {
     });
     return data;
   },
+
+  bulkImport: async (rows: Array<Record<string, any>>) => {
+    const { data } = await apiClient.post("/employees/bulk-import", { rows });
+    return data;
+  },
 };
 
 export interface ShiftSettings {

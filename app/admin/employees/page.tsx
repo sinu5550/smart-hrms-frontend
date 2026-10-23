@@ -7,12 +7,14 @@ import { parseApiError } from "@/services/api";
 import { EmployeeFormDrawer } from "@/components/admin/EmployeeFormDrawer";
 import { EmployeeEditModal } from "@/components/admin/EmployeeEditModal";
 import { DeleteEmployeeConfirmModal } from "@/components/admin/DeleteEmployeeConfirmModal";
+import { BulkImportModal } from "@/components/admin/BulkImportModal";
 import {
   UserPlus,
   Search,
   Trash2,
   Edit2,
   Clock,
+  UploadCloud,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -35,6 +37,7 @@ export default function EmployeesDirectoryPage() {
   const [bloodGroupFilter, setBloodGroupFilter] = useState<string>("ALL");
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [targetEditEmployee, setTargetEditEmployee] = useState<Employee | null>(null);
   const [targetDeleteEmployee, setTargetDeleteEmployee] = useState<Employee | null>(null);
 
@@ -69,12 +72,21 @@ export default function EmployeesDirectoryPage() {
           <h1 className="text-xl font-bold text-slate-800 tracking-tight">Employee Directory</h1>
           <p className="text-xs text-slate-800">Total Personnel Count: {employees.length}</p>
         </div>
-        <Button
-          onClick={() => setIsDrawerOpen(true)}
-          className="h-9 rounded-lg px-4 text-xs font-semibold"
-        >
-          <UserPlus className="w-4 h-4" /> Enlist New Employee
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setIsBulkModalOpen(true)}
+            variant="outline"
+            className="h-9 rounded-lg px-3.5 text-xs font-semibold flex items-center gap-1.5 border-slate-200"
+          >
+            <UploadCloud className="w-4 h-4 text-emerald-700" /> Bulk Import
+          </Button>
+          <Button
+            onClick={() => setIsDrawerOpen(true)}
+            className="h-9 rounded-lg px-4 text-xs font-semibold"
+          >
+            <UserPlus className="w-4 h-4" /> Enlist New Employee
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-5 gap-3 bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
@@ -241,6 +253,11 @@ export default function EmployeesDirectoryPage() {
         isOpen={Boolean(targetEditEmployee)}
         onClose={() => setTargetEditEmployee(null)}
         onSuccess={() => setTargetEditEmployee(null)}
+      />
+
+      <BulkImportModal
+        isOpen={isBulkModalOpen}
+        onClose={() => setIsBulkModalOpen(false)}
       />
 
       {targetDeleteEmployee && (

@@ -21,18 +21,24 @@ import {
   Settings,
   Cpu,
   Layers,
+  FileText,
+  Briefcase,
 } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, logout, refreshProfile } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isWorkspaceMenuOpen, setIsWorkspaceMenuOpen] = useState(false);
   const workspaceMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!localStorage.getItem("access_token")) router.replace("/login");
+    if (!localStorage.getItem("access_token")) {
+      router.replace("/login");
+    } else {
+      refreshProfile();
+    }
   }, [router]);
 
   useEffect(() => {
@@ -48,20 +54,45 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const isSettingsActive = pathname.startsWith("/admin/settings");
   const [isSettingsOpen, setIsSettingsOpen] = useState(true);
 
-  const mainNavItems = [
+  const isOwner = Boolean(
+    user?.email &&
+    user?.organization &&
+    (user?.role === "ADMIN" || user?.email === user?.organization?.ownerEmail)
+  );
+  const userPerms = Array.isArray(user?.permissions) ? user.permissions : [];
+  const hasFullAccess = user?.role === "PLATFORM_ADMIN" || user?.role === "ADMIN" || isOwner;
+
+  const hasPerm = (requiredPerm?: string) => {
+    if (hasFullAccess || !requiredPerm) return true;
+    // If user has specific permission in their list
+    if (userPerms.includes(requiredPerm)) return true;
+    // If user has no permissions explicitly listed yet and is HR, default to standard HR items
+    if (userPerms.length === 0 && user?.role === "HR") {
+      const defaultHrExcluded = ["employees.permissions", "employees.roles", "organization.settings"];
+      return !defaultHrExcluded.includes(requiredPerm);
+    }
+    return false;
+  };
+
+  const allMainNavItems = [
     { label: "Overview", href: "/admin", icon: LayoutDashboard },
-    { label: "Attendance Monitor", href: "/admin/attendance", icon: CalendarCheck },
-    { label: "Employee Directory", href: "/admin/employees", icon: Users },
-    { label: "Departments", href: "/admin/departments", icon: Building2 },
-    { label: "Shift Schedules", href: "/admin/shifts", icon: Sliders },
-    { label: "Biometric Devices", href: "/admin/devices", icon: Cpu },
+    { label: "Attendance Monitor", href: "/admin/attendance", icon: CalendarCheck, perm: "attendance.view" },
+    { label: "Employee Directory", href: "/admin/employees", icon: Users, perm: "employees.view" },
+    { label: "Departments", href: "/admin/departments", icon: Building2, perm: "departments.manage" },
+    { label: "Shift Schedules", href: "/admin/shifts", icon: Sliders, perm: "shift.settings" },
+    { label: "Biometric & Hardware", href: "/admin/devices", icon: Cpu, perm: "devices.view" },
+    { label: "Lifecycle & ATS", href: "/admin/lifecycle", icon: Briefcase, perm: "employees.view" },
+    { label: "MIS & Compliance", href: "/admin/reports", icon: FileText, perm: "reports.export" },
   ];
 
-  const settingsNavItems = [
-    { label: "Core HR & Branches", href: "/admin/settings/core-hr", icon: Layers },
-    { label: "Permission & Access", href: "/admin/settings/permissions", icon: ShieldCheck },
-    { label: "Organization & Branding", href: "/admin/settings/organization", icon: Building2 },
+  const allSettingsNavItems = [
+    { label: "Core HR & Branches", href: "/admin/settings/core-hr", icon: Layers, perm: "organization.settings" },
+    { label: "Permission & Access", href: "/admin/settings/permissions", icon: ShieldCheck, perm: "employees.permissions" },
+    { label: "Organization & Branding", href: "/admin/settings/organization", icon: Building2, perm: "organization.settings" },
   ];
+
+  const mainNavItems = allMainNavItems.filter((i) => hasPerm(i.perm));
+  const settingsNavItems = allSettingsNavItems.filter((i) => hasPerm(i.perm));
 
   const orgName = user?.organization?.name || "Ekhone IT";
   const orgLogo = user?.organization?.logoUrl;
@@ -193,53 +224,55 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             })}
 
             {/* Collapsible Settings Menu */}
-            <div className="pt-2">
-              <button
-                type="button"
-                onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition ${
-                  isSettingsActive
-                    ? "bg-slate-100 text-slate-900 font-bold"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <Settings className={`w-4 h-4 shrink-0 ${isSettingsActive ? "text-emerald-700" : ""}`} />
-                  {isSidebarOpen && <span>Settings</span>}
-                </div>
-                {isSidebarOpen && (
-                  <ChevronDown
-                    className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
-                      isSettingsOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                )}
-              </button>
+            {settingsNavItems.length > 0 && (
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition ${
+                    isSettingsActive
+                      ? "bg-slate-100 text-slate-900 font-bold"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Settings className={`w-4 h-4 shrink-0 ${isSettingsActive ? "text-emerald-700" : ""}`} />
+                    {isSidebarOpen && <span>Settings</span>}
+                  </div>
+                  {isSidebarOpen && (
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                        isSettingsOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  )}
+                </button>
 
-              {/* Sub-items for Settings */}
-              {isSettingsOpen && (
-                <div className={`mt-1 space-y-0.5 ${isSidebarOpen ? "pl-4 ml-2 border-l border-slate-200/80" : ""}`}>
-                  {settingsNavItems.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = pathname.startsWith(item.href);
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
-                          isActive
-                            ? "bg-emerald-50 text-emerald-800 font-bold border border-emerald-200"
-                            : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
-                        }`}
-                      >
-                        <Icon className="w-3.5 h-3.5 shrink-0" />
-                        {isSidebarOpen && <span className="truncate">{item.label}</span>}
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+                {/* Sub-items for Settings */}
+                {isSettingsOpen && (
+                  <div className={`mt-1 space-y-0.5 ${isSidebarOpen ? "pl-4 ml-2 border-l border-slate-200/80" : ""}`}>
+                    {settingsNavItems.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = pathname.startsWith(item.href);
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
+                            isActive
+                              ? "bg-emerald-50 text-emerald-800 font-bold border border-emerald-200"
+                              : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
+                          }`}
+                        >
+                          <Icon className="w-3.5 h-3.5 shrink-0" />
+                          {isSidebarOpen && <span className="truncate">{item.label}</span>}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </nav>
         </div>
 
