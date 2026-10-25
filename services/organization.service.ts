@@ -52,4 +52,9 @@ export const OrganizationService = {
     const { data } = await apiClient.delete<{ success: boolean; message: string }>(`/organizations/networks/${id}`);
     return data;
   },
+
+  async getMyIp(): Promise<{ ip: string }> {
+    const { data } = await apiClient.get<{ ip: string }>("/organizations/my-ip");
+    return data;
+  },
 };

@@ -36,6 +36,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { deviceService } from "@/services/device.service";
+import { OrganizationService } from "@/services/organization.service";
 import { useAuth } from "@/components/auth/AuthProvider";
 
 export default function BiometricDevicesAdminPage() {
@@ -845,11 +846,27 @@ export default function BiometricDevicesAdminPage() {
                     <button
                       type="button"
                       onClick={async () => {
+                        let detectedIp = "";
                         try {
-                          const res = await fetch("https://api.ipify.org?format=json");
-                          const data = await res.json();
-                          if (data.ip) setWifiForm({ ...wifiForm, allowedPublicIp: data.ip });
+                          const res = await OrganizationService.getMyIp();
+                          if (res?.ip) detectedIp = res.ip;
                         } catch {
+                          // Fallback to external IP lookup
+                        }
+
+                        if (!detectedIp) {
+                          try {
+                            const res = await fetch("https://api.ipify.org?format=json");
+                            const data = await res.json();
+                            if (data?.ip) detectedIp = data.ip;
+                          } catch {
+                            // Ignore
+                          }
+                        }
+
+                        if (detectedIp) {
+                          setWifiForm({ ...wifiForm, allowedPublicIp: detectedIp });
+                        } else {
                           alert("Could not auto-fetch IP. You can check whatismyip.com or use 127.0.0.1 for local testing.");
                         }
                       }}
