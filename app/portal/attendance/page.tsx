@@ -96,12 +96,17 @@ export default function MobileAttendancePortal() {
   };
 
   const executeCheckIn = async () => {
+    setIsSubmitting(true);
     let gpsCoords = undefined;
     try {
-      const pos = await getCurrentGpsPosition();
+      const posPromise = getCurrentGpsPosition();
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("GPS_TIMEOUT")), 1500)
+      );
+      const pos = await Promise.race([posPromise, timeoutPromise]);
       gpsCoords = { latitude: pos.latitude, longitude: pos.longitude };
     } catch (e) {
-      console.warn("GPS capture skipped or denied:", e);
+      console.warn("GPS quick capture skipped or timed out:", e);
     }
 
     handleApiAction(() =>
@@ -128,12 +133,17 @@ export default function MobileAttendancePortal() {
   };
 
   const executeCheckOut = async () => {
+    setIsSubmitting(true);
     let gpsCoords = undefined;
     try {
-      const pos = await getCurrentGpsPosition();
+      const posPromise = getCurrentGpsPosition();
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("GPS_TIMEOUT")), 1500)
+      );
+      const pos = await Promise.race([posPromise, timeoutPromise]);
       gpsCoords = { latitude: pos.latitude, longitude: pos.longitude };
     } catch (e) {
-      console.warn("GPS capture skipped or denied:", e);
+      console.warn("GPS quick capture skipped or timed out:", e);
     }
 
     handleApiAction(() =>
