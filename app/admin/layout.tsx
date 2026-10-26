@@ -23,6 +23,9 @@ import {
   Layers,
   FileText,
   Briefcase,
+  MapPin,
+  HandCoins,
+  CalendarDays,
 } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -77,7 +80,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const allMainNavItems = [
     { label: "Overview", href: "/admin", icon: LayoutDashboard },
     { label: "Attendance Monitor", href: "/admin/attendance", icon: CalendarCheck, perm: "attendance.view" },
+    { label: "Outwork & Visits", href: "/admin/outwork", icon: MapPin },
+    { label: "Leave Requests", href: "/admin/leave", icon: CalendarDays },
     { label: "Employee Directory", href: "/admin/employees", icon: Users, perm: "employees.view" },
+    { label: "Company Loans", href: "/admin/loans", icon: HandCoins },
     { label: "Departments", href: "/admin/departments", icon: Building2, perm: "departments.manage" },
     { label: "Shift Schedules", href: "/admin/shifts", icon: Sliders, perm: "shift.settings" },
     { label: "Biometric & Hardware", href: "/admin/devices", icon: Cpu, perm: "devices.view" },

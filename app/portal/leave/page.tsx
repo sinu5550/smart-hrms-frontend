@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiClient, parseApiError } from "@/services/api";
 import { useAuth } from "@/components/auth/AuthProvider";
 import {
   CalendarDays,
@@ -25,6 +27,7 @@ interface LeaveRequestItem {
 
 export default function MobileLeavePortalPage() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<"APPLY" | "HISTORY">("HISTORY");
   const [leaveType, setLeaveType] = useState<"CASUAL" | "SICK" | "ANNUAL" | "SHORT_LEAVE">("CASUAL");
   const [startDate, setStartDate] = useState(new Date().toISOString().split("T")[0]);
@@ -54,25 +57,55 @@ export default function MobileLeavePortalPage() {
   ]);
 
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Fetch real leave history from server
+  const { data: serverLeaves = [], isLoading, refetch } = useQuery<any[]>({
+    queryKey: ["portal", "leave"],
+    queryFn: async () => {
+      const { data } = await apiClient.get<any[]>("/leave");
+      return data;
+    },
+  });
+
+  const leaveMutation = useMutation({
+    mutationFn: async (payload: {
+      leaveTypeName: string;
+      startDate: string;
+      endDate: string;
+      totalDays: number;
+      reason: string;
+    }) => {
+      const { data } = await apiClient.post("/leave", payload);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["portal", "leave"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "leaves"] });
+      setReason("");
+      setMessage({ type: "success", text: "Leave application submitted to your HR/Admin for approval!" });
+      setActiveTab("HISTORY");
+      setIsSubmitting(false);
+    },
+    onError: (err) => {
+      setMessage({ type: "error", text: parseApiError(err) });
+      setIsSubmitting(false);
+    },
+  });
 
   const handleSubmitLeave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!reason.trim()) return;
 
-    const newLeave: LeaveRequestItem = {
-      id: Date.now().toString(),
-      type: leaveType,
+    setIsSubmitting(true);
+    const days = leaveType === "SHORT_LEAVE" ? parseFloat(shortLeaveHours) / 8 : 1;
+    leaveMutation.mutate({
+      leaveTypeName: leaveType === "SHORT_LEAVE" ? "CASUAL" : leaveType,
       startDate,
       endDate: leaveType === "SHORT_LEAVE" ? startDate : endDate,
-      days: leaveType === "SHORT_LEAVE" ? parseFloat(shortLeaveHours) / 8 : 1,
+      totalDays: days,
       reason: reason.trim(),
-      status: "PENDING",
-    };
-
-    setLeaveHistory([newLeave, ...leaveHistory]);
-    setReason("");
-    setMessage({ type: "success", text: "Leave application submitted to your supervisor for recommendation & approval!" });
-    setActiveTab("HISTORY");
+    });
   };
 
   return (
@@ -154,16 +187,20 @@ export default function MobileLeavePortalPage() {
           </div>
 
           <div className="space-y-2.5">
-            {leaveHistory.map((item) => (
+            {isLoading ? (
+              <p className="text-center py-6 text-xs text-slate-400">Loading leave applications...</p>
+            ) : (serverLeaves.length > 0 ? serverLeaves : leaveHistory).map((item: any) => (
               <div
                 key={item.id}
                 className="p-3 rounded-lg border border-slate-200/80 bg-slate-50/50 hover:bg-slate-50 transition space-y-1.5"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-slate-800">{item.type.replace("_", " ")}</span>
+                    <span className="text-xs font-bold text-slate-800">
+                      {(item.leaveType?.name || item.type || "LEAVE").replace("_", " ")}
+                    </span>
                     <span className="text-[10px] text-slate-500 font-mono">
-                      ({item.days >= 1 ? `${item.days} Day(s)` : `${item.days * 8} Hours`})
+                      ({item.totalDays || item.days} Day(s))
                     </span>
                   </div>
                   <span
@@ -184,7 +221,7 @@ export default function MobileLeavePortalPage() {
                 <div className="flex items-center gap-2 text-[10px] text-slate-400 pt-1 border-t border-slate-100">
                   <Clock className="w-3 h-3 text-slate-400" />
                   <span>
-                    {item.startDate} {item.startDate !== item.endDate ? `to ${item.endDate}` : ""}
+                    {new Date(item.startDate).toLocaleDateString()} to {new Date(item.endDate).toLocaleDateString()}
                   </span>
                 </div>
               </div>
