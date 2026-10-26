@@ -31,15 +31,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
+    // Check 30-day continuous inactivity
+    if (AuthService.isInactiveExpired()) {
+      logout();
+      return;
+    }
+
     if (AuthService.isAuthenticated()) {
       AuthService.getProfile()
         .then((fetched) => setUser(fetched))
         .catch(() => {
           // Token expired or invalid
-          AuthService.logout();
+          if (AuthService.isInactiveExpired()) {
+            logout();
+          }
         })
         .finally(() => setIsLoading(false));
     }
+
+    // Sliding window: update last_active_at on user interactions
+    const onUserActivity = () => {
+      if (AuthService.isAuthenticated()) {
+        AuthService.recordActivity();
+      }
+    };
+
+    window.addEventListener("click", onUserActivity, { passive: true });
+    window.addEventListener("keydown", onUserActivity, { passive: true });
+    window.addEventListener("touchstart", onUserActivity, { passive: true });
+
+    // When returning to the tab/app, check if 30 days of inactivity passed
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        if (AuthService.isInactiveExpired()) {
+          logout();
+        } else if (AuthService.isAuthenticated()) {
+          AuthService.recordActivity();
+        }
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      window.removeEventListener("click", onUserActivity);
+      window.removeEventListener("keydown", onUserActivity);
+      window.removeEventListener("touchstart", onUserActivity);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
   }, []);
 
   const login = async (identifier: string, password: string): Promise<AuthUser> => {

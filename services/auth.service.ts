@@ -39,13 +39,31 @@ export interface LoginResponse {
   user: AuthUser;
 }
 
+// 30 days continuous inactivity timeout (in ms)
+export const INACTIVITY_TIMEOUT_MS = 30 * 24 * 60 * 60 * 1000;
+
 export const AuthService = {
+  recordActivity(): void {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("last_active_at", Date.now().toString());
+    }
+  },
+
+  isInactiveExpired(): boolean {
+    if (typeof window === "undefined") return false;
+    const lastActive = localStorage.getItem("last_active_at");
+    if (!lastActive) return false;
+    const elapsed = Date.now() - Number(lastActive);
+    return elapsed > INACTIVITY_TIMEOUT_MS;
+  },
+
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
     const response = await apiClient.post<LoginResponse>("/auth/login", credentials);
     if (response.data?.accessToken) {
       localStorage.setItem("access_token", response.data.accessToken);
       localStorage.setItem("refresh_token", response.data.refreshToken);
       localStorage.setItem("user_profile", JSON.stringify(response.data.user));
+      this.recordActivity();
     }
     return response.data;
   },
@@ -55,6 +73,7 @@ export const AuthService = {
     localStorage.setItem("access_token", data.accessToken);
     localStorage.setItem("refresh_token", data.refreshToken);
     localStorage.setItem("user_profile", JSON.stringify(data.user));
+    this.recordActivity();
     return data;
   },
 
@@ -67,6 +86,7 @@ export const AuthService = {
     const response = await apiClient.get<AuthUser>("/auth/me");
     if (response.data) {
       localStorage.setItem("user_profile", JSON.stringify(response.data));
+      this.recordActivity();
     }
     return response.data;
   },
@@ -76,6 +96,7 @@ export const AuthService = {
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
       localStorage.removeItem("user_profile");
+      localStorage.removeItem("last_active_at");
     }
   },
 
@@ -90,12 +111,17 @@ export const AuthService = {
       localStorage.setItem("access_token", response.data.session.accessToken);
       localStorage.setItem("refresh_token", response.data.session.refreshToken);
       localStorage.setItem("user_profile", JSON.stringify(response.data.session.user));
+      this.recordActivity();
     }
     return response.data;
   },
 
   getUser(): AuthUser | null {
     if (typeof window === "undefined") return null;
+    if (this.isInactiveExpired()) {
+      this.logout();
+      return null;
+    }
     const stored = localStorage.getItem("user_profile");
     if (!stored) return null;
     try {
@@ -107,6 +133,14 @@ export const AuthService = {
 
   isAuthenticated(): boolean {
     if (typeof window === "undefined") return false;
-    return !!localStorage.getItem("access_token");
+    if (this.isInactiveExpired()) {
+      this.logout();
+      return false;
+    }
+    const hasToken = !!localStorage.getItem("access_token");
+    if (hasToken && !localStorage.getItem("last_active_at")) {
+      this.recordActivity();
+    }
+    return hasToken;
   },
 };
