@@ -1,9 +1,11 @@
-const CACHE_NAME = 'hrms-core-pwa-v1';
+const CACHE_NAME = 'hrms-core-pwa-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/manifest.json',
-  '/portal/attendance',
-  '/portal/profile',
+  '/favicon.ico',
+  '/apple-touch-icon.png',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png',
   '/login'
 ];
 

@@ -8,12 +8,18 @@ export function PwaRegister() {
   const [showInstallBanner, setShowInstallBanner] = useState(false);
 
   useEffect(() => {
-    if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
-      window.addEventListener('load', () => {
+    if ('serviceWorker' in navigator) {
+      const registerSW = () => {
         navigator.serviceWorker.register('/sw.js').catch((err) => {
           console.warn('Service Worker registration failed:', err);
         });
-      });
+      };
+
+      if (document.readyState === 'complete') {
+        registerSW();
+      } else {
+        window.addEventListener('load', registerSW);
+      }
     }
 
     const handler = (e: any) => {
