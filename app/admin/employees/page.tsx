@@ -53,8 +53,9 @@ export default function EmployeesDirectoryPage() {
     const matchesStatus = statusFilter === "ALL" || emp.status === statusFilter;
     const matchesDepartment = departmentFilter === "ALL" || emp.departmentId === departmentFilter;
     const matchesBlood = bloodGroupFilter === "ALL" || emp.bloodGroup === bloodGroupFilter;
+    const isOwner = Boolean(ownerEmail && emp.email?.toLowerCase() === ownerEmail);
 
-    return matchesSearch && matchesStatus && matchesDepartment && matchesBlood;
+    return !isOwner && matchesSearch && matchesStatus && matchesDepartment && matchesBlood;
   });
 
   const handleStatusToggle = async (emp: Employee, newStatus: EmploymentStatus) => {
