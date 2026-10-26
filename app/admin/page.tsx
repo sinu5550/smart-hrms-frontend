@@ -36,18 +36,33 @@ export default function AdminOverviewPage() {
     </section>
 
     <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-      {cards.map(({ title, value, hint, icon: Icon, tone }) => (
-        <article key={title} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs font-medium text-slate-600">{title}</p>
-              <p className="mt-2 text-2xl font-bold tracking-tight text-slate-800">{value}</p>
+      {employeesLoading || attendanceLoading ? (
+        [1, 2, 3].map((n) => (
+          <article key={n} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm space-y-3">
+            <div className="flex items-start justify-between">
+              <div className="space-y-2">
+                <div className="h-3 w-28 bg-slate-200/80 rounded animate-pulse" />
+                <div className="h-7 w-16 bg-slate-200/80 rounded animate-pulse" />
+              </div>
+              <div className="h-8 w-8 bg-slate-200/80 rounded-lg animate-pulse" />
             </div>
-            <span className={`rounded-lg p-2 ${tone}`}><Icon className="h-4 w-4"/></span>
-          </div>
-          <p className="mt-2 text-[11px] text-slate-400">{hint}</p>
-        </article>
-      ))}
+            <div className="h-2.5 w-32 bg-slate-200/60 rounded animate-pulse" />
+          </article>
+        ))
+      ) : (
+        cards.map(({ title, value, hint, icon: Icon, tone }) => (
+          <article key={title} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-medium text-slate-600">{title}</p>
+                <p className="mt-2 text-2xl font-bold tracking-tight text-slate-800">{value}</p>
+              </div>
+              <span className={`rounded-lg p-2 ${tone}`}><Icon className="h-4 w-4"/></span>
+            </div>
+            <p className="mt-2 text-[11px] text-slate-400">{hint}</p>
+          </article>
+        ))
+      )}
     </section>
 
     <section className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
@@ -62,22 +77,39 @@ export default function AdminOverviewPage() {
           </Link>
         </div>
         <div className="mt-3 divide-y divide-slate-100">
-          {attendance.slice(0, 5).map((record) => (
-            <div key={record.id} className="flex items-center justify-between py-2.5">
-              <div className="flex items-center gap-2.5">
-                <span className="grid h-8 w-8 place-items-center rounded-full bg-emerald-50 text-xs font-bold text-emerald-700 border border-emerald-100">
-                  {record.user.fullName.charAt(0)}
-                </span>
-                <div>
-                  <p className="text-xs font-semibold text-slate-800">{record.user.fullName}</p>
-                  <p className="text-[10px] text-slate-400 font-mono">{record.user.employeeId}</p>
+          {attendanceLoading ? (
+            <div className="space-y-3 py-2">
+              {[1, 2, 3].map((n) => (
+                <div key={n} className="flex items-center justify-between py-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className="h-8 w-8 rounded-full bg-slate-200/80 animate-pulse" />
+                    <div className="space-y-1">
+                      <div className="h-3.5 w-28 bg-slate-200/80 rounded animate-pulse" />
+                      <div className="h-2.5 w-20 bg-slate-200/60 rounded animate-pulse" />
+                    </div>
+                  </div>
+                  <div className="h-5 w-16 bg-slate-200/80 rounded-full animate-pulse" />
                 </div>
-              </div>
-              <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${record.status === "LATE" ? "bg-amber-50 text-amber-700 border border-amber-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200"}`}>
-                {record.status === "LATE" ? "Late" : record.currentState === "CHECKED_OUT" ? "Checked out" : record.currentState === "ON_BREAK" ? "On break" : "Present"}
-              </span>
+              ))}
             </div>
-          ))}
+          ) : (
+            attendance.slice(0, 5).map((record) => (
+              <div key={record.id} className="flex items-center justify-between py-2.5">
+                <div className="flex items-center gap-2.5">
+                  <span className="grid h-8 w-8 place-items-center rounded-full bg-emerald-50 text-xs font-bold text-emerald-700 border border-emerald-100">
+                    {record.user.fullName.charAt(0)}
+                  </span>
+                  <div>
+                    <p className="text-xs font-semibold text-slate-800">{record.user.fullName}</p>
+                    <p className="text-[10px] text-slate-400 font-mono">{record.user.employeeId}</p>
+                  </div>
+                </div>
+                <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${record.status === "LATE" ? "bg-amber-50 text-amber-700 border border-amber-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200"}`}>
+                  {record.status === "LATE" ? "Late" : record.currentState === "CHECKED_OUT" ? "Checked out" : record.currentState === "ON_BREAK" ? "On break" : "Present"}
+                </span>
+              </div>
+            ))
+          )}
           {!attendanceLoading && attendance.length === 0 && (
             <p className="py-8 text-center text-xs text-slate-400">No attendance recorded for today.</p>
           )}

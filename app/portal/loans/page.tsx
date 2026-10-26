@@ -217,7 +217,21 @@ export default function HrLoansPage() {
         </h2>
 
         {isLoading ? (
-          <div className="text-center py-6 text-xs text-slate-400">Loading active loan applications...</div>
+          <div className="space-y-3 py-2">
+            {[1, 2, 3].map((n) => (
+              <div key={n} className="p-3 rounded-lg border border-slate-100 bg-slate-50/50 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="h-4 w-28 bg-slate-200/80 rounded animate-pulse" />
+                  <div className="h-5 w-16 bg-slate-200/80 rounded-full animate-pulse" />
+                </div>
+                <div className="h-2.5 w-44 bg-slate-200/60 rounded animate-pulse" />
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <div className="h-7 bg-slate-200/60 rounded-md animate-pulse" />
+                  <div className="h-7 bg-slate-200/60 rounded-md animate-pulse" />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : loans.length === 0 ? (
           <div className="text-center py-6 text-xs text-slate-400">No active or past HR loans recorded.</div>
         ) : (

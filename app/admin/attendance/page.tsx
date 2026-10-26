@@ -171,7 +171,37 @@ export default function AdminAttendancePage() {
       {/* Attendance Records Table */}
       <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
         {isLoading && records.length === 0 ? (
-          <div className="p-12 text-center text-xs text-slate-800">Loading attendance data...</div>
+          <div>
+            <div className="sm:hidden p-3 space-y-3">
+              {[1, 2, 3, 4].map((n) => (
+                <div key={n} className="p-3.5 space-y-2.5 rounded-lg border border-slate-100 bg-white">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1.5">
+                      <div className="h-3.5 w-32 bg-slate-200/80 rounded-md animate-pulse" />
+                      <div className="h-2.5 w-24 bg-slate-200/80 rounded-md animate-pulse" />
+                    </div>
+                    <div className="h-5 w-16 bg-slate-200/80 rounded-full animate-pulse" />
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 p-2 rounded-lg bg-slate-50">
+                    <div className="h-6 bg-slate-200/60 rounded-md animate-pulse" />
+                    <div className="h-6 bg-slate-200/60 rounded-md animate-pulse" />
+                    <div className="h-6 bg-slate-200/60 rounded-md animate-pulse" />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="hidden sm:block p-4 space-y-3">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <div key={n} className="flex items-center justify-between gap-4 py-2 border-b border-slate-100">
+                  <div className="h-4 w-40 bg-slate-200/80 rounded-md animate-pulse" />
+                  <div className="h-4 w-24 bg-slate-200/80 rounded-md animate-pulse" />
+                  <div className="h-4 w-28 bg-slate-200/80 rounded-md animate-pulse" />
+                  <div className="h-4 w-20 bg-slate-200/80 rounded-md animate-pulse" />
+                  <div className="h-5 w-16 bg-slate-200/80 rounded-full animate-pulse" />
+                </div>
+              ))}
+            </div>
+          </div>
         ) : error ? (
           <div className="p-8 text-center text-xs text-rose-700">{parseApiError(error)}</div>
         ) : filteredRecords.length === 0 ? (

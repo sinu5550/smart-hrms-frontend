@@ -146,7 +146,26 @@ export default function AdminLoansManagementPage() {
         {/* Mobile View: Cards */}
         <div className="sm:hidden divide-y divide-slate-100">
           {isLoading ? (
-            <div className="p-8 text-center text-xs text-slate-400">Loading loan records...</div>
+            <div className="p-3 space-y-3">
+              {[1, 2, 3].map((n) => (
+                <div key={n} className="p-4 space-y-3 rounded-xl border border-slate-100 bg-white">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-full bg-slate-200/80 animate-pulse shrink-0" />
+                      <div className="space-y-1.5">
+                        <div className="h-3.5 w-28 bg-slate-200/80 rounded animate-pulse" />
+                        <div className="h-2.5 w-20 bg-slate-200/60 rounded animate-pulse" />
+                      </div>
+                    </div>
+                    <div className="h-5 w-16 bg-slate-200/80 rounded-full animate-pulse" />
+                  </div>
+                  <div className="p-3 rounded-lg bg-slate-50 space-y-2">
+                    <div className="h-4 w-32 bg-slate-200/70 rounded animate-pulse" />
+                    <div className="h-3 w-48 bg-slate-200/60 rounded animate-pulse" />
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : filtered.length === 0 ? (
             <div className="p-8 text-center text-xs text-slate-400">No loan requests found.</div>
           ) : (
@@ -242,9 +261,27 @@ export default function AdminLoansManagementPage() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
-                <tr>
-                  <td colSpan={7} className="py-8 text-center text-slate-400">Loading loans...</td>
-                </tr>
+                <>
+                  {[1, 2, 3, 4].map((n) => (
+                    <tr key={n} className="border-b border-slate-100">
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-full bg-slate-200/80 animate-pulse shrink-0" />
+                          <div className="space-y-1">
+                            <div className="h-3.5 w-28 bg-slate-200/80 rounded animate-pulse" />
+                            <div className="h-2.5 w-20 bg-slate-200/60 rounded animate-pulse" />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4"><div className="h-4 w-20 bg-slate-200/70 rounded animate-pulse" /></td>
+                      <td className="py-3 px-4"><div className="h-5 w-24 bg-slate-200/70 rounded animate-pulse" /></td>
+                      <td className="py-3 px-4"><div className="h-4 w-28 bg-slate-200/70 rounded animate-pulse" /></td>
+                      <td className="py-3 px-4"><div className="h-4 w-36 bg-slate-200/70 rounded animate-pulse" /></td>
+                      <td className="py-3 px-4"><div className="h-5 w-16 bg-slate-200/70 rounded-full animate-pulse" /></td>
+                      <td className="py-3 px-4 text-right"><div className="h-6 w-20 ml-auto bg-slate-200/70 rounded animate-pulse" /></td>
+                    </tr>
+                  ))}
+                </>
               ) : filtered.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-8 text-center text-slate-400">No matching loans found.</td>

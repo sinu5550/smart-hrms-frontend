@@ -223,7 +223,18 @@ export default function OutworkSubmissionPage() {
         </h2>
 
         {isLoading ? (
-          <div className="text-center py-6 text-xs text-slate-400">Loading outwork applications...</div>
+          <div className="space-y-3 py-2">
+            {[1, 2, 3].map((n) => (
+              <div key={n} className="p-3 rounded-lg border border-slate-100 bg-slate-50/50 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="h-3.5 w-28 bg-slate-200/80 rounded animate-pulse" />
+                  <div className="h-5 w-16 bg-slate-200/80 rounded-full animate-pulse" />
+                </div>
+                <div className="h-2.5 w-40 bg-slate-200/60 rounded animate-pulse" />
+                <div className="h-3 w-full bg-slate-200/60 rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
         ) : records.length === 0 ? (
           <div className="text-center py-6 text-xs text-slate-400">No outwork submissions recorded yet.</div>
         ) : (
