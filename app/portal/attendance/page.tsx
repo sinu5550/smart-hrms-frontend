@@ -8,6 +8,8 @@ import { parseApiError } from "@/services/api";
 import { useMyTodayAttendance, useAttendanceActions } from "@/hooks";
 import { QRCameraScanner } from "@/components/attendance/QRCameraScanner";
 import { getCurrentGpsPosition } from "@/lib/geofence";
+import { useAuth } from "@/components/auth/AuthProvider";
+import Link from "next/link";
 import {
   Clock,
   Coffee,
@@ -17,6 +19,8 @@ import {
   Sparkles,
   WifiOff,
   MapPin,
+  ShieldAlert,
+  ArrowRight,
 } from "lucide-react";
 
 const formatSecondsToHMS = (totalSeconds: number) => {
@@ -27,8 +31,15 @@ const formatSecondsToHMS = (totalSeconds: number) => {
 };
 
 export default function MobileAttendancePortal() {
+  const { user } = useAuth();
   const { data: statusData, isLoading } = useMyTodayAttendance();
   const attendanceActions = useAttendanceActions();
+
+  const isOwner = Boolean(
+    user?.email &&
+    user?.organization?.ownerEmail &&
+    user.email.toLowerCase() === user.organization.ownerEmail.toLowerCase()
+  );
 
   const [activeModal, setActiveModal] = useState<"NONE" | "CONFIRM_CHECKIN" | "CONFIRM_CHECKOUT" | "SCAN_CHECKOUT" | "SELECT_BREAK" | "IP_RESTRICTED">("NONE");
   const [selectedBreakType, setSelectedBreakType] = useState<BreakType>("LUNCH");
@@ -162,6 +173,42 @@ export default function MobileAttendancePortal() {
         <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-3" />
         <p className="text-slate-800 text-xs tracking-wide">Syncing session...</p>
       </div>
+    );
+  }
+
+  // If user is Organization Owner, they are exempt from daily attendance punching
+  if (isOwner) {
+    return (
+      <main className="min-h-screen bg-white text-slate-800 flex flex-col items-center justify-center p-6 max-w-md mx-auto text-center space-y-4 pb-20">
+        <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto shadow-xs">
+          <Sparkles className="w-8 h-8" />
+        </div>
+        <div>
+          <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+            Workspace Owner
+          </span>
+          <h2 className="text-xl font-bold text-slate-900 mt-2">Attendance Exempted</h2>
+          <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+            As the Organization Owner, you are permanent and exempt from punch-in/out requirements. HR officers and employees are tracked in real-time.
+          </p>
+        </div>
+
+        <div className="pt-2 w-full space-y-2">
+          <Link
+            href="/admin/attendance"
+            className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs flex items-center justify-center gap-1.5 active:scale-95"
+          >
+            <span>Monitor Employee Attendance</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+          <Link
+            href="/admin"
+            className="w-full py-2.5 px-4 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold transition flex items-center justify-center"
+          >
+            Go to Admin Dashboard
+          </Link>
+        </div>
+      </main>
     );
   }
 
