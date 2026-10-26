@@ -127,42 +127,38 @@ export default function EmployeesDirectoryPage() {
         />
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
-        {/* Mobile View: Clean App Cards */}
-        <div className="sm:hidden divide-y divide-slate-100">
+      {/* Employee List Container */}
+      <div className="bg-white sm:border sm:border-slate-200 sm:rounded-lg overflow-hidden sm:shadow-sm">
+        {/* Mobile View: Standalone Rounded App Cards matching the Skeleton design */}
+        <div className="sm:hidden p-3 space-y-3 bg-slate-50/60 rounded-xl">
           {isLoading ? (
-            <div className="divide-y divide-slate-100">
+            <>
               {[1, 2, 3, 4].map((n) => (
-                <div key={n} className="p-3.5 space-y-2.5">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200/80 animate-pulse shrink-0" />
-                      <div className="space-y-1.5 min-w-0">
+                <div key={n} className="p-3.5 space-y-3 rounded-xl border border-slate-200 bg-white shadow-xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-10 h-10 rounded-full bg-slate-200/80 animate-pulse shrink-0" />
+                      <div className="space-y-1.5">
                         <div className="h-3.5 w-32 bg-slate-200/80 rounded animate-pulse" />
                         <div className="h-2.5 w-24 bg-slate-200/60 rounded animate-pulse" />
-                        <div className="h-3 w-20 bg-slate-100 border border-slate-200 rounded animate-pulse" />
                       </div>
                     </div>
-                    <div className="flex items-center gap-1.5 shrink-0 pt-1">
-                      <div className="w-4 h-4 bg-slate-200/70 rounded animate-pulse" />
-                      <div className="w-4 h-4 bg-slate-200/70 rounded animate-pulse" />
-                    </div>
+                    <div className="h-6 w-14 bg-slate-200/80 rounded-lg animate-pulse" />
                   </div>
-                  <div className="flex items-center justify-between pt-1 border-t border-slate-100">
-                    <div className="flex items-center gap-1.5">
-                      <div className="h-3 w-10 bg-slate-200/70 rounded animate-pulse" />
-                      <div className="h-3 w-6 bg-slate-200/70 rounded animate-pulse" />
-                    </div>
-                    <div className="h-7 w-28 bg-slate-100 border border-slate-200 rounded-md animate-pulse" />
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                    <div className="h-3.5 w-20 bg-slate-200/60 rounded animate-pulse" />
+                    <div className="h-7 w-24 bg-slate-200/80 rounded-lg animate-pulse" />
                   </div>
                 </div>
               ))}
-            </div>
+            </>
           ) : filteredEmployees.length === 0 ? (
-            <div className="p-8 text-center text-xs text-slate-500">No matching personnel found.</div>
+            <div className="p-8 text-center text-xs text-slate-500 bg-white rounded-xl border border-slate-200">
+              No matching personnel found.
+            </div>
           ) : (
             filteredEmployees.map((emp) => (
-              <div key={emp.id} className="p-3.5 space-y-2.5">
+              <div key={emp.id} className="p-3.5 space-y-3 rounded-xl border border-slate-200/90 bg-white shadow-xs">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center text-xs font-bold text-slate-700">
@@ -173,7 +169,7 @@ export default function EmployeesDirectoryPage() {
                       )}
                     </div>
                     <div className="min-w-0">
-                      <p className="font-semibold text-xs text-slate-900 truncate">{emp.fullName}</p>
+                      <p className="font-bold text-xs text-slate-900 truncate">{emp.fullName}</p>
                       <p className="text-[11px] text-slate-500 truncate">{emp.phone || emp.email}</p>
                       <span className="inline-block mt-0.5 font-mono text-[10px] px-1.5 py-0.2 rounded bg-slate-100 border border-slate-200 text-slate-700 font-medium">
                         {emp.employeeId}
@@ -202,9 +198,9 @@ export default function EmployeesDirectoryPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-100">
+                <div className="flex items-center justify-between text-[11px] pt-2 border-t border-slate-100">
                   <div className="flex items-center gap-1.5 text-slate-600 min-w-0">
-                    <span className="font-medium truncate">{emp.department?.name || "No Dept"}</span>
+                    <span className="font-semibold text-slate-700 truncate">{emp.department?.name || "No Dept"}</span>
                     {emp.bloodGroup && (
                       <span className="shrink-0 px-1.5 py-0.2 rounded font-bold text-[9px] bg-rose-50 border border-rose-200 text-rose-700">
                         {emp.bloodGroup}
