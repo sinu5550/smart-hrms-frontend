@@ -195,62 +195,62 @@ export default function BiometricDevicesAdminPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Tab Switcher */}
-          <div className="flex items-center p-1 bg-slate-100 border border-slate-200 rounded-lg">
+        <div className="w-full sm:w-auto">
+          {/* Tab Switcher - Horizontal scroll on mobile */}
+          <div className="flex items-center p-1 bg-slate-100 border border-slate-200 rounded-xl overflow-x-auto no-scrollbar max-w-full">
             <button
               onClick={() => setActiveTab("DEVICES")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg shrink-0 transition ${
                 activeTab === "DEVICES"
-                  ? "bg-white text-emerald-800 shadow-sm border border-slate-200"
+                  ? "bg-white text-emerald-800 shadow-xs border border-slate-200"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
               <Server className="w-3.5 h-3.5" />
-              <span>Biometric Terminals ({devices.length})</span>
+              <span>Biometric ({devices.length})</span>
             </button>
             <button
               onClick={() => setActiveTab("WIFI_NETWORKS")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg shrink-0 transition ${
                 activeTab === "WIFI_NETWORKS"
-                  ? "bg-white text-emerald-800 shadow-sm border border-slate-200"
+                  ? "bg-white text-emerald-800 shadow-xs border border-slate-200"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
               <Wifi className="w-3.5 h-3.5 text-blue-600" />
-              <span>Office Wi-Fi IPs ({networks.length})</span>
+              <span>Wi-Fi IPs ({networks.length})</span>
             </button>
             <button
               onClick={() => {
                 setActiveTab("QR_POSTER");
                 loadQrCode();
               }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg shrink-0 transition ${
                 activeTab === "QR_POSTER"
-                  ? "bg-white text-emerald-800 shadow-sm border border-slate-200"
+                  ? "bg-white text-emerald-800 shadow-xs border border-slate-200"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
               <QrCode className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Office QR Poster</span>
+              <span>QR Poster</span>
             </button>
             <button
               onClick={() => setActiveTab("LIVE_STREAM")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg shrink-0 transition ${
                 activeTab === "LIVE_STREAM"
-                  ? "bg-white text-emerald-800 shadow-sm border border-slate-200"
+                  ? "bg-white text-emerald-800 shadow-xs border border-slate-200"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
               <Activity className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
-              <span>Live Ingestion Feed</span>
+              <span>Live Feed</span>
             </button>
           </div>
 
           {activeTab === "DEVICES" && canManageDevices && (
             <button
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg shadow-sm transition shrink-0"
+              className="mt-2 sm:mt-0 flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg shadow-sm transition w-full sm:w-auto shrink-0"
             >
               <Plus className="w-4 h-4" />
               <span>Add Biometric Machine</span>
@@ -260,7 +260,7 @@ export default function BiometricDevicesAdminPage() {
           {activeTab === "WIFI_NETWORKS" && canManageWifi && (
             <button
               onClick={() => setIsWifiModalOpen(true)}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold rounded-lg shadow-sm transition shrink-0"
+              className="mt-2 sm:mt-0 flex items-center justify-center gap-1.5 px-3.5 py-2 bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold rounded-lg shadow-sm transition w-full sm:w-auto shrink-0"
             >
               <Plus className="w-4 h-4" />
               <span>Add Wi-Fi IP Rule</span>

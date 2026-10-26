@@ -127,7 +127,91 @@ export default function EmployeesDirectoryPage() {
       </div>
 
       <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
+        {/* Mobile View: Clean App Cards */}
+        <div className="sm:hidden divide-y divide-slate-100">
+          {isLoading ? (
+            <div className="p-8 text-center text-xs text-slate-500">Loading personnel database...</div>
+          ) : filteredEmployees.length === 0 ? (
+            <div className="p-8 text-center text-xs text-slate-500">No matching personnel found.</div>
+          ) : (
+            filteredEmployees.map((emp) => (
+              <div key={emp.id} className="p-3.5 space-y-2.5">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center text-xs font-bold text-slate-700">
+                      {emp.avatarUrl ? (
+                        <Image src={emp.avatarUrl} alt="" width={40} height={40} unoptimized className="w-full h-full object-cover" />
+                      ) : (
+                        emp.fullName.charAt(0)
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-xs text-slate-900 truncate">{emp.fullName}</p>
+                      <p className="text-[11px] text-slate-500 truncate">{emp.phone || emp.email}</p>
+                      <span className="inline-block mt-0.5 font-mono text-[10px] px-1.5 py-0.2 rounded bg-slate-100 border border-slate-200 text-slate-700 font-medium">
+                        {emp.employeeId}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => setTargetEditEmployee(emp)}
+                      className="p-1.5 text-slate-500 hover:text-emerald-700 rounded-lg hover:bg-emerald-50 active:bg-emerald-100 transition"
+                      title="Edit"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    {emp.email.toLowerCase() === ownerEmail ? (
+                      <span className="text-[10px] font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">Owner</span>
+                    ) : (
+                      <button
+                        onClick={() => setTargetDeleteEmployee(emp)}
+                        className="p-1.5 text-slate-500 hover:text-rose-700 rounded-lg hover:bg-rose-50 active:bg-rose-100 transition"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-100">
+                  <div className="flex items-center gap-1.5 text-slate-600 min-w-0">
+                    <span className="font-medium truncate">{emp.department?.name || "No Dept"}</span>
+                    {emp.bloodGroup && (
+                      <span className="shrink-0 px-1.5 py-0.2 rounded font-bold text-[9px] bg-rose-50 border border-rose-200 text-rose-700">
+                        {emp.bloodGroup}
+                      </span>
+                    )}
+                  </div>
+                  <div className="shrink-0">
+                    {emp.email.toLowerCase() === ownerEmail ? (
+                      <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                        ACTIVE
+                      </span>
+                    ) : (
+                      <Select
+                        value={emp.status}
+                        onValueChange={(value) => handleStatusToggle(emp, value as EmploymentStatus)}
+                        triggerClassName={`h-7 w-28 text-[10px] font-bold rounded-md border ${
+                          emp.status === "ACTIVE"
+                            ? "bg-emerald-50 border-emerald-300 text-emerald-800"
+                            : emp.status === "ON_PROBATION"
+                            ? "bg-amber-50 border-amber-300 text-amber-800"
+                            : "bg-rose-50 border-rose-300 text-rose-800"
+                        }`}
+                        options={[{value:"ACTIVE",label:"ACTIVE"},{value:"ON_PROBATION",label:"PROBATION"},{value:"RESIGNED",label:"RESIGNED"},{value:"TERMINATED",label:"TERMINATED"}]}
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop View: Full Table */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full text-left text-xs text-slate-800">
             <thead className="bg-white/80 text-[11px] uppercase font-semibold text-slate-800 border-b border-slate-200">
               <tr>

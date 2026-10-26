@@ -180,88 +180,152 @@ export default function AdminAttendancePage() {
             <p className="text-xs">No attendance records found for this criteria.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="border-b border-slate-200 text-slate-800 bg-white/50">
-                  <th className="py-3 px-4 font-semibold">Employee</th>
-                  <th className="py-3 px-4 font-semibold">Department</th>
-                  <th className="py-3 px-4 font-semibold">Check-In</th>
-                  <th className="py-3 px-4 font-semibold">Check-Out</th>
-                  <th className="py-3 px-4 font-semibold">State</th>
-                  <th className="py-3 px-4 font-semibold">Status</th>
-                  <th className="py-3 px-4 font-semibold">Work / Break</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100/60">
-                {filteredRecords.map((item) => (
-                  <tr key={item.id} className="hover:bg-white/30 transition">
-                    <td className="py-3.5 px-4">
-                      <div className="font-semibold text-slate-800">{item.user.fullName}</div>
-                      <div className="text-[11px] text-slate-500 font-mono">
-                        {item.user.employeeId}
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4 text-slate-800">
-                      <div>{item.user.department?.name || "General"}</div>
-                      <div className="text-[11px] text-slate-500">
-                        {item.user.designation?.title || "Staff"}
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4 text-slate-800 font-mono">
-                      {new Date(item.checkInTime).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </td>
-                    <td className="py-3.5 px-4 text-slate-800 font-mono">
-                      {item.checkOutTime
-                        ? new Date(item.checkOutTime).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
-                        : "-"}
-                    </td>
-                    <td className="py-3.5 px-4">
+          <div>
+            {/* Mobile Card List (Hidden on sm/md/lg) */}
+            <div className="sm:hidden divide-y divide-slate-100">
+              {filteredRecords.map((item) => (
+                <div key={item.id} className="p-3.5 space-y-2.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="font-bold text-xs text-slate-900 truncate">{item.user.fullName}</p>
+                      <p className="text-[10px] text-slate-400 font-mono">
+                        {item.user.employeeId} · {item.user.department?.name || "General"}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
                       {item.currentState === "CHECKED_IN" && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold text-slate-800 text-slate-800 border border-emerald-200">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                           Active
                         </span>
                       )}
                       {item.currentState === "ON_BREAK" && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-950 text-amber-700 border border-amber-200 animate-pulse">
-                          On Break
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 animate-pulse">
+                          Break
                         </span>
                       )}
                       {item.currentState === "CHECKED_OUT" && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-white text-slate-800">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600">
                           Ended
                         </span>
                       )}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      {item.status === "PRESENT" && (
-                        <span className="text-slate-800 font-semibold">On-Time</span>
-                      )}
-                      {item.status === "LATE" && (
-                        <span className="text-rose-700 font-semibold">Late</span>
-                      )}
-                      {item.status === "HALF_DAY" && (
-                        <span className="text-amber-400 font-semibold">Half Day</span>
-                      )}
-                    </td>
-                    <td className="py-3.5 px-4 text-slate-800 font-mono">
-                      {item.totalWorkMinutes !== undefined
-                        ? `${Math.floor(item.totalWorkMinutes / 60)}h ${
-                            item.totalWorkMinutes % 60
-                          }m`
-                        : "-"}{" "}
-                      / <span className="text-slate-500">{item.totalBreakMinutes || 0}m break</span>
-                    </td>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        item.status === "PRESENT" ? "text-emerald-700 bg-emerald-50 border border-emerald-100" :
+                        item.status === "LATE" ? "text-rose-700 bg-rose-50 border border-rose-200" :
+                        "text-amber-700 bg-amber-50 border border-amber-200"
+                      }`}>
+                        {item.status}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 p-2 rounded-lg bg-slate-50 border border-slate-100 text-[10px]">
+                    <div>
+                      <span className="text-slate-400 block">Check In</span>
+                      <span className="font-mono font-bold text-slate-800">
+                        {new Date(item.checkInTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block">Check Out</span>
+                      <span className="font-mono font-bold text-slate-800">
+                        {item.checkOutTime ? new Date(item.checkOutTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block">Work Time</span>
+                      <span className="font-mono font-bold text-emerald-700">
+                        {item.totalWorkMinutes !== undefined ? `${Math.floor(item.totalWorkMinutes / 60)}h ${item.totalWorkMinutes % 60}m` : "—"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Full Table (Hidden on mobile) */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="border-b border-slate-200 text-slate-800 bg-slate-50/70">
+                    <th className="py-3 px-4 font-semibold">Employee</th>
+                    <th className="py-3 px-4 font-semibold">Department</th>
+                    <th className="py-3 px-4 font-semibold">Check-In</th>
+                    <th className="py-3 px-4 font-semibold">Check-Out</th>
+                    <th className="py-3 px-4 font-semibold">State</th>
+                    <th className="py-3 px-4 font-semibold">Status</th>
+                    <th className="py-3 px-4 font-semibold">Work / Break</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100/60">
+                  {filteredRecords.map((item) => (
+                    <tr key={item.id} className="hover:bg-slate-50/60 transition">
+                      <td className="py-3.5 px-4">
+                        <div className="font-semibold text-slate-800">{item.user.fullName}</div>
+                        <div className="text-[11px] text-slate-500 font-mono">
+                          {item.user.employeeId}
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-4 text-slate-800">
+                        <div>{item.user.department?.name || "General"}</div>
+                        <div className="text-[11px] text-slate-500">
+                          {item.user.designation?.title || "Staff"}
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-4 text-slate-800 font-mono">
+                        {new Date(item.checkInTime).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </td>
+                      <td className="py-3.5 px-4 text-slate-800 font-mono">
+                        {item.checkOutTime
+                          ? new Date(item.checkOutTime).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : "-"}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        {item.currentState === "CHECKED_IN" && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold text-slate-800 text-slate-800 border border-emerald-200">
+                            Active
+                          </span>
+                        )}
+                        {item.currentState === "ON_BREAK" && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-950 text-amber-700 border border-amber-200 animate-pulse">
+                            On Break
+                          </span>
+                        )}
+                        {item.currentState === "CHECKED_OUT" && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-white text-slate-800">
+                            Ended
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        {item.status === "PRESENT" && (
+                          <span className="text-slate-800 font-semibold">On-Time</span>
+                        )}
+                        {item.status === "LATE" && (
+                          <span className="text-rose-700 font-semibold">Late</span>
+                        )}
+                        {item.status === "HALF_DAY" && (
+                          <span className="text-amber-400 font-semibold">Half Day</span>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 text-slate-800 font-mono">
+                        {item.totalWorkMinutes !== undefined
+                          ? `${Math.floor(item.totalWorkMinutes / 60)}h ${
+                              item.totalWorkMinutes % 60
+                            }m`
+                          : "-"}{" "}
+                        / <span className="text-slate-500">{item.totalBreakMinutes || 0}m break</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
