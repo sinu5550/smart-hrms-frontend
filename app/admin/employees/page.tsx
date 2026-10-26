@@ -131,22 +131,29 @@ export default function EmployeesDirectoryPage() {
         {/* Mobile View: Clean App Cards */}
         <div className="sm:hidden divide-y divide-slate-100">
           {isLoading ? (
-            <div className="p-3 space-y-3">
+            <div className="divide-y divide-slate-100">
               {[1, 2, 3, 4].map((n) => (
-                <div key={n} className="p-3.5 space-y-2.5 rounded-lg border border-slate-100 bg-white">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-full bg-slate-200/80 animate-pulse shrink-0" />
-                      <div className="space-y-1.5">
-                        <div className="h-3.5 w-28 bg-slate-200/80 rounded-md animate-pulse" />
-                        <div className="h-2.5 w-20 bg-slate-200/80 rounded-md animate-pulse" />
+                <div key={n} className="p-3.5 space-y-2.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200/80 animate-pulse shrink-0" />
+                      <div className="space-y-1.5 min-w-0">
+                        <div className="h-3.5 w-32 bg-slate-200/80 rounded animate-pulse" />
+                        <div className="h-2.5 w-24 bg-slate-200/60 rounded animate-pulse" />
+                        <div className="h-3 w-20 bg-slate-100 border border-slate-200 rounded animate-pulse" />
                       </div>
                     </div>
-                    <div className="h-6 w-14 bg-slate-200/80 rounded-md animate-pulse" />
+                    <div className="flex items-center gap-1.5 shrink-0 pt-1">
+                      <div className="w-4 h-4 bg-slate-200/70 rounded animate-pulse" />
+                      <div className="w-4 h-4 bg-slate-200/70 rounded animate-pulse" />
+                    </div>
                   </div>
                   <div className="flex items-center justify-between pt-1 border-t border-slate-100">
-                    <div className="h-3 w-20 bg-slate-200/60 rounded-md animate-pulse" />
-                    <div className="h-6 w-24 bg-slate-200/80 rounded-md animate-pulse" />
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-3 w-10 bg-slate-200/70 rounded animate-pulse" />
+                      <div className="h-3 w-6 bg-slate-200/70 rounded animate-pulse" />
+                    </div>
+                    <div className="h-7 w-28 bg-slate-100 border border-slate-200 rounded-md animate-pulse" />
                   </div>
                 </div>
               ))}
