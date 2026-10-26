@@ -60,8 +60,9 @@ export const AttendanceService = {
     return data;
   },
 
-  checkOut: async (payload?: { latitude?: number; longitude?: number; address?: string }): Promise<TodayAttendanceRecord> => {
-    const { data } = await apiClient.post<TodayAttendanceRecord>("/attendance/check-out", payload || {});
+  checkOut: async (payload: { qrSecret: string; latitude?: number; longitude?: number; address?: string } | string): Promise<TodayAttendanceRecord> => {
+    const body = typeof payload === "string" ? { qrSecret: payload } : payload;
+    const { data } = await apiClient.post<TodayAttendanceRecord>("/attendance/check-out", body);
     return data;
   },
 };
