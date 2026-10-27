@@ -226,9 +226,9 @@ export const PremiumDateRangePicker: React.FC<PremiumDateRangePickerProps> = ({
         </div>
       </button>
 
-      {/* Popover Dropdown */}
+      {/* Popover Dropdown (Right-aligned so it never overflows off screen) */}
       {isOpen && (
-        <div className="absolute right-0 sm:left-0 sm:right-auto mt-2 z-50 flex flex-col md:flex-row bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute right-0 mt-2 z-50 flex flex-col md:flex-row bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
           {/* Quick Presets Sidebar */}
           <div className="w-full md:w-44 p-3 bg-slate-50/70 border-b md:border-b-0 md:border-r border-slate-200 flex md:flex-col gap-1 overflow-x-auto no-scrollbar">
             <div className="hidden md:flex items-center gap-1.5 px-2 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
