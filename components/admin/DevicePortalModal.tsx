@@ -89,6 +89,23 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
     }
   };
 
+  const [isSyncingPunches, setIsSyncingPunches] = useState(false);
+
+  const handleSyncPunches = async () => {
+    try {
+      setIsSyncingPunches(true);
+      setSyncMessage(null);
+      const res = await deviceService.syncPunches(device.id);
+      setSyncMessage(res.message);
+      fetchPortalData();
+      if (onSyncSuccess) onSyncSuccess();
+    } catch (err: any) {
+      alert("Failed to sync punches: " + parseApiError(err));
+    } finally {
+      setIsSyncingPunches(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   const terminalUsers = data?.terminalUsers || [];
@@ -246,6 +263,20 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
               >
                 <Users className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin" : ""}`} />
                 <span>{isSyncing ? "Syncing..." : "Sync All to HRMS"}</span>
+              </Button>
+            </div>
+          )}
+
+          {activeTab === "LIVE_PUNCHES" && (
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Button
+                size="sm"
+                onClick={handleSyncPunches}
+                disabled={isSyncingPunches}
+                className="h-8 rounded-lg text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white shrink-0 gap-1.5 shadow-xs"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isSyncingPunches ? "animate-spin" : ""}`} />
+                <span>{isSyncingPunches ? "Pulling..." : "Pull All Machine Punches"}</span>
               </Button>
             </div>
           )}

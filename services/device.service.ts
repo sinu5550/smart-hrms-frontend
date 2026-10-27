@@ -89,6 +89,17 @@ export const deviceService = {
     return data;
   },
 
+  async syncPunches(id: string): Promise<{
+    success: boolean;
+    totalEventsExamined: number;
+    recordedPunches: number;
+    attendanceCheckIns: number;
+    message: string;
+  }> {
+    const { data } = await apiClient.post(`/devices/${id}/sync-punches`);
+    return data;
+  },
+
   async getRecentLogs(): Promise<BiometricRawLog[]> {
     const { data } = await apiClient.get<BiometricRawLog[]>("/devices/logs");
     return data;
