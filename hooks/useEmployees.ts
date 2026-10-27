@@ -72,3 +72,14 @@ export function useSoftDeleteEmployee() {
     },
   });
 }
+
+export function useBulkDeleteEmployees() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (ids: string[]) => EmployeeService.bulkDelete(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.employees.all });
+    },
+  });
+}

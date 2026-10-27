@@ -94,6 +94,11 @@ export const EmployeeService = {
     const { data } = await apiClient.post("/employees/bulk-import", { rows });
     return data;
   },
+
+  bulkDelete: async (ids: string[]): Promise<{ success: boolean; deletedCount: number; message: string }> => {
+    const { data } = await apiClient.post("/employees/bulk-delete", { ids });
+    return data;
+  },
 };
 
 export interface ShiftSettings {
