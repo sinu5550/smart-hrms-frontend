@@ -1038,7 +1038,11 @@ export default function BiometricDevicesAdminPage() {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   key={snapshotTimestamp}
-                  src={`http://localhost:7000/api/devices/${activePreviewDevice.id}/snapshot?t=${snapshotTimestamp}`}
+                  src={`${
+                    process.env.NEXT_PUBLIC_API_URL || "http://localhost:7000"
+                  }/api/devices/${activePreviewDevice.id}/snapshot?token=${
+                    typeof window !== "undefined" ? localStorage.getItem("access_token") || "" : ""
+                  }&t=${snapshotTimestamp}`}
                   alt="Live Camera Snapshot"
                   className="w-full h-full object-contain"
                   onError={(e) => {
