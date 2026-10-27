@@ -38,6 +38,7 @@ import {
   Eye,
   EyeOff,
   KeyRound,
+  Users,
 } from "lucide-react";
 import { deviceService } from "@/services/device.service";
 import { OrganizationService } from "@/services/organization.service";
@@ -192,6 +193,31 @@ export default function BiometricDevicesAdminPage() {
       setMessage({ type: "success", text: `Device "${dev.deviceName}" unlinked.` });
     } catch (err: any) {
       alert(parseApiError(err));
+    }
+  };
+
+  const [syncingPersonsId, setSyncingPersonsId] = useState<string | null>(null);
+
+  const handleSyncPersons = async (dev: BiometricDevice) => {
+    if (!dev.ipAddress) {
+      alert("Device IP is required to sync persons from Hikvision.");
+      return;
+    }
+    if (!confirm(`Sync all registered persons from "${dev.deviceName}" (${dev.ipAddress}) into the HRM Software employee list?`)) {
+      return;
+    }
+    try {
+      setSyncingPersonsId(dev.id);
+      setMessage(null);
+      const res = await deviceService.syncPersons(dev.id);
+      setMessage({
+        type: "success",
+        text: res.message || `Successfully synced ${res.totalFound} persons (${res.importedCount} added, ${res.updatedCount} updated).`,
+      });
+    } catch (err: any) {
+      alert("Failed to sync persons: " + parseApiError(err));
+    } finally {
+      setSyncingPersonsId(null);
     }
   };
 
@@ -368,18 +394,29 @@ export default function BiometricDevicesAdminPage() {
                   <span className="text-[10px] text-slate-400">Model: {device.deviceModel}</span>
                   <div className="flex items-center gap-1.5">
                     {device.ipAddress && (
-                      <button
-                        onClick={() => {
-                          setActivePreviewDevice(device);
-                          setIsLiveStreamPlaying(true);
-                          setSnapshotTimestamp(Date.now());
-                        }}
-                        className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg shadow-2xs transition"
-                        title="View Live Camera Feed"
-                      >
-                        <Video className="w-3.5 h-3.5 text-emerald-700" />
-                        <span>Live Camera</span>
-                      </button>
+                      <>
+                        <button
+                          onClick={() => handleSyncPersons(device)}
+                          disabled={syncingPersonsId === device.id}
+                          className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-blue-800 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg shadow-2xs transition disabled:opacity-50"
+                          title="Sync all persons/employees registered on this Hikvision machine"
+                        >
+                          <Users className={`w-3.5 h-3.5 text-blue-700 ${syncingPersonsId === device.id ? "animate-spin" : ""}`} />
+                          <span>{syncingPersonsId === device.id ? "Syncing..." : "Sync Persons"}</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            setActivePreviewDevice(device);
+                            setIsLiveStreamPlaying(true);
+                            setSnapshotTimestamp(Date.now());
+                          }}
+                          className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg shadow-2xs transition"
+                          title="View Live Camera Feed"
+                        >
+                          <Video className="w-3.5 h-3.5 text-emerald-700" />
+                          <span>Live Camera</span>
+                        </button>
+                      </>
                     )}
                     <button
                       onClick={() => handleDelete(device)}

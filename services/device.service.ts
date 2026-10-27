@@ -59,6 +59,17 @@ export const deviceService = {
     return data;
   },
 
+  async syncPersons(id: string): Promise<{
+    success: boolean;
+    totalFound: number;
+    importedCount: number;
+    updatedCount: number;
+    message: string;
+  }> {
+    const { data } = await apiClient.post(`/devices/${id}/sync-persons`);
+    return data;
+  },
+
   async getRecentLogs(): Promise<BiometricRawLog[]> {
     const { data } = await apiClient.get<BiometricRawLog[]>("/devices/logs");
     return data;
