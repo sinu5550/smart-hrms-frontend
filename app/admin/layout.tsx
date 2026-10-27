@@ -58,12 +58,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isSettingsOpen, setIsSettingsOpen] = useState(true);
 
   const isOwner = Boolean(
-    user?.email &&
-    user?.organization &&
-    (user?.role === "ADMIN" || user?.email === user?.organization?.ownerEmail)
+    user?.isOwner ||
+    user?.role === "OWNER" ||
+    (user?.email && user?.organization?.ownerEmail && user?.email.toLowerCase() === user?.organization?.ownerEmail.toLowerCase())
   );
   const userPerms = Array.isArray(user?.permissions) ? user.permissions : [];
-  const hasFullAccess = user?.role === "PLATFORM_ADMIN" || user?.role === "ADMIN" || isOwner;
+  const hasFullAccess = user?.role === "PLATFORM_ADMIN" || user?.role === "OWNER" || user?.role === "ADMIN" || isOwner;
 
   const hasPerm = (requiredPerm?: string) => {
     if (hasFullAccess || !requiredPerm) return true;

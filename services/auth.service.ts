@@ -10,7 +10,8 @@ export interface AuthUser {
   employeeId: string;
   email: string;
   fullName: string;
-  role: "PLATFORM_ADMIN" | "ADMIN" | "HR" | "EMPLOYEE";
+  role: "PLATFORM_ADMIN" | "OWNER" | "ADMIN" | "HR" | "EMPLOYEE";
+  isOwner?: boolean;
   permissions?: string[];
   mustChangePassword?: boolean;
   organization?: {

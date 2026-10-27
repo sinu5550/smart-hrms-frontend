@@ -1,7 +1,7 @@
 import { apiClient } from "./api";
 
 export type EmploymentStatus = "ACTIVE" | "ON_PROBATION" | "RESIGNED" | "TERMINATED" | "SUSPENDED";
-export type Role = "ADMIN" | "HR" | "EMPLOYEE";
+export type Role = "OWNER" | "ADMIN" | "HR" | "EMPLOYEE";
 
 export interface Employee {
   id: string;

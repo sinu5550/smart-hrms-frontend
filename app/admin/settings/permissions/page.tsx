@@ -38,7 +38,11 @@ export default function PermissionsManagementPage() {
   const { user: currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState<"roles" | "users">("roles");
 
-  const isCurrentOwner = currentUser?.role === "ADMIN" || currentUser?.role === "PLATFORM_ADMIN";
+  const isCurrentOwner =
+    currentUser?.role === "OWNER" ||
+    currentUser?.isOwner ||
+    currentUser?.role === "PLATFORM_ADMIN" ||
+    (currentUser?.email && currentUser?.organization?.ownerEmail && currentUser.email.toLowerCase() === currentUser.organization.ownerEmail.toLowerCase());
   const currentUserPerms = Array.isArray(currentUser?.permissions) ? currentUser.permissions : [];
   const canManagePermissions = isCurrentOwner || currentUserPerms.includes("employees.permissions");
   const canManageRoles = isCurrentOwner || currentUserPerms.includes("employees.roles");
