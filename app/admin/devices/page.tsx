@@ -34,6 +34,10 @@ import {
   Download,
   Copy,
   ExternalLink,
+  Video,
+  Eye,
+  EyeOff,
+  KeyRound,
 } from "lucide-react";
 import { deviceService } from "@/services/device.service";
 import { OrganizationService } from "@/services/organization.service";
@@ -91,13 +95,29 @@ export default function BiometricDevicesAdminPage() {
   };
 
   const [form, setForm] = useState({
-    deviceName: "",
+    deviceName: "Hikvision Main Gate",
     deviceSerialNumber: "",
     deviceModel: "Hikvision MinMoe (Face & Fingerprint Terminal)",
-    ipAddress: "192.168.1.64",
-    port: 8000,
-    locationName: "Main Entrance Turnstile",
+    ipAddress: "192.168.68.69",
+    port: 80,
+    username: "admin",
+    password: "",
+    locationName: "Main Entrance",
   });
+
+  const [activePreviewDevice, setActivePreviewDevice] = useState<BiometricDevice | null>(null);
+  const [snapshotTimestamp, setSnapshotTimestamp] = useState<number>(Date.now());
+  const [isLiveStreamPlaying, setIsLiveStreamPlaying] = useState<boolean>(true);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+
+  // Live snapshot refresh timer (every 1 second when modal is open)
+  React.useEffect(() => {
+    if (!activePreviewDevice || !isLiveStreamPlaying) return;
+    const interval = setInterval(() => {
+      setSnapshotTimestamp(Date.now());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [activePreviewDevice, isLiveStreamPlaying]);
 
   const [wifiForm, setWifiForm] = useState({
     locationName: "HQ Office Wi-Fi",
@@ -118,17 +138,21 @@ export default function BiometricDevicesAdminPage() {
         deviceSerialNumber: form.deviceSerialNumber.trim(),
         deviceModel: form.deviceModel.trim(),
         ipAddress: form.ipAddress.trim() || undefined,
-        port: Number(form.port) || 8000,
+        port: Number(form.port) || 80,
+        username: form.username.trim() || "admin",
+        password: form.password.trim() || undefined,
         locationName: form.locationName.trim() || "Main Gate",
       });
 
       setForm({
-        deviceName: "",
+        deviceName: "Hikvision Main Gate",
         deviceSerialNumber: "",
         deviceModel: "Hikvision MinMoe (Face & Fingerprint Terminal)",
-        ipAddress: "192.168.1.64",
-        port: 8000,
-        locationName: "Main Entrance Turnstile",
+        ipAddress: "192.168.68.69",
+        port: 80,
+        username: "admin",
+        password: "",
+        locationName: "Main Entrance",
       });
       setIsModalOpen(false);
       setMessage({ type: "success", text: "Biometric attendance terminal registered successfully!" });
@@ -342,13 +366,29 @@ export default function BiometricDevicesAdminPage() {
 
                 <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
                   <span className="text-[10px] text-slate-400">Model: {device.deviceModel}</span>
-                  <button
-                    onClick={() => handleDelete(device)}
-                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition"
-                    title="Remove device"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    {device.ipAddress && (
+                      <button
+                        onClick={() => {
+                          setActivePreviewDevice(device);
+                          setIsLiveStreamPlaying(true);
+                          setSnapshotTimestamp(Date.now());
+                        }}
+                        className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg shadow-2xs transition"
+                        title="View Live Camera Feed"
+                      >
+                        <Video className="w-3.5 h-3.5 text-emerald-700" />
+                        <span>Live Camera</span>
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleDelete(device)}
+                      className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition"
+                      title="Remove device"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))
@@ -781,6 +821,48 @@ export default function BiometricDevicesAdminPage() {
                 />
               </div>
 
+              {/* Dynamic Camera & Terminal Credentials */}
+              <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-lg space-y-2.5">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                  <KeyRound className="w-3.5 h-3.5 text-emerald-700" />
+                  <span>Device Camera & Admin Credentials</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[11px] font-medium text-slate-600">Username</label>
+                    <input
+                      type="text"
+                      placeholder="admin"
+                      value={form.username}
+                      onChange={(e) => setForm({ ...form, username: e.target.value })}
+                      className="w-full mt-0.5 px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 bg-white font-mono focus:outline-none focus:border-emerald-600"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-medium text-slate-600">Password</label>
+                    <div className="relative mt-0.5">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Device password"
+                        value={form.password}
+                        onChange={(e) => setForm({ ...form, password: e.target.value })}
+                        className="w-full px-2.5 py-1.5 pr-8 text-xs rounded-lg border border-slate-200 bg-white font-mono focus:outline-none focus:border-emerald-600"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      >
+                        {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-[10px] text-slate-500 leading-tight">
+                  Used by our secure server proxy to stream live camera frames from the terminal into the web portal.
+                </p>
+              </div>
+
               <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
                 <button
                   type="button"
@@ -917,6 +999,121 @@ export default function BiometricDevicesAdminPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* ================= MODAL: LIVE CAMERA PREVIEW ================= */}
+      {activePreviewDevice && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-5 space-y-4 shadow-2xl text-white animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                  <Video className="w-4 h-4 animate-pulse" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <span>{activePreviewDevice.deviceName}</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                      LIVE FEED
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-slate-400 font-mono">
+                    {activePreviewDevice.ipAddress} &bull; {activePreviewDevice.deviceSerialNumber} &bull; {activePreviewDevice.locationName}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setActivePreviewDevice(null)}
+                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-sm font-bold transition"
+              >
+                &times;
+              </button>
+            </div>
+
+            {/* Video Snapshot Frame */}
+            <div className="relative aspect-video w-full bg-black rounded-xl overflow-hidden border border-slate-800 flex items-center justify-center group shadow-inner">
+              {activePreviewDevice.ipAddress ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={snapshotTimestamp}
+                  src={`http://localhost:7000/api/devices/${activePreviewDevice.id}/snapshot?t=${snapshotTimestamp}`}
+                  alt="Live Camera Snapshot"
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    target.style.display = "none";
+                    const errEl = document.getElementById("camera-error-banner");
+                    if (errEl) errEl.style.display = "flex";
+                  }}
+                  onLoad={(e) => {
+                    const target = e.currentTarget;
+                    target.style.display = "block";
+                    const errEl = document.getElementById("camera-error-banner");
+                    if (errEl) errEl.style.display = "none";
+                  }}
+                />
+              ) : null}
+
+              {/* Error fallback overlay */}
+              <div
+                id="camera-error-banner"
+                style={{ display: "none" }}
+                className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center p-6 text-center space-y-2 text-rose-300"
+              >
+                <AlertCircle className="w-8 h-8 text-rose-500" />
+                <p className="text-xs font-bold text-white">Live Camera Signal Connecting...</p>
+                <p className="text-[11px] text-slate-400 max-w-sm leading-relaxed">
+                  Checking connection to <b>{activePreviewDevice.ipAddress}</b>. Ensure your computer and Hikvision device are on the same Wi-Fi network and device password is saved.
+                </p>
+              </div>
+
+              {/* Bottom camera info overlay */}
+              <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between px-3 py-1.5 bg-black/60 backdrop-blur-xs rounded-lg text-[10px] text-slate-300 font-mono">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                  REC &bull; 1080P &bull; Channel 101
+                </span>
+                <span>{new Date(snapshotTimestamp).toLocaleTimeString()}</span>
+              </div>
+            </div>
+
+            {/* Controls & Quick Links */}
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800 text-xs">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsLiveStreamPlaying(!isLiveStreamPlaying)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                    isLiveStreamPlaying
+                      ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                      : "bg-slate-800 hover:bg-slate-700 text-slate-300"
+                  }`}
+                >
+                  <Activity className="w-3.5 h-3.5" />
+                  <span>{isLiveStreamPlaying ? "Auto-Refreshing (1s)" : "Paused"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSnapshotTimestamp(Date.now())}
+                  className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold transition flex items-center gap-1.5"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Refresh Frame</span>
+                </button>
+              </div>
+
+              <a
+                href={`https://${activePreviewDevice.ipAddress}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-1 text-[11px] text-emerald-400 hover:underline font-semibold"
+              >
+                <span>Open Device Web Portal</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
           </div>
         </div>
       )}

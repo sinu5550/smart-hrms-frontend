@@ -8,6 +8,7 @@ export interface BiometricDevice {
   deviceModel: string;
   ipAddress?: string | null;
   port: number;
+  username?: string | null;
   locationName: string;
   status: "ONLINE" | "OFFLINE";
   lastHeartbeat?: string | null;
@@ -37,6 +38,8 @@ export interface RegisterDevicePayload {
   deviceModel?: string;
   ipAddress?: string;
   port?: number;
+  username?: string;
+  password?: string;
   locationName?: string;
 }
 
