@@ -70,7 +70,10 @@ export default function PermissionsManagementPage() {
   const [selectedUserPermissions, setSelectedUserPermissions] = useState<string[]>([]);
   const [selectedUserRole, setSelectedUserRole] = useState<Employee["role"]>("EMPLOYEE");
   const [selectedUserCustomRoleId, setSelectedUserCustomRoleId] = useState<string>("");
+  const [selectedUserAttendanceExempt, setSelectedUserAttendanceExempt] = useState<boolean>(false);
   const [userActionMessage, setUserActionMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  const canManageExemption = isCurrentOwner || currentUserPerms.includes("attendance.exempt");
 
   // Active Role
   const activeRole = roles.find((r) => r.id === selectedRoleId) || roles[0] || null;
@@ -92,6 +95,7 @@ export default function PermissionsManagementPage() {
       setSelectedUserRole(activeEmployee.role);
       setSelectedUserCustomRoleId(activeEmployee.customRoleId || "");
       setSelectedUserPermissions(activeEmployee.permissions || []);
+      setSelectedUserAttendanceExempt(Boolean(activeEmployee.attendanceExempt));
     }
   }, [activeEmployee?.id]);
 
@@ -243,10 +247,10 @@ export default function PermissionsManagementPage() {
       });
       return;
     }
-    if (!canManagePermissions) {
+    if (!canManagePermissions && !canManageExemption) {
       setUserActionMessage({
         type: "error",
-        text: "Permission Denied: You do not possess the 'Manage Permissions & Access Control' (employees.permissions) privilege.",
+        text: "Permission Denied: You do not possess the required privileges to modify this employee's access.",
       });
       return;
     }
@@ -258,11 +262,12 @@ export default function PermissionsManagementPage() {
           role: selectedUserRole,
           customRoleId: selectedUserCustomRoleId || undefined,
           permissions: selectedUserPermissions,
+          attendanceExempt: selectedUserAttendanceExempt,
         },
       });
       setUserActionMessage({
         type: "success",
-        text: "Access control and role permissions saved successfully!",
+        text: "Access control, attendance exemption, and role permissions saved successfully!",
       });
     } catch (err: any) {
       setUserActionMessage({ type: "error", text: parseApiError(err) });
@@ -596,6 +601,7 @@ export default function PermissionsManagementPage() {
                         setSelectedUserRole(emp.role);
                         setSelectedUserCustomRoleId(emp.customRoleId || "");
                         setSelectedUserPermissions(emp.permissions || []);
+                        setSelectedUserAttendanceExempt(Boolean(emp.attendanceExempt));
                         setUserActionMessage(null);
                       }}
                       className={`w-full flex items-center justify-between p-2.5 rounded-lg text-left transition border ${
@@ -614,6 +620,11 @@ export default function PermissionsManagementPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
+                        {emp.attendanceExempt && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase bg-amber-50 text-amber-700 border border-amber-200">
+                            Exempt
+                          </span>
+                        )}
                         {emp.isOwner ? (
                           <span className="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 shadow-xs">
                             <Crown className="w-2.5 h-2.5 text-amber-700" />
@@ -709,6 +720,25 @@ export default function PermissionsManagementPage() {
                         </select>
                       )}
                     </div>
+
+                    {/* Attendance Exemption Toggle */}
+                    {!isOwner && canManageExemption && (
+                      <div className="flex items-center gap-1.5 border-l border-slate-200 pl-2">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedUserAttendanceExempt(!selectedUserAttendanceExempt)}
+                          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition border shadow-xs ${
+                            selectedUserAttendanceExempt
+                              ? "bg-amber-500 border-amber-600 text-white"
+                              : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                          }`}
+                          title="Exempt employee from daily clock-in/out attendance tracking"
+                        >
+                          <Sparkles className={`w-3.5 h-3.5 ${selectedUserAttendanceExempt ? "text-white" : "text-amber-500"}`} />
+                          <span>{selectedUserAttendanceExempt ? "Attendance Exempted" : "Track Attendance"}</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 

@@ -22,6 +22,7 @@ export interface Employee {
   customRole?: { id: string; name: string; permissions: string[] } | null;
   joiningDate: string;
   avatarUrl?: string | null;
+  attendanceExempt?: boolean;
   permissions?: string[];
   isOwner?: boolean;
 }
@@ -32,6 +33,7 @@ export interface CreateEmployeePayload {
   fullName: string;
   phone: string;
   role?: Role;
+  attendanceExempt?: boolean;
   password?: string;
   departmentId?: string;
   designationId?: string;

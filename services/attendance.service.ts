@@ -29,6 +29,7 @@ export interface TodayStatusResponse {
   checkedIn: boolean;
   checkedOut: boolean;
   attendance: TodayAttendanceRecord | null;
+  isExempt?: boolean;
 }
 
 export const AttendanceService = {

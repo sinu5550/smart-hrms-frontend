@@ -19,6 +19,12 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
     category: "Attendance",
     description: "Can override clock-ins, approve late excuses, and adjust shift hours.",
   },
+  {
+    id: "attendance.exempt",
+    name: "Manage Attendance Exemptions",
+    category: "Attendance",
+    description: "Can exempt specific employees, HR officers, or managers from daily attendance tracking requirements.",
+  },
 
   // Employee Management
   {

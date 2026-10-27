@@ -176,36 +176,42 @@ export default function MobileAttendancePortal() {
     );
   }
 
-  // If user is Organization Owner, they are exempt from daily attendance punching
-  if (isOwner) {
+  const isAttendanceExempt = isOwner || statusData?.isExempt || Boolean(user?.attendanceExempt);
+
+  // If user is Owner or exempted by Owner/Authorized HR, they are exempt from daily attendance punching
+  if (isAttendanceExempt) {
     return (
       <main className="min-h-screen bg-white text-slate-800 flex flex-col items-center justify-center p-6 max-w-md mx-auto text-center space-y-4 pb-20">
         <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto shadow-xs">
           <Sparkles className="w-8 h-8" />
         </div>
         <div>
-          <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
-            Workspace Owner
+          <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+            {isOwner ? "Workspace Owner" : "Attendance Exempted"}
           </span>
           <h2 className="text-xl font-bold text-slate-900 mt-2">Attendance Exempted</h2>
           <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-            As the Organization Owner, you are permanent and exempt from punch-in/out requirements. HR officers and employees are tracked in real-time.
+            {isOwner
+              ? "As the Organization Owner, you are permanent and exempt from punch-in/out requirements. HR officers and employees are tracked in real-time."
+              : "The Organization Owner has exempted you from daily attendance punch-in/out requirements. Your presence is pre-approved."}
           </p>
         </div>
 
         <div className="pt-2 w-full space-y-2">
+          {isOwner && (
+            <Link
+              href="/admin/attendance"
+              className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs flex items-center justify-center gap-1.5 active:scale-95"
+            >
+              <span>Monitor Employee Attendance</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          )}
           <Link
-            href="/admin/attendance"
-            className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs flex items-center justify-center gap-1.5 active:scale-95"
-          >
-            <span>Monitor Employee Attendance</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-          <Link
-            href="/admin"
+            href="/portal/profile"
             className="w-full py-2.5 px-4 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold transition flex items-center justify-center"
           >
-            Go to Admin Dashboard
+            View My Profile
           </Link>
         </div>
       </main>

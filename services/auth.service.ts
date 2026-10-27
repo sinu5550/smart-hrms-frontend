@@ -12,6 +12,7 @@ export interface AuthUser {
   fullName: string;
   role: "PLATFORM_ADMIN" | "OWNER" | "ADMIN" | "HR" | "EMPLOYEE";
   isOwner?: boolean;
+  attendanceExempt?: boolean;
   permissions?: string[];
   mustChangePassword?: boolean;
   organization?: {
