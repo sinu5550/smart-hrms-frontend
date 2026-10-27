@@ -17,6 +17,10 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import {
+  PremiumDateRangePicker,
+  DateRangeValue,
+} from "@/components/ui/PremiumDateRangePicker";
 
 interface AttendanceRecord {
   id: string;
@@ -30,6 +34,7 @@ interface AttendanceRecord {
   isOvertime?: boolean;
   overtimeMinutes?: number;
   ipAddress?: string;
+  punchInDeviceType?: string;
   user: {
     id: string;
     employeeId: string;
@@ -51,11 +56,21 @@ export default function AdminAttendancePage() {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
-  const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().split("T")[0]
-  );
 
-  const { data, error, isLoading } = useAttendanceByDate(selectedDate);
+  const todayStr = new Date().toISOString().split("T")[0];
+  const [dateRange, setDateRange] = useState<DateRangeValue>({
+    preset: "TODAY",
+    startDate: todayStr,
+    endDate: todayStr,
+  });
+
+  // Query parameter: single date if start === end, else range
+  const queryArg =
+    dateRange.startDate === dateRange.endDate
+      ? { date: dateRange.startDate }
+      : { startDate: dateRange.startDate, endDate: dateRange.endDate };
+
+  const { data, error, isLoading } = useAttendanceByDate(queryArg);
 
   const records = data || [];
 
@@ -85,26 +100,24 @@ export default function AdminAttendancePage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-slate-800 flex items-center gap-2">
-            <CalendarCheck className="w-5 h-5 text-slate-800" /> Attendance Monitoring
+            <CalendarCheck className="w-5 h-5 text-emerald-700" /> Attendance Monitoring
           </h1>
-          <p className="text-xs text-slate-800 mt-1">
-            Real-time verification logs, active breaks, and punch records.
+          <p className="text-xs text-slate-500 mt-1">
+            Real-time biometric terminal punches, dynamic QR scans, and active work sessions.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="h-10 rounded-lg text-sm"
+        <div className="flex items-center gap-2 flex-wrap">
+          <PremiumDateRangePicker
+            value={dateRange}
+            onChange={(val) => setDateRange(val)}
           />
           <button
-            onClick={() => queryClient.invalidateQueries({ queryKey: QUERY_KEYS.attendance.list({ date: selectedDate }) })}
-            className="p-2 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg text-slate-800 transition shadow-sm"
+            onClick={() => queryClient.invalidateQueries({ queryKey: QUERY_KEYS.attendance.list(queryArg) })}
+            className="p-2.5 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-700 transition shadow-xs"
             title="Refresh logs"
           >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin text-emerald-700" : ""}`} />
           </button>
         </div>
       </div>
@@ -278,6 +291,9 @@ export default function AdminAttendancePage() {
                 <thead>
                   <tr className="border-b border-slate-200 text-slate-800 bg-slate-50/70">
                     <th className="py-3 px-4 font-semibold">Employee</th>
+                    {dateRange.startDate !== dateRange.endDate && (
+                      <th className="py-3 px-4 font-semibold">Date</th>
+                    )}
                     <th className="py-3 px-4 font-semibold">Department</th>
                     <th className="py-3 px-4 font-semibold">Check-In</th>
                     <th className="py-3 px-4 font-semibold">Check-Out</th>
@@ -295,6 +311,11 @@ export default function AdminAttendancePage() {
                           {item.user.employeeId}
                         </div>
                       </td>
+                      {dateRange.startDate !== dateRange.endDate && (
+                        <td className="py-3.5 px-4 font-mono text-slate-700">
+                          {new Date(item.date).toISOString().split("T")[0]}
+                        </td>
+                      )}
                       <td className="py-3.5 px-4 text-slate-800">
                         <div>{item.user.department?.name || "General"}</div>
                         <div className="text-[11px] text-slate-500">

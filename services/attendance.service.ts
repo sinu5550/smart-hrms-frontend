@@ -56,8 +56,18 @@ export const AttendanceService = {
     return data;
   },
 
-  getByDate: async (date: string): Promise<any[]> => {
-    const { data } = await apiClient.get<any[]>(`/attendance/admin/by-date?date=${date}`);
+  getByDate: async (query: string | { date?: string; startDate?: string; endDate?: string }): Promise<any[]> => {
+    let url = "/attendance/admin/by-date";
+    if (typeof query === "string") {
+      url += `?date=${query}`;
+    } else if (query) {
+      const params = new URLSearchParams();
+      if (query.date) params.append("date", query.date);
+      if (query.startDate) params.append("startDate", query.startDate);
+      if (query.endDate) params.append("endDate", query.endDate);
+      url += `?${params.toString()}`;
+    }
+    const { data } = await apiClient.get<any[]>(url);
     return data;
   },
 
