@@ -43,6 +43,7 @@ import {
 import { deviceService } from "@/services/device.service";
 import { OrganizationService } from "@/services/organization.service";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { DevicePortalModal } from "@/components/admin/DevicePortalModal";
 
 export default function BiometricDevicesAdminPage() {
   const { user } = useAuth();
@@ -107,6 +108,7 @@ export default function BiometricDevicesAdminPage() {
   });
 
   const [activePreviewDevice, setActivePreviewDevice] = useState<BiometricDevice | null>(null);
+  const [portalDevice, setPortalDevice] = useState<BiometricDevice | null>(null);
   const [snapshotTimestamp, setSnapshotTimestamp] = useState<number>(Date.now());
   const [isLiveStreamPlaying, setIsLiveStreamPlaying] = useState<boolean>(true);
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -392,9 +394,17 @@ export default function BiometricDevicesAdminPage() {
 
                 <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
                   <span className="text-[10px] text-slate-400">Model: {device.deviceModel}</span>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap justify-end">
                     {device.ipAddress && (
                       <>
+                        <button
+                          onClick={() => setPortalDevice(device)}
+                          className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg shadow-2xs transition"
+                          title="Open Device Management Portal (Fingerprint/Face details)"
+                        >
+                          <Server className="w-3.5 h-3.5 text-slate-700" />
+                          <span>Device Portal</span>
+                        </button>
                         <button
                           onClick={() => handleSyncPersons(device)}
                           disabled={syncingPersonsId === device.id}
@@ -402,7 +412,7 @@ export default function BiometricDevicesAdminPage() {
                           title="Sync all persons/employees registered on this Hikvision machine"
                         >
                           <Users className={`w-3.5 h-3.5 text-blue-700 ${syncingPersonsId === device.id ? "animate-spin" : ""}`} />
-                          <span>{syncingPersonsId === device.id ? "Syncing..." : "Sync Persons"}</span>
+                          <span>{syncingPersonsId === device.id ? "Syncing..." : "Sync"}</span>
                         </button>
                         <button
                           onClick={() => {
@@ -1157,6 +1167,15 @@ export default function BiometricDevicesAdminPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {portalDevice && (
+        <DevicePortalModal
+          device={portalDevice}
+          isOpen={Boolean(portalDevice)}
+          onClose={() => setPortalDevice(null)}
+          onSyncSuccess={() => {}}
+        />
       )}
     </div>
   );

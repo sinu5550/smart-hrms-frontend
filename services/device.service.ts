@@ -70,6 +70,25 @@ export const deviceService = {
     return data;
   },
 
+  async getDevicePortal(id: string): Promise<{
+    device: BiometricDevice;
+    isTerminalReachable: boolean;
+    totalTerminalUsers: number;
+    terminalUsers: Array<{
+      employeeNo: string;
+      name: string;
+      userType: string;
+      hasFingerprint: boolean;
+      numOfFP: number;
+      hasFace: boolean;
+      numOfFace: number;
+    }>;
+    recentLogs: BiometricRawLog[];
+  }> {
+    const { data } = await apiClient.get(`/devices/${id}/portal`);
+    return data;
+  },
+
   async getRecentLogs(): Promise<BiometricRawLog[]> {
     const { data } = await apiClient.get<BiometricRawLog[]>("/devices/logs");
     return data;

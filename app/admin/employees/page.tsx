@@ -19,6 +19,8 @@ import {
   CheckSquare,
   Square,
   MinusSquare,
+  Fingerprint,
+  ScanFace,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -326,6 +328,7 @@ export default function EmployeesDirectoryPage() {
                 </th>
                 <th className="py-3 px-4">Employee</th>
                 <th className="py-3 px-4">Employee ID</th>
+                <th className="py-3 px-4 text-center">Biometrics</th>
                 <th className="py-3 px-4">Department / Shift</th>
                 <th className="py-3 px-4">Blood</th>
                 <th className="py-3 px-4">Employment Status</th>
@@ -348,6 +351,7 @@ export default function EmployeesDirectoryPage() {
                         </div>
                       </td>
                       <td className="py-3 px-4"><div className="h-5 w-24 bg-slate-200/70 rounded animate-pulse" /></td>
+                      <td className="py-3 px-4 text-center"><div className="h-5 w-14 mx-auto bg-slate-200/70 rounded animate-pulse" /></td>
                       <td className="py-3 px-4"><div className="h-4 w-32 bg-slate-200/70 rounded animate-pulse" /></td>
                       <td className="py-3 px-4"><div className="h-4 w-10 bg-slate-200/70 rounded animate-pulse" /></td>
                       <td className="py-3 px-4"><div className="h-7 w-28 bg-slate-200/70 rounded-lg animate-pulse" /></td>
@@ -357,7 +361,7 @@ export default function EmployeesDirectoryPage() {
                 </>
               ) : filteredEmployees.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-slate-500">
+                  <td colSpan={8} className="py-8 text-center text-slate-500">
                     No matching personnel found.
                   </td>
                 </tr>
@@ -396,6 +400,37 @@ export default function EmployeesDirectoryPage() {
                         <span className="font-mono px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-800 font-medium">
                           {emp.employeeId}
                         </span>
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        {(() => {
+                          const perms = Array.isArray(emp.permissions) ? emp.permissions : [];
+                          const hasFP = perms.includes("bio:fingerprint");
+                          const hasFace = perms.includes("bio:face");
+                          return (
+                            <div className="inline-flex items-center gap-1.5 justify-center">
+                              <span
+                                className={`inline-flex items-center justify-center w-6 h-6 rounded-lg border transition ${
+                                  hasFP
+                                    ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                                    : "bg-slate-100 text-slate-300 border-slate-200"
+                                }`}
+                                title={hasFP ? "Fingerprint Registered on Hardware" : "No Fingerprint Enrolled"}
+                              >
+                                <Fingerprint className="w-3.5 h-3.5" />
+                              </span>
+                              <span
+                                className={`inline-flex items-center justify-center w-6 h-6 rounded-lg border transition ${
+                                  hasFace
+                                    ? "bg-purple-50 text-purple-700 border-purple-300"
+                                    : "bg-slate-100 text-slate-300 border-slate-200"
+                                }`}
+                                title={hasFace ? "Face Recognition Registered on Hardware" : "No Face Enrolled"}
+                              >
+                                <ScanFace className="w-3.5 h-3.5" />
+                              </span>
+                            </div>
+                          );
+                        })()}
                       </td>
                       <td className="py-3 px-4">
                         <p className="font-medium text-slate-800">{emp.department?.name || "Unassigned"}</p>
