@@ -44,8 +44,11 @@ import { deviceService } from "@/services/device.service";
 import { OrganizationService } from "@/services/organization.service";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { DevicePortalModal } from "@/components/admin/DevicePortalModal";
+import { ConfirmModal, ConfirmationVariant } from "@/components/ui/ConfirmModal";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function BiometricDevicesAdminPage() {
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const isOwnerOrAdmin = user?.role === "ADMIN" || user?.role === "PLATFORM_ADMIN" || user?.email === user?.organization?.ownerEmail;
   const userPerms = Array.isArray(user?.permissions) ? user.permissions : [];
@@ -188,49 +191,105 @@ export default function BiometricDevicesAdminPage() {
     }
   };
 
-  const handleDelete = async (dev: BiometricDevice) => {
-    if (!confirm(`Are you sure you want to remove device "${dev.deviceName}" (${dev.deviceSerialNumber})?`)) return;
-    try {
-      await deleteDeviceMutation.mutateAsync(dev.id);
-      setMessage({ type: "success", text: `Device "${dev.deviceName}" unlinked.` });
-    } catch (err: any) {
-      alert(parseApiError(err));
-    }
+  // Reusable confirmation modal state
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    confirmText?: string;
+    cancelText?: string;
+    variant?: ConfirmationVariant;
+    badge?: string;
+    isLoading?: boolean;
+    onConfirm: () => Promise<void> | void;
+  }>({
+    isOpen: false,
+    title: "",
+    description: "",
+    confirmText: "Confirm",
+    variant: "info",
+    onConfirm: () => {},
+  });
+
+  const handleDelete = (dev: BiometricDevice) => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Remove Biometric Device",
+      description: `Are you sure you want to remove "${dev.deviceName}" (S/N: ${dev.deviceSerialNumber})? This will unlink it from attendance logging.`,
+      confirmText: "Remove Device",
+      variant: "danger",
+      badge: "Warning",
+      onConfirm: async () => {
+        try {
+          setConfirmModal((prev) => ({ ...prev, isLoading: true }));
+          await deleteDeviceMutation.mutateAsync(dev.id);
+          setMessage({ type: "success", text: `Device "${dev.deviceName}" unlinked successfully.` });
+          setConfirmModal((prev) => ({ ...prev, isOpen: false, isLoading: false }));
+        } catch (err: any) {
+          setConfirmModal((prev) => ({ ...prev, isLoading: false }));
+          alert(parseApiError(err));
+        }
+      },
+    });
   };
 
   const [syncingPersonsId, setSyncingPersonsId] = useState<string | null>(null);
 
-  const handleSyncPersons = async (dev: BiometricDevice) => {
+  const handleSyncPersons = (dev: BiometricDevice) => {
     if (!dev.ipAddress) {
       alert("Device IP is required to sync persons from Hikvision.");
       return;
     }
-    if (!confirm(`Sync all registered persons from "${dev.deviceName}" (${dev.ipAddress}) into the HRM Software employee list?`)) {
-      return;
-    }
-    try {
-      setSyncingPersonsId(dev.id);
-      setMessage(null);
-      const res = await deviceService.syncPersons(dev.id);
-      setMessage({
-        type: "success",
-        text: res.message || `Successfully synced ${res.totalFound} persons (${res.importedCount} added, ${res.updatedCount} updated).`,
-      });
-    } catch (err: any) {
-      alert("Failed to sync persons: " + parseApiError(err));
-    } finally {
-      setSyncingPersonsId(null);
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: "Sync Persons from Terminal",
+      description: `Pull all registered employees, face IDs, and fingerprints from "${dev.deviceName}" (${dev.ipAddress}) into the HRM Software employee list?`,
+      confirmText: "Start Sync",
+      variant: "sync",
+      badge: "Hikvision MinMoe",
+      onConfirm: async () => {
+        try {
+          setConfirmModal((prev) => ({ ...prev, isLoading: true }));
+          setSyncingPersonsId(dev.id);
+          setMessage(null);
+          const res = await deviceService.syncPersons(dev.id);
+          setMessage({
+            type: "success",
+            text: res.message || `Successfully synced ${res.totalFound} persons (${res.importedCount} added, ${res.updatedCount} updated).`,
+          });
+          queryClient.invalidateQueries({ queryKey: ["employees"] });
+          queryClient.invalidateQueries({ queryKey: ["devices"] });
+          setConfirmModal((prev) => ({ ...prev, isOpen: false, isLoading: false }));
+        } catch (err: any) {
+          setConfirmModal((prev) => ({ ...prev, isLoading: false }));
+          alert("Failed to sync persons: " + parseApiError(err));
+        } finally {
+          setSyncingPersonsId(null);
+        }
+      },
+    });
   };
 
-  const handleDeleteWifi = async (id: string, ip: string) => {
-    if (!confirm(`Remove office Wi-Fi IP "${ip}"? Employees on this network won't be geofenced.`)) return;
-    try {
-      await deleteNetworkMutation.mutateAsync(id);
-      setMessage({ type: "success", text: `Office Wi-Fi IP ${ip} removed.` });
-    } catch (err: any) {
-      alert(parseApiError(err));
-    }
+  const handleDeleteWifi = (id: string, ip: string) => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Remove Office Wi-Fi Network",
+      description: `Are you sure you want to remove IP "${ip}"? Employees connected to this network will no longer be verified by office geofencing.`,
+      confirmText: "Remove Wi-Fi",
+      variant: "danger",
+      badge: "Office Geofence",
+      onConfirm: async () => {
+        try {
+          setConfirmModal((prev) => ({ ...prev, isLoading: true }));
+          await deleteNetworkMutation.mutateAsync(id);
+          setMessage({ type: "success", text: `Office Wi-Fi IP ${ip} removed successfully.` });
+          setConfirmModal((prev) => ({ ...prev, isOpen: false, isLoading: false }));
+        } catch (err: any) {
+          setConfirmModal((prev) => ({ ...prev, isLoading: false }));
+          alert(parseApiError(err));
+        }
+      },
+    });
   };
 
   return (
@@ -719,7 +778,7 @@ export default function BiometricDevicesAdminPage() {
               <thead className="bg-slate-50 text-[10px] uppercase font-bold text-slate-500 border-b border-slate-200">
                 <tr>
                   <th className="p-2.5">Time</th>
-                  <th className="p-2.5">Employee ID</th>
+                  <th className="p-2.5">Employee</th>
                   <th className="p-2.5">Device Terminal</th>
                   <th className="p-2.5">Method</th>
                   <th className="p-2.5">Type</th>
@@ -739,7 +798,16 @@ export default function BiometricDevicesAdminPage() {
                       <td className="p-2.5 font-mono text-[11px] text-slate-600">
                         {new Date(log.punchTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
                       </td>
-                      <td className="p-2.5 font-bold text-slate-800">{log.employeeId}</td>
+                      <td className="p-2.5">
+                        <div className="font-bold text-slate-800 text-xs">
+                          {log.employeeName || log.employeeId}
+                        </div>
+                        {log.employeeName && (
+                          <div className="font-mono text-[11px] text-slate-400">
+                            {log.employeeId}
+                          </div>
+                        )}
+                      </td>
                       <td className="p-2.5 text-slate-600">
                         {log.device?.deviceName || log.deviceSerialNumber}
                       </td>
@@ -1177,6 +1245,20 @@ export default function BiometricDevicesAdminPage() {
           onSyncSuccess={() => {}}
         />
       )}
+
+      {/* Reusable Cute Confirmation Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        description={confirmModal.description}
+        confirmText={confirmModal.confirmText}
+        cancelText={confirmModal.cancelText}
+        variant={confirmModal.variant}
+        badge={confirmModal.badge}
+        isLoading={confirmModal.isLoading}
+      />
     </div>
   );
 }

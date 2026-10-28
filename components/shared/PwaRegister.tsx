@@ -10,9 +10,14 @@ export function PwaRegister() {
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       const registerSW = () => {
-        navigator.serviceWorker.register('/sw.js').catch((err) => {
-          console.warn('Service Worker registration failed:', err);
-        });
+        navigator.serviceWorker
+          .register('/sw.js')
+          .then((reg) => {
+            reg.update();
+          })
+          .catch((err) => {
+            console.warn('Service Worker registration failed:', err);
+          });
       };
 
       if (document.readyState === 'complete') {

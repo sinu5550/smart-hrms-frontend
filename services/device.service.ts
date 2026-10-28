@@ -21,6 +21,7 @@ export interface BiometricRawLog {
   id: string;
   deviceSerialNumber: string;
   employeeId: string;
+  employeeName?: string | null;
   punchTime: string;
   punchType: string;
   verificationMode: string;
@@ -97,6 +98,33 @@ export const deviceService = {
     message: string;
   }> {
     const { data } = await apiClient.post(`/devices/${id}/sync-punches`);
+    return data;
+  },
+
+  async pushEmployee(deviceId: string, payload: { employeeId?: string; employeeDbId?: string }): Promise<{
+    success: boolean;
+    terminalEmployeeNo: string;
+    employeeName: string;
+    message: string;
+  }> {
+    const { data } = await apiClient.post(`/devices/${deviceId}/push-employee`, payload);
+    return data;
+  },
+
+  async updatePerson(deviceId: string, payload: { employeeNo: string; name: string; employeeId?: string }): Promise<{
+    success: boolean;
+    message: string;
+    updatedEmployee?: { id: string; employeeId: string; fullName: string };
+  }> {
+    const { data } = await apiClient.put(`/devices/${deviceId}/update-person`, payload);
+    return data;
+  },
+
+  async deletePerson(deviceId: string, employeeNo: string): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    const { data } = await apiClient.delete(`/devices/${deviceId}/persons/${encodeURIComponent(employeeNo)}`);
     return data;
   },
 

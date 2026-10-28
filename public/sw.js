@@ -1,12 +1,10 @@
-const CACHE_NAME = 'hrms-core-pwa-v2';
+const CACHE_NAME = 'hrms-core-pwa-v3';
 const ASSETS_TO_CACHE = [
-  '/',
   '/manifest.json',
   '/favicon.ico',
   '/apple-touch-icon.png',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
-  '/login'
 ];
 
 self.addEventListener('install', (event) => {
@@ -34,21 +32,29 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Pass-through API calls and dynamic data
-  if (event.request.url.includes('/api/')) {
+  // Do not interfere with API, HMR, or non-GET requests
+  if (event.request.method !== 'GET' || event.request.url.includes('/api/') || event.request.url.includes('/_next/')) {
     return;
   }
 
+  // Network-first strategy for navigation / pages so updates reflect instantly
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          return response;
+        })
+        .catch(() => {
+          return caches.match('/portal/attendance').then((fallback) => fallback || caches.match('/'));
+        })
+    );
+    return;
+  }
+
+  // Cache-first only for static static images/icons
   event.respondWith(
     caches.match(event.request).then((cached) => {
-      return (
-        cached ||
-        fetch(event.request).catch(() => {
-          if (event.request.mode === 'navigate') {
-            return caches.match('/portal/attendance');
-          }
-        })
-      );
+      return cached || fetch(event.request);
     })
   );
 });

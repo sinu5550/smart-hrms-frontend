@@ -19,6 +19,7 @@ import { ScrollArea } from "@/components/shared/ScrollArea";
 import { PhoneInputWithCountry } from "@/components/shared/PhoneInputWithCountry";
 
 const editEmployeeSchema = z.object({
+  employeeId: z.string().optional(),
   fullName: z.string().min(2, "Name is required"),
   email: z.string().email("Invalid business email"),
   phone: z.string().min(10, "Phone number must be at least 10-11 digits"),
@@ -72,6 +73,7 @@ export const EmployeeEditModal: React.FC<Props> = ({ employee, isOpen, onClose, 
   useEffect(() => {
     if (employee && isOpen) {
       reset({
+        employeeId: employee.employeeId || "",
         fullName: employee.fullName || "",
         email: employee.email || "",
         phone: employee.phone || "",
@@ -138,7 +140,9 @@ export const EmployeeEditModal: React.FC<Props> = ({ employee, isOpen, onClose, 
     } catch (err) {
       const errorMessage = parseApiError(err);
       const lower = errorMessage.toLowerCase();
-      if (lower.includes("email")) {
+      if (lower.includes("employee id") || lower.includes("employeeid")) {
+        setError("employeeId", { message: errorMessage });
+      } else if (lower.includes("email")) {
         setError("email", { message: errorMessage });
       } else if (lower.includes("phone")) {
         setError("phone", { message: errorMessage });
@@ -191,10 +195,26 @@ export const EmployeeEditModal: React.FC<Props> = ({ employee, isOpen, onClose, 
             </div>
 
             <div className="space-y-3">
-              <div>
-                <label className="text-[11px] font-semibold text-slate-800">Full Legal Name *</label>
-                <Input {...register("fullName")} className="mt-1 h-10 rounded-lg" />
-                {errors.fullName && <p className="text-[10px] text-rose-700 mt-1">{errors.fullName.message}</p>}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-800">
+                    Employee ID (Work / Terminal ID)
+                  </label>
+                  <Input
+                    value={employee.employeeId || ""}
+                    disabled
+                    readOnly
+                    className="mt-1 h-10 rounded-lg font-mono font-bold text-slate-600 bg-slate-100 cursor-not-allowed select-none border-slate-200"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    Employee ID cannot be edited because biometric templates on hardware are anchored to this ID.
+                  </p>
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-800">Full Legal Name *</label>
+                  <Input {...register("fullName")} className="mt-1 h-10 rounded-lg" />
+                  {errors.fullName && <p className="text-[10px] text-rose-700 mt-1">{errors.fullName.message}</p>}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">

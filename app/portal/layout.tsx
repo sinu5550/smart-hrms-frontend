@@ -51,13 +51,13 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
         </div>
 
         <div className="flex items-center gap-3">
-          {(user?.role === "ADMIN" || user?.role === "HR") && (
+          {(user?.role === "OWNER" || user?.role === "ADMIN" || user?.role === "HR" || user?.role === "PLATFORM_ADMIN" || user?.isOwner) && (
             <Link
               href="/admin"
-              className="text-[11px] font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 flex items-center gap-1.5 transition"
+              className="text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 px-3 py-1.5 rounded-lg border border-emerald-600 flex items-center gap-1.5 transition shadow-xs active:scale-95"
             >
               <Building2 className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Admin Console</span>
+              <span>Admin Console</span>
             </Link>
           )}
 

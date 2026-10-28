@@ -49,8 +49,8 @@ export const DeleteEmployeeConfirmModal: React.FC<Props> = ({ employee, onClose,
         </div>
 
         <div>
-          <DialogHeader><DialogTitle className="text-base">Soft-Delete Employee</DialogTitle><DialogDescription className="mt-1 leading-relaxed">
-            This will immediately revoke active JWT sessions and set <span className="font-semibold text-slate-800">{employee.fullName}</span> ({employee.employeeId}) to TERMINATED status.
+          <DialogHeader><DialogTitle className="text-base text-rose-950 font-bold">Permanently Delete Employee</DialogTitle><DialogDescription className="mt-1 leading-relaxed text-xs text-slate-600">
+            This will permanently erase <span className="font-semibold text-slate-900">{employee.fullName}</span> ({employee.employeeId}) from your database.
           </DialogDescription></DialogHeader>
         </div>
 
@@ -67,11 +67,11 @@ export const DeleteEmployeeConfirmModal: React.FC<Props> = ({ employee, onClose,
           className="h-10 rounded-lg font-mono"
         />
 
-        <div className="flex gap-2 pt-2">
+        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
           <Button
             onClick={onClose}
             variant="outline"
-            className="h-10 flex-1 rounded-lg"
+            className="h-9 px-4 text-xs font-semibold rounded-lg"
           >
             Cancel
           </Button>
@@ -79,10 +79,10 @@ export const DeleteEmployeeConfirmModal: React.FC<Props> = ({ employee, onClose,
             onClick={handleDelete}
             disabled={!isMatch || isDeleting}
             variant="destructive"
-            className="h-10 flex-1 rounded-lg"
+            className="h-9 px-4 text-xs font-semibold rounded-lg shadow-2xs"
           >
             <Trash2 className="w-3.5 h-3.5" />
-            {isDeleting ? "Archiving..." : "Delete Employee"}
+            {isDeleting ? "Deleting..." : "Delete Employee"}
           </Button>
         </div>
       </DialogContent>

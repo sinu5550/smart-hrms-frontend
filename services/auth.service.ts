@@ -93,6 +93,11 @@ export const AuthService = {
     return response.data;
   },
 
+  async updateProfile(data: { fullName: string; phone?: string | null }): Promise<AuthUser> {
+    const response = await apiClient.put("/auth/profile", data);
+    return this.getProfile();
+  },
+
   logout(): void {
     if (typeof window !== "undefined") {
       localStorage.removeItem("access_token");

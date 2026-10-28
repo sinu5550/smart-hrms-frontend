@@ -316,17 +316,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* User Footer Profile */}
         <div className="p-3 border-t border-slate-100 shrink-0 bg-white">
           <div className="flex items-center justify-between p-1.5 rounded-xl bg-slate-50 border border-slate-200/60">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+            <Link
+              href="/portal/profile"
+              title="View & Edit My Profile"
+              className="flex items-center gap-2.5 min-w-0 hover:opacity-80 transition group flex-1"
+            >
+              <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs group-hover:bg-emerald-700 transition">
                 {user?.fullName?.charAt(0) || "U"}
               </div>
               {(isSidebarOpen || isMobileMenuOpen) && (
-                <div className="overflow-hidden min-w-0">
-                  <p className="text-xs font-bold text-slate-800 truncate">{user?.fullName || "HR Admin"}</p>
+                <div className="overflow-hidden min-w-0 text-left">
+                  <p className="text-xs font-bold text-slate-800 truncate group-hover:text-emerald-700 transition">
+                    {user?.fullName || "HR Admin"}
+                  </p>
                   <p className="text-[10px] text-slate-400 truncate">{user?.email || "Signed in"}</p>
                 </div>
               )}
-            </div>
+            </Link>
             {(isSidebarOpen || isMobileMenuOpen) && (
               <button
                 onClick={logout}

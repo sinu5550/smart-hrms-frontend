@@ -11,7 +11,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useCreateEmployee, useUpdateEmployee, useOrganization, useNextEmployeeId, useDepartments, useShifts, useRoles } from "@/hooks";
 import { CustomRole } from "@/services/role.service";
 import { parseApiError } from "@/services/api";
-import { X, Upload, Check, Copy, Eye, EyeOff, ShieldCheck, Sparkles, AlertCircle } from "lucide-react";
+import { X, Upload, Check, Copy, Eye, EyeOff, ShieldCheck, Sparkles, AlertCircle, HelpCircle, Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
@@ -20,27 +20,42 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/shared/ScrollArea";
 import { PhoneInputWithCountry } from "@/components/shared/PhoneInputWithCountry";
 
-const employeeSchema = z.object({
-  employeeId: z.string().trim().toUpperCase().regex(/^[A-Z]{2,5}-\d{2}-\d{4}$/, "Use the format EKH-26-0001"),
-  fullName: z.string().min(2, "Name is required"),
-  email: z.string().email("Invalid business email"),
-  phone: z.string().min(10, "Phone number must be at least 10-11 digits"),
-  role: z.enum(["EMPLOYEE", "HR", "ADMIN"]),
-  password: z.string().optional().refine((val) => !val || val.length >= 6, {
-    message: "Password must be at least 6 characters if specified",
-  }),
-  departmentId: z.string().optional(),
-  shiftId: z.string().optional(),
-  customRoleId: z.string().optional(),
-  bloodGroup: z.string().optional(),
-  presentAddress: z.string().optional(),
-  permanentAddress: z.string().optional(),
-  emergencyContactName: z.string().optional(),
-  emergencyContactPhone: z.string().optional(),
-  emergencyContactRelation: z.string().optional(),
-});
+const createEmployeeSchema = (expectedPrefix: string) => {
+  const normPrefix = (expectedPrefix || "EKH").trim().toUpperCase();
+  const currentYear = new Date().getFullYear().toString().slice(-2);
+  const regex = new RegExp(`^${normPrefix}-\\d{2}-\\d+$`);
 
-type EmployeeFormData = z.infer<typeof employeeSchema>;
+  return z.object({
+    employeeId: z
+      .string()
+      .trim()
+      .toUpperCase()
+      .refine(
+        (val) => regex.test(val),
+        {
+          message: `ID must start with your organization prefix '${normPrefix}' and format: ${normPrefix}-${currentYear}-0001 (or numeric serial).`,
+        }
+      ),
+    fullName: z.string().min(2, "Name is required"),
+    email: z.string().email("Invalid business email"),
+    phone: z.string().min(10, "Phone number must be at least 10-11 digits"),
+    role: z.enum(["EMPLOYEE", "HR", "ADMIN"]),
+    password: z.string().optional().refine((val) => !val || val.length >= 6, {
+      message: "Password must be at least 6 characters if specified",
+    }),
+    departmentId: z.string().optional(),
+    shiftId: z.string().optional(),
+    customRoleId: z.string().optional(),
+    bloodGroup: z.string().optional(),
+    presentAddress: z.string().optional(),
+    permanentAddress: z.string().optional(),
+    emergencyContactName: z.string().optional(),
+    emergencyContactPhone: z.string().optional(),
+    emergencyContactRelation: z.string().optional(),
+  });
+};
+
+type EmployeeFormData = z.infer<ReturnType<typeof createEmployeeSchema>>;
 
 interface Props {
   isOpen: boolean;
@@ -77,6 +92,11 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
     tempPass: string;
   } | null>(null);
 
+  const currentYear = new Date().getFullYear().toString().slice(-2);
+  const employeeSchema = React.useMemo(() => createEmployeeSchema(employeePrefix), [employeePrefix]);
+
+  const [showIdGuideModal, setShowIdGuideModal] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -90,12 +110,41 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
     defaultValues: { role: "EMPLOYEE", phone: "" },
   });
 
-  // Automatically populate next sequential Employee ID when dialog opens or data loads
+  const wasOpenRef = React.useRef(false);
+
+  // Initialize fresh form only when modal transitions from closed to open
   useEffect(() => {
-    if (isOpen && nextIdData?.nextEmployeeId) {
-      setValue("employeeId", nextIdData.nextEmployeeId, { shouldValidate: true });
+    if (isOpen && !wasOpenRef.current) {
+      setCreatedCredentials(null);
+      setFormError(null);
+      setAvatarFile(null);
+      setAvatarPreview(null);
+      setCopied(false);
+      reset();
+      if (nextIdData?.nextEmployeeId) {
+        setValue("employeeId", nextIdData.nextEmployeeId, { shouldValidate: true });
+      }
     }
-  }, [isOpen, nextIdData, setValue]);
+    wasOpenRef.current = isOpen;
+  }, [isOpen, nextIdData, setValue, reset]);
+
+  const handleClose = () => {
+    setCreatedCredentials(null);
+    setFormError(null);
+    setAvatarFile(null);
+    setAvatarPreview(null);
+    reset();
+    onClose();
+  };
+
+  const handleDone = () => {
+    setCreatedCredentials(null);
+    setFormError(null);
+    setAvatarFile(null);
+    setAvatarPreview(null);
+    reset();
+    onSuccess();
+  };
 
   const isSubmitting = createEmployeeMutation.isPending || updateEmployeeMutation.isPending;
 
@@ -173,7 +222,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleClose(); }}>
       <DialogContent showCloseButton={false} className="max-w-2xl max-h-[90vh] flex flex-col p-0 rounded-lg overflow-hidden shadow-xl border border-slate-200 bg-white">
         <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/50">
           <DialogHeader>
@@ -181,7 +230,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
               {createdCredentials ? "Credentials Generated" : "Enlist New Employee"}
             </DialogTitle>
           </DialogHeader>
-          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100">
+          <Button variant="ghost" size="icon" onClick={handleClose} className="h-8 w-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100">
             <X className="w-4 h-4" />
           </Button>
         </div>
@@ -229,7 +278,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
                   {copied ? "Copied to Clipboard!" : "Copy Credentials"}
                 </Button>
                 <Button
-                  onClick={onSuccess}
+                  onClick={handleDone}
                   className="h-10 flex-1 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white"
                 >
                   Done & Refresh List
@@ -265,23 +314,48 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <div className="flex items-center justify-between">
-                    <label className="text-[11px] font-semibold text-slate-800">Employee ID *</label>
+                    <div className="flex items-center gap-1.5">
+                      <label className="text-[11px] font-semibold text-slate-800">Employee ID *</label>
+                      <button
+                        type="button"
+                        onClick={() => setShowIdGuideModal(true)}
+                        className="text-slate-400 hover:text-emerald-700 transition"
+                        title="View Employee ID format rules"
+                      >
+                        <HelpCircle className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                     <span className="text-[10px] text-emerald-700 font-medium flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded-sm">
                       <Sparkles className="w-3 h-3" /> Auto-Generated
                     </span>
                   </div>
                   <Input
                     {...register("employeeId")}
-                    placeholder={`${employeePrefix || "EKH"}-26-0001`}
+                    placeholder={`${employeePrefix || "EKH"}-${currentYear}-0001`}
                     className={`mt-1 h-10 rounded-lg font-mono uppercase ${errors.employeeId ? "border-rose-400 focus-visible:ring-rose-400" : ""}`}
                   />
                   {errors.employeeId ? (
-                    <p className="text-[10px] text-rose-700 font-medium mt-1 flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3 shrink-0" />
-                      {errors.employeeId.message}
-                    </p>
+                    <div className="mt-1.5 p-2 bg-rose-50 border border-rose-200 rounded-md">
+                      <p className="text-[11px] text-rose-700 font-semibold flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        Invalid Employee ID Format
+                      </p>
+                      <p className="text-[10px] text-rose-600 mt-0.5 leading-relaxed">
+                        {errors.employeeId.message}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setShowIdGuideModal(true)}
+                        className="mt-1 text-[10px] font-bold text-rose-800 underline hover:text-rose-950"
+                      >
+                        How to write the Employee ID correctly?
+                      </button>
+                    </div>
                   ) : (
-                    <p className="mt-1 text-[10px] text-slate-500">Auto-filled sequentially. You can also edit manually if needed.</p>
+                    <p className="mt-1 text-[10px] text-slate-500 flex items-center gap-1">
+                      <span>Must match Org Prefix:</span>
+                      <strong className="text-emerald-800 bg-emerald-50 px-1 py-0.2 rounded font-mono">{employeePrefix || "EKH"}-{currentYear}-XXXX</strong>
+                    </p>
                   )}
                 </div>
                 <div>
@@ -464,7 +538,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
         {!createdCredentials && (
           <div className="px-5 py-3.5 border-t border-slate-100 flex gap-2 shrink-0 bg-slate-50/50">
             <Button
-              onClick={onClose}
+              onClick={handleClose}
               type="button"
               variant="outline"
               className="h-10 flex-1 rounded-lg"
@@ -482,6 +556,84 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
           </div>
         )}
       </DialogContent>
+
+      {/* Employee ID Format Guidance Modal */}
+      {showIdGuideModal && (
+        <Dialog open={showIdGuideModal} onOpenChange={setShowIdGuideModal}>
+          <DialogContent className="max-w-md p-5 rounded-2xl bg-white shadow-2xl border border-slate-200">
+            <DialogHeader className="pb-3 border-b border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-800 flex items-center justify-center">
+                  <Info className="w-4 h-4" />
+                </div>
+                <div>
+                  <DialogTitle className="text-sm font-bold text-slate-800">
+                    Employee ID Formatting Rules
+                  </DialogTitle>
+                  <p className="text-[11px] text-slate-500">
+                    Required for Biometric Terminal compatibility
+                  </p>
+                </div>
+              </div>
+            </DialogHeader>
+
+            <div className="space-y-4 py-2 text-xs">
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-1">
+                <p className="font-bold text-amber-900 flex items-center gap-1.5 text-xs">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
+                  Must Match Organization Prefix!
+                </p>
+                <p className="text-amber-800 text-[11px] leading-relaxed">
+                  Your organization prefix in settings is set to{" "}
+                  <strong className="underline font-mono uppercase bg-amber-100 px-1 py-0.5 rounded">
+                    {employeePrefix || "EKH"}
+                  </strong>
+                  . Any custom Employee ID must begin with this exact prefix.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <p className="font-semibold text-slate-800 text-xs">Format breakdown:</p>
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 font-mono text-center space-y-2">
+                  <div className="text-base font-bold text-emerald-700 tracking-wider">
+                    {employeePrefix || "EKH"}-{currentYear}-0001
+                  </div>
+                  <div className="grid grid-cols-3 gap-1 text-[10px] text-slate-600 pt-1 border-t border-slate-200 font-sans">
+                    <div>
+                      <strong className="text-slate-800 block font-mono">{employeePrefix || "EKH"}</strong>
+                      <span>Org Prefix</span>
+                    </div>
+                    <div>
+                      <strong className="text-slate-800 block font-mono">{currentYear}</strong>
+                      <span>Current Year</span>
+                    </div>
+                    <div>
+                      <strong className="text-slate-800 block font-mono">0001</strong>
+                      <span>Sequential Serial</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-1.5 text-[11px] text-slate-600 leading-relaxed bg-slate-50/50 p-3 rounded-lg border border-slate-100">
+                <p>
+                  🔹 <strong>Why this format?</strong> When pushing to Hikvision machines, the system strips hyphens (e.g. <span className="font-mono">{employeePrefix || "EKH"}{currentYear}0001</span>).
+                </p>
+                <p>
+                  🔹 When syncing back from the terminal, the system detects this prefix and reconstructs the hyphenated ID accurately.
+                </p>
+              </div>
+
+              <Button
+                onClick={() => setShowIdGuideModal(false)}
+                className="w-full h-9 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold"
+              >
+                Understood, Got it!
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </Dialog>
   );
 };

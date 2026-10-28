@@ -8,6 +8,8 @@ import { Shield, Lock, User, ArrowRight, AlertCircle } from "lucide-react";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Input } from "@/components/ui/input";
 
+const ADMIN_ROLES = ["PLATFORM_ADMIN", "OWNER", "ADMIN", "HR"];
+
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
@@ -32,7 +34,7 @@ export default function LoginPage() {
         router.push("/portal/profile");
         return;
       }
-      if (user.role === "ADMIN" || user.role === "HR") {
+      if (user.role && ADMIN_ROLES.includes(user.role)) {
         router.push("/admin");
       } else {
         router.push("/portal/attendance");

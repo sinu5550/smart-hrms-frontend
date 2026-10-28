@@ -57,8 +57,8 @@ export const BulkDeleteEmployeesModal: React.FC<BulkDeleteModalProps> = ({
               Bulk Delete ({count}) Personnel
             </DialogTitle>
             <DialogDescription className="mt-1 leading-relaxed text-xs text-slate-600">
-              You are about to terminate and soft-delete <span className="font-bold text-slate-900">{count} selected employees</span>. 
-              This will immediately revoke their access and deactivate their attendance accounts.
+              You are about to permanently delete <span className="font-bold text-slate-900">{count} selected employees</span> from your database. 
+              This will completely erase their profiles from the system.
             </DialogDescription>
           </DialogHeader>
         </div>
@@ -90,14 +90,14 @@ export const BulkDeleteEmployeesModal: React.FC<BulkDeleteModalProps> = ({
           className="h-10 text-xs font-mono"
         />
 
-        <div className="flex items-center justify-end gap-2 pt-2">
-          <Button variant="outline" onClick={onClose} disabled={isDeleting} className="h-9 text-xs">
+        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+          <Button variant="outline" onClick={onClose} disabled={isDeleting} className="h-9 px-4 text-xs font-semibold rounded-lg">
             Cancel
           </Button>
           <Button
             onClick={handleDelete}
             disabled={!isMatch || isDeleting}
-            className="h-9 text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white flex items-center gap-1.5"
+            className="h-9 px-4 text-xs font-semibold rounded-lg bg-rose-600 hover:bg-rose-700 text-white flex items-center gap-1.5 shadow-2xs"
           >
             <Trash2 className="w-3.5 h-3.5" />
             {isDeleting ? "Deleting..." : `Delete ${count} Employees`}

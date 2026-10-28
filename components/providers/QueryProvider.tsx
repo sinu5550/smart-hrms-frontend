@@ -9,10 +9,10 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 1000 * 60 * 5, // 5 minutes fresh by default
-            refetchOnWindowFocus: false, // User requested no aggressive background refetching
-            refetchOnMount: false,
-            refetchOnReconnect: false,
+            staleTime: 0, // Immediately consider data stale so any cache invalidation triggers instant revalidation
+            refetchOnMount: true, // Always revalidate fresh data when entering a page or viewing records
+            refetchOnReconnect: true, // Auto revalidate when network reconnects
+            refetchOnWindowFocus: false, // Keep disabled to prevent unwanted background flickering
             retry: 1,
           },
         },
