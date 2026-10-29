@@ -183,14 +183,14 @@ export default function AttendanceReportsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div className="h-full flex flex-col min-h-0 gap-4 overflow-hidden">
+      {/* Top Header - Fixed/Sticky */}
+      <div className="shrink-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-slate-800 flex items-center gap-2">
             <FileText className="w-5 h-5 text-emerald-700" /> Attendance Reports & Analytics
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 mt-0.5">
             Generate and export day, week, month, or custom date-range Excel reports for bulk staff or specific individuals.
           </p>
         </div>
@@ -215,8 +215,8 @@ export default function AttendanceReportsPage() {
         </div>
       </div>
 
-      {/* Filter and Period Selection Bar */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs space-y-4">
+      {/* Filter and Period Selection Bar - Fixed/Sticky */}
+      <div className="shrink-0 bg-white border border-slate-200 rounded-xl p-4 shadow-xs space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
           {/* Preset Buttons */}
           <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
@@ -334,8 +334,10 @@ export default function AttendanceReportsPage() {
         </div>
       </div>
 
-      {/* Analytics & Visual Breakdown Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {/* Scrollable Container from Analytics Cards Downwards */}
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar space-y-6 pr-1">
+        {/* Analytics & Visual Breakdown Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Metric Overview (KPIs) */}
         <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -464,7 +466,7 @@ export default function AttendanceReportsPage() {
       </div>
 
       {/* Sticky Table Container */}
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs flex flex-col max-h-[calc(100vh-320px)]">
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs flex flex-col">
         {/* Table Header Controls */}
         <div className="p-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 text-xs">
           <span className="font-semibold text-slate-700">
@@ -474,7 +476,7 @@ export default function AttendanceReportsPage() {
         </div>
 
         {/* Scrollable Records */}
-        <div className="flex-1 overflow-y-auto overflow-x-auto custom-scrollbar">
+        <div className="overflow-x-auto">
           {isLoading && records.length === 0 ? (
             <div className="p-8 text-center text-xs text-slate-500">Loading attendance report data...</div>
           ) : error ? (
@@ -558,6 +560,7 @@ export default function AttendanceReportsPage() {
             </table>
           )}
         </div>
+      </div>
       </div>
     </div>
   );
