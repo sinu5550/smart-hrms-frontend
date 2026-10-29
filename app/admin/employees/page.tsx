@@ -136,22 +136,22 @@ export default function EmployeesDirectoryPage() {
       </div>
 
       {/* Filters Bar - Fixed/Sticky */}
-      <div className="shrink-0 grid grid-cols-1 md:grid-cols-5 gap-3 bg-white p-3 rounded-lg border border-slate-200 shadow-xs">
+      <div className="shrink-0 grid grid-cols-1 md:grid-cols-5 gap-2.5 bg-white p-2.5 rounded-lg border border-slate-200 shadow-xs">
         <div className="relative md:col-span-2">
-          <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-500" />
+          <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
           <Input
             type="text"
             placeholder="Search by name, ID (e.g. EKH-26-0001)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-9 rounded-lg pl-9 text-xs"
+            className="h-8 rounded-lg pl-8 text-[12px]"
           />
         </div>
 
         <Select
           value={departmentFilter}
           onValueChange={setDepartmentFilter}
-          triggerClassName="h-9 rounded-lg text-xs"
+          triggerClassName="h-8 text-[12px]"
           options={[
             { value: "ALL", label: "All Departments" },
             ...departments.map((d) => ({ value: d.id, label: d.name })),
@@ -161,14 +161,14 @@ export default function EmployeesDirectoryPage() {
         <Select
           value={statusFilter}
           onValueChange={setStatusFilter}
-          triggerClassName="h-9 rounded-lg text-xs"
+          triggerClassName="h-8 text-[12px]"
           options={[{value:"ALL",label:"All Statuses"},{value:"ACTIVE",label:"ACTIVE"},{value:"ON_PROBATION",label:"ON PROBATION"},{value:"RESIGNED",label:"RESIGNED"},{value:"TERMINATED",label:"TERMINATED"}]}
         />
 
         <Select
           value={bloodGroupFilter}
           onValueChange={setBloodGroupFilter}
-          triggerClassName="h-9 rounded-lg text-xs"
+          triggerClassName="h-8 text-[12px]"
           options={[{value:"ALL",label:"All Blood Groups"}, ...["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map(bg => ({value:bg,label:bg}))]}
         />
       </div>

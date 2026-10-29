@@ -18,6 +18,7 @@ import {
   Award,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { parseApiError } from "@/services/api";
 import * as XLSX from "xlsx";
 
@@ -285,51 +286,52 @@ export default function AttendanceReportsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {/* Employee Filter */}
           <div>
-            <label className="text-[11px] font-semibold text-slate-600 block mb-1">Scope / Individual</label>
-            <select
+            <label className="text-[12px] font-semibold text-slate-700 block mb-1">Scope / Individual</label>
+            <Select
               value={selectedUserId}
-              onChange={(e) => setSelectedUserId(e.target.value)}
-              className="w-full h-10 px-3 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:outline-none focus:border-emerald-600"
-            >
-              <option value="ALL">All Employees (Bulk Report)</option>
-              {employees.map((emp: any) => (
-                <option key={emp.id} value={emp.id}>
-                  {emp.fullName} ({emp.employeeId})
-                </option>
-              ))}
-            </select>
+              onValueChange={setSelectedUserId}
+              triggerClassName="h-8 text-[12px]"
+              options={[
+                { value: "ALL", label: "All Employees (Bulk Report)" },
+                ...employees.map((emp: any) => ({
+                  value: emp.id,
+                  label: `${emp.fullName} (${emp.employeeId || "No ID"})`,
+                })),
+              ]}
+            />
           </div>
 
           {/* Search Bar */}
           <div>
-            <label className="text-[11px] font-semibold text-slate-600 block mb-1">Search within records</label>
+            <label className="text-[12px] font-semibold text-slate-700 block mb-1">Search within records</label>
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3.5" />
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
               <Input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search name or ID..."
-                className="h-10 pl-9 text-xs rounded-lg"
+                className="h-8 pl-8 text-[12px] rounded-lg"
               />
             </div>
           </div>
 
           {/* Status Filter */}
           <div>
-            <label className="text-[11px] font-semibold text-slate-600 block mb-1">Status Filter</label>
-            <select
+            <label className="text-[12px] font-semibold text-slate-700 block mb-1">Status Filter</label>
+            <Select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full h-10 px-3 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:outline-none focus:border-emerald-600"
-            >
-              <option value="ALL">All Statuses</option>
-              <option value="PRESENT">On-Time (Present)</option>
-              <option value="LATE">Late Arrivals</option>
-              <option value="HALF_DAY">Half Day</option>
-              <option value="ON_BREAK">Currently on Break</option>
-              <option value="CHECKED_OUT">Shift Concluded</option>
-            </select>
+              onValueChange={setStatusFilter}
+              triggerClassName="h-8 text-[12px]"
+              options={[
+                { value: "ALL", label: "All Statuses" },
+                { value: "PRESENT", label: "On-Time (Present)" },
+                { value: "LATE", label: "Late Arrivals" },
+                { value: "HALF_DAY", label: "Half Day" },
+                { value: "ON_BREAK", label: "Currently on Break" },
+                { value: "CHECKED_OUT", label: "Shift Concluded" },
+              ]}
+            />
           </div>
         </div>
       </div>

@@ -174,24 +174,24 @@ export default function AdminAttendancePage() {
       </div>
 
       {/* Filters Bar - Sticky / Fixed */}
-      <div className="shrink-0 flex flex-col sm:flex-row gap-3 bg-white border border-slate-200 p-3 rounded-lg shadow-xs">
+      <div className="shrink-0 flex flex-col sm:flex-row gap-2.5 bg-white border border-slate-200 p-2.5 rounded-lg shadow-xs">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
           <Input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by employee name or ID..."
-            className="h-10 rounded-lg pl-10 text-sm"
+            className="h-8 rounded-lg pl-9 text-[12px]"
           />
         </div>
 
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-slate-800" />
+          <Filter className="w-3.5 h-3.5 text-slate-500 shrink-0" />
           <Select
             value={statusFilter}
             onValueChange={setStatusFilter}
-            triggerClassName="h-10 min-w-52 rounded-lg text-sm"
+            triggerClassName="h-8 min-w-44 text-[12px]"
             options={[{value:"ALL",label:"All Statuses"},{value:"PRESENT",label:"On-Time (Present)"},{value:"LATE",label:"Late"},{value:"ON_BREAK",label:"Currently on Break"},{value:"CHECKED_OUT",label:"Shift Concluded"}]}
           />
         </div>
