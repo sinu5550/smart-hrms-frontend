@@ -69,7 +69,7 @@ body:has(.dark) { background-color: #f4f7fb; color: #1f2937; }
 
 .table-scrollbar::-webkit-scrollbar-track {
   background: transparent;
-  margin-top: 42px; /* Starts exactly below the sticky table header */
+  margin-top: 48px; /* Starts exactly below the sticky table header */
   border-radius: 9999px;
 }
 
