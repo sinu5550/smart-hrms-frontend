@@ -15,25 +15,6 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 input:focus, select:focus, textarea:focus { outline: none; border-color: #10b981 !important; box-shadow: 0 0 0 3px rgb(16 185 129 / 12%); }
 
 /* Unique Ultra-Sleek Custom Scrollbar matching HRMS Emerald Branding */
-::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background-color: #cbd5e1;
-  border-radius: 9999px;
-  transition: background-color 0.2s ease;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background-color: #059669;
-}
-
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
   height: 4px;
@@ -41,6 +22,8 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #10b981
 
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
+  margin-top: 42px; /* Starts exactly below the sticky table header */
+  border-radius: 9999px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
