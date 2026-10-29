@@ -21,6 +21,7 @@ export interface TodayAttendanceRecord {
   currentState: AttendanceSessionState;
   totalWorkMinutes: number;
   totalBreakMinutes: number;
+  overtimeMinutes?: number;
   status: AttendanceStatus;
   breaks: AttendanceBreakRecord[];
 }

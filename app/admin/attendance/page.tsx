@@ -93,6 +93,8 @@ export default function AdminAttendancePage() {
     present: records.filter((r) => r.status === "PRESENT").length,
     late: records.filter((r) => r.status === "LATE").length,
     onBreak: records.filter((r) => r.currentState === "ON_BREAK").length,
+    overtimeCount: records.filter((r) => (r.overtimeMinutes || 0) > 0).length,
+    totalOvertimeMins: records.reduce((acc, r) => acc + (r.overtimeMinutes || 0), 0),
   };
 
   return (
@@ -123,7 +125,7 @@ export default function AdminAttendancePage() {
       </div>
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <div className="bg-white border border-slate-200 rounded-lg p-4">
           <div className="flex items-center justify-between text-xs text-slate-800">
             <span>Logged Today</span>
@@ -154,6 +156,19 @@ export default function AdminAttendancePage() {
             <Coffee className="w-4 h-4 text-amber-500" />
           </div>
           <p className="text-2xl font-bold text-amber-600 mt-2">{stats.onBreak}</p>
+        </div>
+
+        <div className="bg-white border border-emerald-200 rounded-lg p-4 col-span-2 sm:col-span-1">
+          <div className="flex items-center justify-between text-xs text-emerald-800">
+            <span>Overtime</span>
+            <Clock className="w-4 h-4 text-emerald-600" />
+          </div>
+          <div className="flex items-baseline gap-1.5 mt-2">
+            <span className="text-2xl font-bold text-emerald-700">{stats.overtimeCount}</span>
+            <span className="text-xs text-emerald-600 font-mono">
+              ({Math.floor(stats.totalOvertimeMins / 60)}h {stats.totalOvertimeMins % 60}m)
+            </span>
+          </div>
         </div>
       </div>
 
@@ -261,7 +276,7 @@ export default function AdminAttendancePage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 p-2 rounded-lg bg-slate-50 border border-slate-100 text-[10px]">
+                  <div className="grid grid-cols-4 gap-2 p-2 rounded-lg bg-slate-50 border border-slate-100 text-[10px]">
                     <div>
                       <span className="text-slate-400 block">Check In</span>
                       <span className="font-mono font-bold text-slate-800">
@@ -278,6 +293,12 @@ export default function AdminAttendancePage() {
                       <span className="text-slate-400 block">Work Time</span>
                       <span className="font-mono font-bold text-emerald-700">
                         {item.totalWorkMinutes !== undefined ? `${Math.floor(item.totalWorkMinutes / 60)}h ${item.totalWorkMinutes % 60}m` : "—"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block">Overtime</span>
+                      <span className={`font-mono font-bold ${(item.overtimeMinutes || 0) > 0 ? "text-indigo-600" : "text-slate-400"}`}>
+                        {(item.overtimeMinutes || 0) > 0 ? `${Math.floor(item.overtimeMinutes! / 60)}h ${item.overtimeMinutes! % 60}m` : "—"}
                       </span>
                     </div>
                   </div>
@@ -300,6 +321,7 @@ export default function AdminAttendancePage() {
                     <th className="py-3 px-4 font-semibold">State</th>
                     <th className="py-3 px-4 font-semibold">Status</th>
                     <th className="py-3 px-4 font-semibold">Work / Break</th>
+                    <th className="py-3 px-4 font-semibold">Overtime</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100/60">
@@ -371,6 +393,15 @@ export default function AdminAttendancePage() {
                             }m`
                           : "-"}{" "}
                         / <span className="text-slate-500">{item.totalBreakMinutes || 0}m break</span>
+                      </td>
+                      <td className="py-3.5 px-4 font-mono">
+                        {(item.overtimeMinutes || 0) > 0 ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                            +{Math.floor(item.overtimeMinutes! / 60)}h {item.overtimeMinutes! % 60}m
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">—</span>
+                        )}
                       </td>
                     </tr>
                   ))}

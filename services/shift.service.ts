@@ -6,6 +6,7 @@ export interface Shift {
   startTime: string;
   endTime: string;
   gracePeriodMinutes: number;
+  overtimeThresholdMins?: number;
   isDefault: boolean;
   updatedAt: string;
   _count?: {
@@ -18,6 +19,7 @@ export interface CreateShiftPayload {
   startTime: string;
   endTime: string;
   gracePeriodMinutes: number;
+  overtimeThresholdMins?: number;
   isDefault?: boolean;
 }
 
@@ -26,6 +28,7 @@ export interface UpdateShiftPayload {
   startTime?: string;
   endTime?: string;
   gracePeriodMinutes?: number;
+  overtimeThresholdMins?: number;
   isDefault?: boolean;
 }
 

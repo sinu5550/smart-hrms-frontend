@@ -21,6 +21,7 @@ export default function ShiftConfigurationPage() {
         startTime: shift.startTime,
         endTime: shift.endTime,
         gracePeriodMinutes: shift.gracePeriodMinutes,
+        overtimeThresholdMins: shift.overtimeThresholdMins ?? 30,
       });
     }
   }, [shift, reset]);
@@ -32,8 +33,9 @@ export default function ShiftConfigurationPage() {
       await updateShiftMutation.mutateAsync({
         ...values,
         gracePeriodMinutes: Number(values.gracePeriodMinutes),
+        overtimeThresholdMins: Number(values.overtimeThresholdMins),
       });
-      alert("Shift timings updated successfully! New office hours are active.");
+      alert("Shift timings & overtime rules updated successfully! New office hours are active.");
     } catch (err) {
       alert(parseApiError(err));
     }
@@ -100,6 +102,24 @@ export default function ShiftConfigurationPage() {
             <p className="text-[11px] text-slate-800">
               Arrivals after <span className="text-amber-600 font-semibold">[Shift Start + Grace Period]</span> are
               automatically cataloged as <strong className="text-rose-700">LATE</strong>.
+            </p>
+          </div>
+
+          <div className="p-4 bg-emerald-50/50 border border-emerald-200 rounded-lg space-y-2">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-emerald-600" />
+              <label className="text-xs font-semibold text-slate-900">
+                Overtime Threshold Buffer (Minutes)
+              </label>
+            </div>
+            <Input
+              type="number"
+              {...register("overtimeThresholdMins")}
+              placeholder="30"
+              className="h-10 rounded-lg font-mono bg-white"
+            />
+            <p className="text-[11px] text-slate-600">
+              Checkout occurring at or after <span className="text-emerald-700 font-semibold">[Shift End + Threshold Buffer]</span> (default: 30 mins) starts counting Overtime from official shift end time.
             </p>
           </div>
 

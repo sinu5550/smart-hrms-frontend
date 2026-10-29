@@ -265,6 +265,14 @@ export default function MobileAttendancePortal() {
               <p className="text-[10px] uppercase font-semibold text-slate-800">Total Breaks</p>
               <p className="text-lg font-bold text-slate-800 mt-1">{activeRecord?.totalBreakMinutes || 0}m</p>
             </div>
+            {(activeRecord?.overtimeMinutes || 0) > 0 && (
+              <div className="bg-indigo-50/80 p-3 rounded-xl border border-indigo-200 col-span-2 text-center">
+                <p className="text-[10px] uppercase font-bold text-indigo-700 tracking-wider">Overtime Approved</p>
+                <p className="text-xl font-black text-indigo-800 mt-0.5">
+                  +{Math.floor(activeRecord!.overtimeMinutes! / 60)}h {activeRecord!.overtimeMinutes! % 60}m
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}

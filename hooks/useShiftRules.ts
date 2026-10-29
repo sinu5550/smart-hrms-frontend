@@ -9,6 +9,7 @@ export interface ShiftRuleData {
   startTime: string;
   endTime: string;
   gracePeriodMinutes: number;
+  overtimeThresholdMins?: number;
 }
 
 export function useShiftRules() {
