@@ -472,7 +472,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </header>
 
         {/* Page Body */}
-        <main className={`flex-1 p-4 md:p-7 w-full min-h-0 flex flex-col ${pathname === "/admin/attendance" ? "overflow-hidden" : "overflow-y-auto"}`}>
+        <main className={`flex-1 p-4 md:p-7 w-full min-h-0 flex flex-col ${
+          pathname.startsWith("/admin/attendance") || pathname === "/admin/employees"
+            ? "overflow-hidden"
+            : "overflow-y-auto"
+        }`}>
           {children}
         </main>
 

@@ -96,11 +96,12 @@ export default function EmployeesDirectoryPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="h-full flex flex-col min-h-0 gap-4 overflow-hidden">
+      {/* Top Header Row - Fixed/Sticky */}
+      <div className="shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-slate-800 tracking-tight">Employee Directory</h1>
-          <p className="text-xs text-slate-800">
+          <p className="text-xs text-slate-500 mt-0.5">
             Total Personnel Count: {employees.length}
             {selectedIds.length > 0 && (
               <span className="ml-2 font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
@@ -134,7 +135,8 @@ export default function EmployeesDirectoryPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-3 bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+      {/* Filters Bar - Fixed/Sticky */}
+      <div className="shrink-0 grid grid-cols-1 md:grid-cols-5 gap-3 bg-white p-3 rounded-lg border border-slate-200 shadow-xs">
         <div className="relative md:col-span-2">
           <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-500" />
           <Input
@@ -171,10 +173,10 @@ export default function EmployeesDirectoryPage() {
         />
       </div>
 
-      {/* Employee List Container */}
-      <div className="bg-white sm:border sm:border-slate-200 sm:rounded-lg overflow-hidden sm:shadow-sm">
-        {/* Mobile View: Standalone Rounded App Cards matching the Skeleton design */}
-        <div className="sm:hidden p-3 space-y-3 bg-slate-50/60 rounded-xl">
+      {/* Employee List Container - Only this table body scrolls with hidden scrollbar */}
+      <div className="flex-1 min-h-0 bg-white border border-slate-200 rounded-lg overflow-hidden shadow-xs flex flex-col">
+        {/* Mobile View: Standalone Rounded App Cards */}
+        <div className="sm:hidden flex-1 overflow-y-auto no-scrollbar p-3 space-y-3 bg-slate-50/60">
           {/* Select all bar for mobile */}
           {filteredEmployees.length > 0 && (
             <div className="flex items-center justify-between px-3 py-2 bg-white rounded-lg border border-slate-200 text-xs">
@@ -311,12 +313,12 @@ export default function EmployeesDirectoryPage() {
           )}
         </div>
 
-        {/* Desktop View: Full Table */}
-        <div className="hidden sm:block overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-800">
-            <thead className="bg-white/80 text-[11px] uppercase font-semibold text-slate-800 border-b border-slate-200">
+        {/* Desktop View: Full Table with Sticky Header, hidden scrollbar and prominent row lines */}
+        <div className="hidden sm:block flex-1 min-h-0 overflow-y-auto overflow-x-auto no-scrollbar">
+          <table className="w-full text-left text-xs text-slate-800 border-collapse">
+            <thead className="sticky top-0 z-20 bg-slate-100 text-[11px] uppercase font-bold text-slate-700 shadow-xs border-b border-slate-300">
               <tr>
-                <th className="py-3 px-4 w-10">
+                <th className="py-3 px-4 w-10 bg-slate-100 border-b border-slate-200">
                   <input
                     type="checkbox"
                     checked={isAllSelected}
@@ -326,16 +328,16 @@ export default function EmployeesDirectoryPage() {
                     title="Select All"
                   />
                 </th>
-                <th className="py-3 px-4">Employee</th>
-                <th className="py-3 px-4">Employee ID</th>
-                <th className="py-3 px-4 text-center">Biometrics</th>
-                <th className="py-3 px-4">Department / Shift</th>
-                <th className="py-3 px-4">Blood</th>
-                <th className="py-3 px-4">Employment Status</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+                <th className="py-3 px-4 bg-slate-100 border-b border-slate-200">Employee</th>
+                <th className="py-3 px-4 bg-slate-100 border-b border-slate-200">Employee ID</th>
+                <th className="py-3 px-4 text-center bg-slate-100 border-b border-slate-200">Biometrics</th>
+                <th className="py-3 px-4 bg-slate-100 border-b border-slate-200">Department / Shift</th>
+                <th className="py-3 px-4 bg-slate-100 border-b border-slate-200">Blood</th>
+                <th className="py-3 px-4 bg-slate-100 border-b border-slate-200">Employment Status</th>
+                <th className="py-3 px-4 text-right bg-slate-100 border-b border-slate-200">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100/60">
+            <tbody className="divide-y divide-slate-200 bg-white">
               {isLoading ? (
                 <>
                   {[1, 2, 3, 4, 5].map((n) => (
@@ -371,7 +373,7 @@ export default function EmployeesDirectoryPage() {
                   return (
                     <tr
                       key={emp.id}
-                      className={`transition ${isChecked ? "bg-rose-50/30 hover:bg-rose-50/50" : "hover:bg-slate-50/50"}`}
+                      className={`transition border-b border-slate-200 ${isChecked ? "bg-rose-50/30 hover:bg-rose-50/50" : "hover:bg-slate-50"}`}
                     >
                       <td className="py-3 px-4">
                         <input
