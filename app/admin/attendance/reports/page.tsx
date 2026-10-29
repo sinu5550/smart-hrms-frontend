@@ -474,7 +474,7 @@ export default function AttendanceReportsPage() {
         </div>
 
         {/* Scrollable Records */}
-        <div className="flex-1 overflow-y-auto overflow-x-auto">
+        <div className="flex-1 overflow-y-auto overflow-x-auto no-scrollbar">
           {isLoading && records.length === 0 ? (
             <div className="p-8 text-center text-xs text-slate-500">Loading attendance report data...</div>
           ) : error ? (
@@ -486,17 +486,17 @@ export default function AttendanceReportsPage() {
             </div>
           ) : (
             <table className="w-full text-left border-collapse text-xs">
-              <thead className="sticky top-0 z-10 bg-slate-100/95 backdrop-blur-xs border-b border-slate-200 shadow-xs">
-                <tr className="text-slate-800">
-                  <th className="py-3 px-4 font-semibold">Employee</th>
-                  <th className="py-3 px-4 font-semibold">Date</th>
-                  <th className="py-3 px-4 font-semibold">Department</th>
-                  <th className="py-3 px-4 font-semibold">Check-In</th>
-                  <th className="py-3 px-4 font-semibold">Check-Out</th>
-                  <th className="py-3 px-4 font-semibold">Status</th>
-                  <th className="py-3 px-4 font-semibold">Work / Break</th>
-                  <th className="py-3 px-4 font-semibold">Overtime</th>
-                  <th className="py-3 px-4 font-semibold">Terminal / Mode</th>
+              <thead className="sticky top-0 z-20 bg-slate-100 text-slate-800 border-b border-slate-200 shadow-xs">
+                <tr>
+                  <th className="py-3 px-4 font-semibold bg-slate-100">Employee</th>
+                  <th className="py-3 px-4 font-semibold bg-slate-100">Date</th>
+                  <th className="py-3 px-4 font-semibold bg-slate-100">Department</th>
+                  <th className="py-3 px-4 font-semibold bg-slate-100">Check-In</th>
+                  <th className="py-3 px-4 font-semibold bg-slate-100">Check-Out</th>
+                  <th className="py-3 px-4 font-semibold bg-slate-100">Status</th>
+                  <th className="py-3 px-4 font-semibold bg-slate-100">Work / Break</th>
+                  <th className="py-3 px-4 font-semibold bg-slate-100">Overtime</th>
+                  <th className="py-3 px-4 font-semibold bg-slate-100">Terminal / Mode</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">

@@ -197,9 +197,9 @@ export default function AdminAttendancePage() {
       </div>
 
       {/* Attendance Records Table */}
-      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm flex flex-col max-h-[calc(100vh-340px)]">
+      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm flex flex-col flex-1 min-h-0">
         {isLoading && records.length === 0 ? (
-          <div className="overflow-y-auto">
+          <div className="overflow-y-auto no-scrollbar">
             <div className="sm:hidden p-3 space-y-3">
               {[1, 2, 3, 4].map((n) => (
                 <div key={n} className="p-3.5 space-y-2.5 rounded-lg border border-slate-100 bg-white">
@@ -238,7 +238,7 @@ export default function AdminAttendancePage() {
             <p className="text-xs">No attendance records found for this criteria.</p>
           </div>
         ) : (
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto overflow-x-auto no-scrollbar">
             {/* Mobile Card List (Hidden on sm/md/lg) */}
             <div className="sm:hidden divide-y divide-slate-100">
               {filteredRecords.map((item) => (
@@ -307,21 +307,21 @@ export default function AdminAttendancePage() {
             </div>
 
             {/* Desktop Full Table (Hidden on mobile) */}
-            <div className="hidden sm:block overflow-x-auto">
+            <div className="hidden sm:block">
               <table className="w-full text-left border-collapse text-xs">
-                <thead className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur-xs border-b border-slate-200 shadow-xs">
-                  <tr className="text-slate-800">
-                    <th className="py-3 px-4 font-semibold">Employee</th>
+                <thead className="sticky top-0 z-20 bg-slate-100 text-slate-800 border-b border-slate-200 shadow-xs">
+                  <tr>
+                    <th className="py-3.5 px-4 font-semibold bg-slate-100">Employee</th>
                     {dateRange.startDate !== dateRange.endDate && (
-                      <th className="py-3 px-4 font-semibold">Date</th>
+                      <th className="py-3.5 px-4 font-semibold bg-slate-100">Date</th>
                     )}
-                    <th className="py-3 px-4 font-semibold">Department</th>
-                    <th className="py-3 px-4 font-semibold">Check-In</th>
-                    <th className="py-3 px-4 font-semibold">Check-Out</th>
-                    <th className="py-3 px-4 font-semibold">State</th>
-                    <th className="py-3 px-4 font-semibold">Status</th>
-                    <th className="py-3 px-4 font-semibold">Work / Break</th>
-                    <th className="py-3 px-4 font-semibold">Overtime</th>
+                    <th className="py-3.5 px-4 font-semibold bg-slate-100">Department</th>
+                    <th className="py-3.5 px-4 font-semibold bg-slate-100">Check-In</th>
+                    <th className="py-3.5 px-4 font-semibold bg-slate-100">Check-Out</th>
+                    <th className="py-3.5 px-4 font-semibold bg-slate-100">State</th>
+                    <th className="py-3.5 px-4 font-semibold bg-slate-100">Status</th>
+                    <th className="py-3.5 px-4 font-semibold bg-slate-100">Work / Break</th>
+                    <th className="py-3.5 px-4 font-semibold bg-slate-100">Overtime</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100/60">

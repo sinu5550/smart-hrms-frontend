@@ -42,3 +42,12 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #10b981
   scrollbar-color: #cbd5e1 transparent;
 }
 
+/* Hide scrollbar while preserving scroll functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
