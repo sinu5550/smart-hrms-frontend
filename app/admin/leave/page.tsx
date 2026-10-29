@@ -14,6 +14,7 @@ import {
   FileText,
 } from "lucide-react";
 import Image from "next/image";
+import { formatDate } from "@/lib/utils";
 
 interface LeaveRequestItem {
   id: string;
@@ -206,7 +207,7 @@ export default function AdminLeaveManagementPage() {
                     <span className="font-semibold text-emerald-700">{item.totalDays} Day{item.totalDays > 1 ? "s" : ""}</span>
                   </div>
                   <p className="text-[11px] text-slate-500">
-                    {new Date(item.startDate).toLocaleDateString()} to {new Date(item.endDate).toLocaleDateString()}
+                    {formatDate(item.startDate)} to {formatDate(item.endDate)}
                   </p>
                   <p className="text-slate-700 text-[11px] pt-1 border-t border-slate-200/50">Reason: {item.reason}</p>
                 </div>
@@ -298,7 +299,7 @@ export default function AdminLeaveManagementPage() {
                     </td>
                     <td className="py-3 px-4 whitespace-nowrap">
                       <span className="font-medium text-slate-700">
-                        {new Date(item.startDate).toLocaleDateString()} - {new Date(item.endDate).toLocaleDateString()}
+                        {formatDate(item.startDate)} - {formatDate(item.endDate)}
                       </span>
                     </td>
                     <td className="py-3 px-4 whitespace-nowrap font-bold text-slate-900">

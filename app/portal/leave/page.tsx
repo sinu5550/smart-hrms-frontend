@@ -14,6 +14,7 @@ import {
   Timer,
   ChevronRight,
 } from "lucide-react";
+import { formatDate } from "@/lib/utils";
 
 interface LeaveRequestItem {
   id: string;
@@ -221,7 +222,7 @@ export default function MobileLeavePortalPage() {
                 <div className="flex items-center gap-2 text-[10px] text-slate-400 pt-1 border-t border-slate-100">
                   <Clock className="w-3 h-3 text-slate-400" />
                   <span>
-                    {new Date(item.startDate).toLocaleDateString()} to {new Date(item.endDate).toLocaleDateString()}
+                    {formatDate(item.startDate)} to {formatDate(item.endDate)}
                   </span>
                 </div>
               </div>

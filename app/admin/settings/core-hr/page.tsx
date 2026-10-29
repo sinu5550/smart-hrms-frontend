@@ -16,6 +16,7 @@ import {
   useSaveIdCardTemplate,
 } from "@/hooks";
 import { parseApiError } from "@/services/api";
+import { formatDate } from "@/lib/utils";
 import {
   Building2,
   Calendar,
@@ -311,7 +312,7 @@ export default function CoreHrSettingsHubPage() {
                         </span>
                       </td>
                       <td className="p-3 text-slate-600 font-mono text-[11px]">
-                        {new Date(h.fromDate).toISOString().split("T")[0]} &rarr; {new Date(h.toDate).toISOString().split("T")[0]}
+                        {formatDate(h.fromDate)} &rarr; {formatDate(h.toDate)}
                       </td>
                       <td className="p-3 font-semibold text-emerald-700">{h.totalDays} Day(s)</td>
                       <td className="p-3 text-right">

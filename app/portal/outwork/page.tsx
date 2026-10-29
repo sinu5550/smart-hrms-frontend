@@ -14,6 +14,7 @@ import {
   Briefcase,
   RefreshCw,
 } from "lucide-react";
+import { formatDate } from "@/lib/utils";
 
 interface OutworkRecord {
   id: string;
@@ -246,7 +247,7 @@ export default function OutworkSubmissionPage() {
                     <h3 className="text-xs font-bold text-slate-900">{rec.destination}</h3>
                     <p className="text-[10px] text-slate-500 flex items-center gap-1">
                       <Calendar className="w-3 h-3 text-slate-400" />
-                      {new Date(rec.visitDate).toLocaleDateString()}
+                      {formatDate(rec.visitDate)}
                     </p>
                   </div>
 

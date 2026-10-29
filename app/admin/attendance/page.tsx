@@ -21,6 +21,7 @@ import {
   PremiumDateRangePicker,
   DateRangeValue,
 } from "@/components/ui/PremiumDateRangePicker";
+import { formatDate } from "@/lib/utils";
 
 interface AttendanceRecord {
   id: string;
@@ -339,7 +340,7 @@ export default function AdminAttendancePage() {
                       </td>
                       {dateRange.startDate !== dateRange.endDate && (
                         <td className="py-3.5 px-4 font-mono text-slate-700">
-                          {new Date(item.date).toISOString().split("T")[0]}
+                          {formatDate(item.date)}
                         </td>
                       )}
                       <td className="py-3.5 px-4 text-slate-800">

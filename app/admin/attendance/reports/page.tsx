@@ -20,6 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { parseApiError } from "@/services/api";
+import { formatDate } from "@/lib/utils";
 import * as XLSX from "xlsx";
 
 type ReportPeriodType = "DAY" | "WEEK" | "MONTH" | "CUSTOM";
@@ -142,7 +143,7 @@ export default function AttendanceReportsPage() {
         "Employee Name": item.user?.fullName || "—",
         "Department": item.user?.department?.name || "General",
         "Designation": item.user?.designation?.title || "Staff",
-        "Date": new Date(item.date).toISOString().split("T")[0],
+        "Date": formatDate(item.date),
         "Check-In Time": item.checkInTime ? new Date(item.checkInTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—",
         "Check-Out Time": item.checkOutTime ? new Date(item.checkOutTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—",
         "Status": item.status === "PRESENT" ? "On-Time" : item.status === "LATE" ? "Late" : item.status,
@@ -154,6 +155,9 @@ export default function AttendanceReportsPage() {
     });
 
     const worksheet = XLSX.utils.json_to_sheet(exportRows);
+
+    // Freeze header row so header stays sticky when scrolling in Excel
+    worksheet["!views"] = [{ state: "frozen", ySplit: 1 }];
 
     // Auto column widths
     const columnWidths = [
@@ -492,7 +496,7 @@ export default function AttendanceReportsPage() {
               </p>
               <div className="mt-3 flex items-center gap-2 text-[11px] text-emerald-300 bg-white/10 px-3 py-1.5 rounded-lg border border-white/10">
                 <Clock className="w-3.5 h-3.5" />
-                <span>Period: {periodType} ({startDate} to {endDate})</span>
+                <span>Period: {periodType} ({formatDate(startDate)} to {formatDate(endDate)})</span>
               </div>
             </div>
           </div>
@@ -567,7 +571,7 @@ export default function AttendanceReportsPage() {
                       <div className="text-[11px] text-slate-500 font-mono">{item.user?.employeeId}</div>
                     </td>
                     <td className="py-3 px-4 font-mono text-slate-700">
-                      {new Date(item.date).toISOString().split("T")[0]}
+                      {formatDate(item.date)}
                     </td>
                     <td className="py-3 px-4 text-slate-700">
                       <div>{item.user?.department?.name || "General"}</div>
