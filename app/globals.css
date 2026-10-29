@@ -10,9 +10,30 @@ body {
 
 body:has(.dark) { background-color: #f4f7fb; color: #1f2937; }
 
-* { scrollbar-color: #cbd5e1 transparent; }
-button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
-input:focus, select:focus, textarea:focus { outline: none; border-color: #10b981 !important; box-shadow: 0 0 0 3px rgb(16 185 129 / 12%); }
+/* Universal Sleek Greenish Custom Scrollbar matching HRMS Branding */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #a7f3d0 transparent;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #a7f3d0; /* Soft light greenish */
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #059669; /* Rich emerald green on hover */
+}
 
 /* Unique Ultra-Sleek Custom Scrollbar matching HRMS Emerald Branding */
 .custom-scrollbar::-webkit-scrollbar {
@@ -26,7 +47,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #10b981
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #cbd5e1;
+  background-color: #a7f3d0; /* Soft light greenish */
   border-radius: 9999px;
   transition: background-color 0.2s ease;
 }
@@ -37,7 +58,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #10b981
 
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-color: #a7f3d0 transparent;
 }
 
 /* Dedicated Table Body Scrollbar with track margin below table header */
@@ -53,7 +74,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #10b981
 }
 
 .table-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #cbd5e1;
+  background-color: #a7f3d0; /* Soft light greenish */
   border-radius: 9999px;
   transition: background-color 0.2s ease;
 }
@@ -64,7 +85,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #10b981
 
 .table-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-color: #a7f3d0 transparent;
 }
 
 /* Hide scrollbar while preserving scroll functionality */

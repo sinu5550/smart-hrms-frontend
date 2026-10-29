@@ -247,7 +247,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
 
           {/* Navigation Links (Scrollable area) */}
-          <nav className="p-3 space-y-1 flex-1 overflow-y-auto">
+          <nav className="p-3 space-y-1 flex-1 overflow-y-auto custom-scrollbar">
             {/* Overview */}
             {mainNavItems.filter((i) => i.href === "/admin").map((item) => {
               const Icon = item.icon;
