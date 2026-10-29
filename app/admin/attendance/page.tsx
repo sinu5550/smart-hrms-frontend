@@ -272,7 +272,7 @@ export default function AdminAttendancePage() {
                         item.status === "LATE" ? "text-rose-700 bg-rose-50 border border-rose-200" :
                         "text-amber-700 bg-amber-50 border border-amber-200"
                       }`}>
-                        {item.status}
+                        {item.status === "PRESENT" ? "On-Time" : item.status === "LATE" ? "Late" : item.status === "HALF_DAY" ? "Half Day" : item.status}
                       </span>
                     </div>
                   </div>
@@ -378,13 +378,19 @@ export default function AdminAttendancePage() {
                       </td>
                       <td className="py-3.5 px-4">
                         {item.status === "PRESENT" && (
-                          <span className="text-emerald-700 font-semibold">On-Time</span>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            On-Time
+                          </span>
                         )}
                         {item.status === "LATE" && (
-                          <span className="text-rose-700 font-semibold">Late</span>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                            Late
+                          </span>
                         )}
                         {item.status === "HALF_DAY" && (
-                          <span className="text-amber-600 font-semibold">Half Day</span>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                            Half Day
+                          </span>
                         )}
                       </td>
                       <td className="py-3.5 px-4 text-slate-800 font-mono">

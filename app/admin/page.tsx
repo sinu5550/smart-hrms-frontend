@@ -122,8 +122,22 @@ export default function AdminOverviewPage() {
                     <p className="text-[10px] text-slate-400 font-mono">{record.user.employeeId}</p>
                   </div>
                 </div>
-                <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${record.status === "LATE" ? "bg-amber-50 text-amber-700 border border-amber-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200"}`}>
-                  {record.status === "LATE" ? "Late" : record.currentState === "CHECKED_OUT" ? "Checked out" : record.currentState === "ON_BREAK" ? "On break" : "Present"}
+                <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                  record.status === "LATE"
+                    ? "bg-rose-50 text-rose-700 border border-rose-200"
+                    : record.currentState === "CHECKED_OUT"
+                    ? "bg-slate-100 text-slate-600 border border-slate-200 font-medium"
+                    : record.currentState === "ON_BREAK"
+                    ? "bg-amber-50 text-amber-700 border border-amber-200 animate-pulse"
+                    : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                }`}>
+                  {record.status === "LATE"
+                    ? "Late"
+                    : record.currentState === "CHECKED_OUT"
+                    ? "Ended"
+                    : record.currentState === "ON_BREAK"
+                    ? "Break"
+                    : "On-Time"}
                 </span>
               </div>
             ))
