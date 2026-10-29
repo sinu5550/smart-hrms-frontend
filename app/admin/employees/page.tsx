@@ -96,7 +96,7 @@ export default function EmployeesDirectoryPage() {
   };
 
   return (
-    <div className="h-full flex flex-col min-h-0 gap-4 overflow-hidden">
+    <div className="flex-1 md:h-full flex flex-col md:min-h-0 gap-4 md:overflow-hidden">
       {/* Top Header Row - Fixed/Sticky */}
       <div className="shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -174,9 +174,9 @@ export default function EmployeesDirectoryPage() {
       </div>
 
       {/* Employee List Container - Only this table body scrolls with hidden scrollbar */}
-      <div className="flex-1 min-h-0 bg-white border border-slate-200 rounded-lg overflow-hidden shadow-xs flex flex-col">
+      <div className="flex-1 md:min-h-0 bg-white border border-slate-200 rounded-lg overflow-hidden shadow-xs flex flex-col">
         {/* Mobile View: Standalone Rounded App Cards */}
-        <div className="sm:hidden flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3 bg-slate-50/60">
+        <div className="sm:hidden p-3 space-y-3 bg-slate-50/60">
           {/* Select all bar for mobile */}
           {filteredEmployees.length > 0 && (
             <div className="flex items-center justify-between px-3 py-2 bg-white rounded-lg border border-slate-200 text-xs">

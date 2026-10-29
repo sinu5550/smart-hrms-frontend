@@ -118,7 +118,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [pathname]);
 
   return (
-    <div className="h-screen bg-[#f4f7fb] text-slate-800 flex flex-col md:flex-row overflow-hidden">
+    <div className="min-h-screen md:h-screen bg-[#f4f7fb] text-slate-800 flex flex-col md:flex-row md:overflow-hidden">
       {/* Mobile Backdrop */}
       {isMobileMenuOpen && (
         <div
@@ -426,7 +426,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden pb-16 md:pb-0">
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen md:h-screen md:overflow-hidden pb-16 md:pb-0">
         {/* Mobile & Desktop Header */}
         <header className="h-14 bg-white/95 backdrop-blur-md border-b border-slate-200 px-3.5 md:px-7 flex items-center justify-between shrink-0 sticky top-0 z-30 shadow-xs">
           <div className="flex items-center gap-2.5">
@@ -474,7 +474,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Page Body */}
         <main className={`flex-1 p-4 md:p-7 w-full min-h-0 flex flex-col ${
           pathname === "/admin/attendance" || pathname === "/admin/employees"
-            ? "overflow-hidden"
+            ? "overflow-y-auto md:overflow-hidden"
             : "overflow-y-auto"
         }`}>
           {children}

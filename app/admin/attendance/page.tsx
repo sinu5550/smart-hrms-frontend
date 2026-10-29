@@ -98,7 +98,7 @@ export default function AdminAttendancePage() {
   };
 
   return (
-    <div className="h-full flex flex-col min-h-0 gap-4 overflow-hidden">
+    <div className="flex-1 md:h-full flex flex-col md:min-h-0 gap-4 md:overflow-hidden">
       {/* Header Row - Sticky / Fixed at top */}
       <div className="shrink-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
@@ -198,7 +198,7 @@ export default function AdminAttendancePage() {
       </div>
 
       {/* Attendance Records Table Container */}
-      <div className="flex-1 min-h-0 bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm flex flex-col">
+      <div className="flex-1 md:min-h-0 bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm flex flex-col">
         {isLoading && records.length === 0 ? (
           <div className="overflow-y-auto no-scrollbar">
             <div className="sm:hidden p-3 space-y-3">
@@ -239,7 +239,7 @@ export default function AdminAttendancePage() {
             <p className="text-xs">No attendance records found for this criteria.</p>
           </div>
         ) : (
-          <div className="flex-1 overflow-y-auto overflow-x-auto table-scrollbar">
+          <div className="flex-1 md:overflow-y-auto overflow-x-auto table-scrollbar">
             {/* Mobile Card List (Hidden on sm/md/lg) */}
             <div className="sm:hidden divide-y divide-slate-200">
               {filteredRecords.map((item) => (
