@@ -291,6 +291,8 @@ export default function AttendanceReportsPage() {
               value={selectedUserId}
               onValueChange={setSelectedUserId}
               triggerClassName="h-8 text-[12px]"
+              searchable={true}
+              searchPlaceholder="Search employee name or ID..."
               options={[
                 { value: "ALL", label: "All Employees (Bulk Report)" },
                 ...employees.map((emp: any) => ({
