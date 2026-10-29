@@ -346,42 +346,58 @@ export default function AttendanceReportsPage() {
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
               <BarChart3 className="w-4 h-4 text-emerald-600" /> Attendance Breakdown
             </h3>
-            <span className="text-xs font-bold font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
-              {analytics.total} Logs
-            </span>
+            {isLoading && records.length === 0 ? (
+              <div className="h-5 w-16 bg-slate-200/80 rounded-full animate-pulse" />
+            ) : (
+              <span className="text-xs font-bold font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                {analytics.total} Logs
+              </span>
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="p-3 rounded-xl bg-emerald-50/60 border border-emerald-100">
-              <p className="text-[10px] uppercase font-bold text-emerald-800">On-Time Present</p>
-              <p className="text-2xl font-black text-emerald-700 mt-1">{analytics.onTime}</p>
-              <span className="text-[10px] text-emerald-600 font-medium">{analytics.onTimePercent}% of logs</span>
+          {isLoading && records.length === 0 ? (
+            <div className="grid grid-cols-2 gap-3">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="p-3 rounded-xl bg-slate-50 border border-slate-100 space-y-2">
+                  <div className="h-2.5 w-20 bg-slate-200/80 rounded animate-pulse" />
+                  <div className="h-7 w-12 bg-slate-200 rounded animate-pulse" />
+                  <div className="h-2 w-16 bg-slate-200/60 rounded animate-pulse" />
+                </div>
+              ))}
             </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 rounded-xl bg-emerald-50/60 border border-emerald-100">
+                <p className="text-[10px] uppercase font-bold text-emerald-800">On-Time Present</p>
+                <p className="text-2xl font-black text-emerald-700 mt-1">{analytics.onTime}</p>
+                <span className="text-[10px] text-emerald-600 font-medium">{analytics.onTimePercent}% of logs</span>
+              </div>
 
-            <div className="p-3 rounded-xl bg-rose-50/60 border border-rose-100">
-              <p className="text-[10px] uppercase font-bold text-rose-800">Late Arrivals</p>
-              <p className="text-2xl font-black text-rose-700 mt-1">{analytics.late}</p>
-              <span className="text-[10px] text-rose-600 font-medium">{analytics.latePercent}% of logs</span>
-            </div>
+              <div className="p-3 rounded-xl bg-rose-50/60 border border-rose-100">
+                <p className="text-[10px] uppercase font-bold text-rose-800">Late Arrivals</p>
+                <p className="text-2xl font-black text-rose-700 mt-1">{analytics.late}</p>
+                <span className="text-[10px] text-rose-600 font-medium">{analytics.latePercent}% of logs</span>
+              </div>
 
-            <div className="p-3 rounded-xl bg-indigo-50/60 border border-indigo-100">
-              <p className="text-[10px] uppercase font-bold text-indigo-800">Overtime Recorded</p>
-              <p className="text-2xl font-black text-indigo-700 mt-1">{analytics.overtimeCount}</p>
-              <span className="text-[10px] text-indigo-600 font-medium">
-                {Math.floor(analytics.totalOvertimeMins / 60)}h {analytics.totalOvertimeMins % 60}m total
-              </span>
-            </div>
+              <div className="p-3 rounded-xl bg-indigo-50/60 border border-indigo-100">
+                <p className="text-[10px] uppercase font-bold text-indigo-800">Overtime Recorded</p>
+                <p className="text-2xl font-black text-indigo-700 mt-1">{analytics.overtimeCount}</p>
+                <span className="text-[10px] text-indigo-600 font-medium">
+                  {Math.floor(analytics.totalOvertimeMins / 60)}h {analytics.totalOvertimeMins % 60}m total
+                </span>
+              </div>
 
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-              <p className="text-[10px] uppercase font-bold text-slate-600">Total Work Hours</p>
-              <p className="text-2xl font-black text-slate-800 mt-1">
-                {Math.floor(analytics.totalWorkMins / 60)}h
-              </p>
-              <span className="text-[10px] text-slate-500 font-medium">
-                {analytics.totalWorkMins % 60}m net time
-              </span>
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <p className="text-[10px] uppercase font-bold text-slate-600">Total Work Hours</p>
+                <p className="text-2xl font-black text-slate-800 mt-1">
+                  {Math.floor(analytics.totalWorkMins / 60)}h
+                </p>
+                <span className="text-[10px] text-slate-500 font-medium">
+                  {analytics.totalWorkMins % 60}m net time
+                </span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Visual Progress / Ratio Graph */}
@@ -393,48 +409,69 @@ export default function AttendanceReportsPage() {
             <span className="text-xs text-slate-400 font-medium">Accuracy: 100%</span>
           </div>
 
-          <div className="space-y-4 pt-1">
-            {/* Visual Bar representation */}
-            <div>
-              <div className="flex items-center justify-between text-xs mb-1.5">
-                <span className="font-semibold text-slate-700">Punctuality Score</span>
-                <span className="font-mono font-bold text-emerald-700">{analytics.onTimePercent}%</span>
+          {isLoading && records.length === 0 ? (
+            <div className="space-y-4 pt-1">
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <div className="h-3 w-24 bg-slate-200/80 rounded animate-pulse" />
+                  <div className="h-3 w-10 bg-slate-200 rounded animate-pulse" />
+                </div>
+                <div className="w-full h-3 bg-slate-200/70 rounded-full animate-pulse" />
               </div>
-              <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden flex">
-                <div
-                  style={{ width: `${analytics.onTimePercent}%` }}
-                  className="bg-emerald-500 h-full transition-all duration-500"
-                />
-                <div
-                  style={{ width: `${analytics.latePercent}%` }}
-                  className="bg-rose-500 h-full transition-all duration-500"
-                />
-                <div
-                  style={{ width: `${analytics.halfDayPercent}%` }}
-                  className="bg-amber-400 h-full transition-all duration-500"
-                />
+              <div className="grid grid-cols-3 gap-2 pt-2">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="p-2 rounded-lg bg-slate-50 border border-slate-100 space-y-1.5 flex flex-col items-center">
+                    <div className="w-2 h-2 rounded-full bg-slate-200 animate-pulse" />
+                    <div className="h-2 w-12 bg-slate-200/80 rounded animate-pulse" />
+                    <div className="h-3 w-8 bg-slate-200 rounded animate-pulse" />
+                  </div>
+                ))}
               </div>
             </div>
+          ) : (
+            <div className="space-y-4 pt-1">
+              {/* Visual Bar representation */}
+              <div>
+                <div className="flex items-center justify-between text-xs mb-1.5">
+                  <span className="font-semibold text-slate-700">Punctuality Score</span>
+                  <span className="font-mono font-bold text-emerald-700">{analytics.onTimePercent}%</span>
+                </div>
+                <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden flex">
+                  <div
+                    style={{ width: `${analytics.onTimePercent}%` }}
+                    className="bg-emerald-500 h-full transition-all duration-500"
+                  />
+                  <div
+                    style={{ width: `${analytics.latePercent}%` }}
+                    className="bg-rose-500 h-full transition-all duration-500"
+                  />
+                  <div
+                    style={{ width: `${analytics.halfDayPercent}%` }}
+                    className="bg-amber-400 h-full transition-all duration-500"
+                  />
+                </div>
+              </div>
 
-            {/* Legend */}
-            <div className="grid grid-cols-3 gap-2 pt-2 text-center text-xs">
-              <div className="p-2 rounded-lg bg-emerald-50 border border-emerald-100">
-                <span className="block w-2 h-2 rounded-full bg-emerald-500 mx-auto mb-1" />
-                <p className="text-[10px] text-slate-500 font-semibold">On-Time</p>
-                <p className="font-mono font-bold text-emerald-800">{analytics.onTimePercent}%</p>
-              </div>
-              <div className="p-2 rounded-lg bg-rose-50 border border-rose-100">
-                <span className="block w-2 h-2 rounded-full bg-rose-500 mx-auto mb-1" />
-                <p className="text-[10px] text-slate-500 font-semibold">Late</p>
-                <p className="font-mono font-bold text-rose-800">{analytics.latePercent}%</p>
-              </div>
-              <div className="p-2 rounded-lg bg-indigo-50 border border-indigo-100">
-                <span className="block w-2 h-2 rounded-full bg-indigo-500 mx-auto mb-1" />
-                <p className="text-[10px] text-slate-500 font-semibold">Overtime</p>
-                <p className="font-mono font-bold text-indigo-800">{analytics.overtimeCount}</p>
+              {/* Legend */}
+              <div className="grid grid-cols-3 gap-2 pt-2 text-center text-xs">
+                <div className="p-2 rounded-lg bg-emerald-50 border border-emerald-100">
+                  <span className="block w-2 h-2 rounded-full bg-emerald-500 mx-auto mb-1" />
+                  <p className="text-[10px] text-slate-500 font-semibold">On-Time</p>
+                  <p className="font-mono font-bold text-emerald-800">{analytics.onTimePercent}%</p>
+                </div>
+                <div className="p-2 rounded-lg bg-rose-50 border border-rose-100">
+                  <span className="block w-2 h-2 rounded-full bg-rose-500 mx-auto mb-1" />
+                  <p className="text-[10px] text-slate-500 font-semibold">Late</p>
+                  <p className="font-mono font-bold text-rose-800">{analytics.latePercent}%</p>
+                </div>
+                <div className="p-2 rounded-lg bg-indigo-50 border border-indigo-100">
+                  <span className="block w-2 h-2 rounded-full bg-indigo-500 mx-auto mb-1" />
+                  <p className="text-[10px] text-slate-500 font-semibold">Overtime</p>
+                  <p className="font-mono font-bold text-indigo-800">{analytics.overtimeCount}</p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Selected Scope Summary */}
@@ -480,7 +517,23 @@ export default function AttendanceReportsPage() {
         {/* Scrollable Container capped at exactly 10 rows (~480px) on desktop */}
         <div className="md:max-h-[480px] overflow-y-auto overflow-x-auto table-scrollbar">
           {isLoading && records.length === 0 ? (
-            <div className="p-8 text-center text-xs text-slate-500">Loading attendance report data...</div>
+            <div className="p-4 space-y-3">
+              {[1, 2, 3, 4, 5, 6].map((n) => (
+                <div key={n} className="flex items-center justify-between gap-4 py-2 border-b border-slate-100">
+                  <div className="space-y-1.5 w-36">
+                    <div className="h-3.5 w-28 bg-slate-200/80 rounded animate-pulse" />
+                    <div className="h-2.5 w-16 bg-slate-200/60 rounded animate-pulse" />
+                  </div>
+                  <div className="h-3.5 w-20 bg-slate-200/80 rounded animate-pulse" />
+                  <div className="h-3.5 w-24 bg-slate-200/80 rounded animate-pulse" />
+                  <div className="h-3.5 w-16 bg-slate-200/80 rounded animate-pulse" />
+                  <div className="h-3.5 w-16 bg-slate-200/80 rounded animate-pulse" />
+                  <div className="h-5 w-16 bg-slate-200/80 rounded-full animate-pulse" />
+                  <div className="h-3.5 w-24 bg-slate-200/80 rounded animate-pulse" />
+                  <div className="h-3.5 w-16 bg-slate-200/80 rounded animate-pulse" />
+                </div>
+              ))}
+            </div>
           ) : error ? (
             <div className="p-8 text-center text-xs text-rose-700">{parseApiError(error)}</div>
           ) : filteredRecords.length === 0 ? (

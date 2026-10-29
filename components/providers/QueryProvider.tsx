@@ -9,8 +9,9 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 0, // Immediately consider data stale so any cache invalidation triggers instant revalidation
-            refetchOnMount: true, // Always revalidate fresh data when entering a page or viewing records
+            staleTime: 1000 * 60 * 5, // 5 minutes stale time: Instant instant navigation & switching across pages without re-fetching
+            gcTime: 1000 * 60 * 30, // 30 minutes in memory cache retention
+            refetchOnMount: false, // Serve from cache immediately when navigating across pages (super fast experience)
             refetchOnReconnect: true, // Auto revalidate when network reconnects
             refetchOnWindowFocus: false, // Keep disabled to prevent unwanted background flickering
             retry: 1,
