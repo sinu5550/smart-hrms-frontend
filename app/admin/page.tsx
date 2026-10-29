@@ -12,9 +12,27 @@ export default function AdminOverviewPage() {
   const late = (attendance as any[]).filter((record) => record.status === "LATE").length;
   const working = (attendance as any[]).filter((record) => record.currentState === "CHECKED_IN" || record.currentState === "ON_BREAK").length;
   const cards = [
-    { title: "Active employees", value: employeesLoading ? "..." : active, hint: `${employees.length} total profiles`, icon: Users, tone: "text-blue-600 bg-blue-50" },
-    { title: "Clocked in today", value: attendanceLoading ? "..." : working, hint: `${(attendance as any[]).length} attendance records`, icon: Clock3, tone: "text-emerald-700 bg-emerald-50" },
-    { title: "Late arrivals", value: attendanceLoading ? "..." : late, hint: "For today", icon: CalendarDays, tone: "text-amber-700 bg-amber-50" },
+    {
+      title: "Active Employees",
+      value: employeesLoading ? "..." : active,
+      hint: `${employees.length} enlisted personnel profiles`,
+      icon: Users,
+      tone: "text-blue-600 bg-blue-50",
+    },
+    {
+      title: "Currently in Office",
+      value: attendanceLoading ? "..." : working,
+      hint: `${(attendance as any[]).length} checked in today (${(attendance as any[]).length - working} checked out)`,
+      icon: Clock3,
+      tone: "text-emerald-700 bg-emerald-50",
+    },
+    {
+      title: "Late Arrivals",
+      value: attendanceLoading ? "..." : late,
+      hint: "Logged after shift threshold today",
+      icon: CalendarDays,
+      tone: "text-amber-700 bg-amber-50",
+    },
   ];
   return <div className="w-full space-y-6">
     <section className="relative overflow-hidden rounded-lg bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 p-6 md:p-8 text-white shadow-sm">
@@ -51,15 +69,15 @@ export default function AdminOverviewPage() {
         ))
       ) : (
         cards.map(({ title, value, hint, icon: Icon, tone }) => (
-          <article key={title} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <article key={title} className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-medium text-slate-600">{title}</p>
-                <p className="mt-2 text-2xl font-bold tracking-tight text-slate-800">{value}</p>
+                <p className="text-[12px] font-semibold text-slate-700">{title}</p>
+                <p className="mt-1.5 text-2xl font-black tracking-tight text-slate-900">{value}</p>
               </div>
               <span className={`rounded-lg p-2 ${tone}`}><Icon className="h-4 w-4"/></span>
             </div>
-            <p className="mt-2 text-[11px] text-slate-400">{hint}</p>
+            <p className="mt-2.5 text-[12px] font-medium text-slate-500">{hint}</p>
           </article>
         ))
       )}
