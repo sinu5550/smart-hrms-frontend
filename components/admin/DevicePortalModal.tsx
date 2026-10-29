@@ -259,12 +259,14 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
 
   const [isSyncingPunches, setIsSyncingPunches] = useState(false);
 
-  const handleSyncPunches = () => {
+  const handleSyncPunches = (pullAllDays: boolean = true) => {
     setConfirmModal({
       isOpen: true,
-      title: "Pull All Machine Punches",
-      description: `Pull the latest punch verification logs (Face scans, Fingerprints, Cards) from "${device.deviceName}" and auto-record attendance?`,
-      confirmText: "Pull Punches",
+      title: pullAllDays ? "Pull Full Month Punches (Oct 1 - Today)" : "Pull Today's Punches",
+      description: pullAllDays
+        ? `Pull all biometric punches from "${device.deviceName}" for the entire month (starting Oct 1) and record all missing attendance?`
+        : `Pull the latest punch verification logs from "${device.deviceName}" for today?`,
+      confirmText: pullAllDays ? "Pull Full Month Punches" : "Pull Punches",
       variant: "sync",
       badge: "AcsEvent Logs",
       onConfirm: async () => {
@@ -272,7 +274,7 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
           setConfirmModal((prev) => ({ ...prev, isLoading: true }));
           setIsSyncingPunches(true);
           setSyncMessage(null);
-          const res = await deviceService.syncPunches(device.id);
+          const res = await deviceService.syncPunches(device.id, pullAllDays ? 35 : 1);
           setSyncMessage(res.message);
           fetchPortalData();
           queryClient.invalidateQueries({ queryKey: ["attendance"] });
@@ -473,12 +475,13 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <Button
                 size="sm"
-                onClick={handleSyncPunches}
+                onClick={() => handleSyncPunches(true)}
                 disabled={isSyncingPunches}
                 className="h-8 rounded-lg text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white shrink-0 gap-1.5 shadow-xs"
+                title="Pull full month verification events starting Oct 1 and record complete attendance"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isSyncingPunches ? "animate-spin" : ""}`} />
-                <span>{isSyncingPunches ? "Pulling..." : "Pull All Machine Punches"}</span>
+                <span>{isSyncingPunches ? "Pulling Logs..." : "Pull Full Month Punches"}</span>
               </Button>
             </div>
           )}

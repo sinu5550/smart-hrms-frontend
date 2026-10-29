@@ -90,14 +90,14 @@ export const deviceService = {
     return data;
   },
 
-  async syncPunches(id: string): Promise<{
+  async syncPunches(id: string, days?: number): Promise<{
     success: boolean;
     totalEventsExamined: number;
     recordedPunches: number;
     attendanceCheckIns: number;
     message: string;
   }> {
-    const { data } = await apiClient.post(`/devices/${id}/sync-punches`);
+    const { data } = await apiClient.post(`/devices/${id}/sync-punches`, { days });
     return data;
   },
 
