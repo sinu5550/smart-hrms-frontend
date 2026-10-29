@@ -314,7 +314,7 @@ export default function EmployeesDirectoryPage() {
         </div>
 
         {/* Desktop View: Full Table with Sticky Header, sleek scrollbar and prominent row lines */}
-        <div className="hidden sm:block flex-1 min-h-0 overflow-y-auto overflow-x-auto custom-scrollbar">
+        <div className="hidden sm:block flex-1 min-h-0 overflow-y-auto overflow-x-auto table-scrollbar">
           <table className="w-full text-left text-xs text-slate-800 border-collapse">
             <thead className="sticky top-0 z-20 bg-slate-100 text-[11px] uppercase font-bold text-slate-700 shadow-xs border-b border-slate-300">
               <tr>

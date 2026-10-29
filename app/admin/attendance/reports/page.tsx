@@ -478,7 +478,7 @@ export default function AttendanceReportsPage() {
         </div>
 
         {/* Scrollable Container capped at exactly 10 rows (~480px) */}
-        <div className="max-h-[480px] overflow-y-auto overflow-x-auto custom-scrollbar">
+        <div className="max-h-[480px] overflow-y-auto overflow-x-auto table-scrollbar">
           {isLoading && records.length === 0 ? (
             <div className="p-8 text-center text-xs text-slate-500">Loading attendance report data...</div>
           ) : error ? (

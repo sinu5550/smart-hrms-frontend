@@ -103,7 +103,7 @@ export function Select({
           )}
 
           {/* Viewport with p-0 as strictly requested */}
-          <SelectPrimitive.Viewport className="p-0 overflow-y-auto custom-scrollbar">
+          <SelectPrimitive.Viewport className="p-0 max-h-60 overflow-y-auto custom-scrollbar">
             {filteredOptions.length === 0 ? (
               <div className="py-3 px-3 text-center text-[11px] text-slate-400">
                 No matching options found
