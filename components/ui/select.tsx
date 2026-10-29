@@ -80,13 +80,13 @@ export function Select({
           position="popper"
           sideOffset={4}
           className={cn(
-            "relative z-[100] max-h-72 min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-lg border border-slate-200/90 bg-white p-0 text-slate-800 shadow-xl animate-in fade-in-80",
+            "relative z-[100] max-h-72 min-w-[var(--radix-select-trigger-width)] overflow-y-auto rounded-lg border border-slate-200/90 bg-white p-0 text-slate-800 shadow-xl animate-in fade-in-80 custom-scrollbar",
             className
           )}
         >
           {/* Optional In-Dropdown Search Input */}
           {searchable && (
-            <div className="sticky top-0 z-10 bg-white border-b border-slate-100 p-1.5">
+            <div className="sticky top-0 z-10 bg-white border-b border-slate-100 p-1.5 shadow-2xs">
               <div className="relative flex items-center">
                 <Search className="h-3.5 w-3.5 text-slate-400 absolute left-2 pointer-events-none" />
                 <input
@@ -102,8 +102,8 @@ export function Select({
             </div>
           )}
 
-          {/* Viewport with p-0 as strictly requested */}
-          <SelectPrimitive.Viewport className="p-0 max-h-60 overflow-y-auto custom-scrollbar">
+          {/* Viewport with p-0 */}
+          <SelectPrimitive.Viewport className="p-0">
             {filteredOptions.length === 0 ? (
               <div className="py-3 px-3 text-center text-[11px] text-slate-400">
                 No matching options found
