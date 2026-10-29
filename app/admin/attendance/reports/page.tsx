@@ -463,18 +463,18 @@ export default function AttendanceReportsPage() {
         </div>
       </div>
 
-      {/* Full Records Table */}
+      {/* Records Table - Max 10 Rows Visible with Smooth Internal Scroll & Sticky Header */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs flex flex-col">
         {/* Table Header Controls */}
-        <div className="p-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 text-xs">
+        <div className="shrink-0 p-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 text-xs">
           <span className="font-semibold text-slate-700">
             Showing <strong className="text-slate-900">{filteredRecords.length}</strong> attendance records
           </span>
-          <span className="text-slate-400 text-[11px]">Attendance Records</span>
+          <span className="text-slate-400 text-[11px]">10 records view • Scrollable table body</span>
         </div>
 
-        {/* Full Visible Table (No internal scrollbar) */}
-        <div className="overflow-x-auto">
+        {/* Scrollable Container capped at exactly 10 rows (~480px) */}
+        <div className="max-h-[480px] overflow-y-auto overflow-x-auto custom-scrollbar">
           {isLoading && records.length === 0 ? (
             <div className="p-8 text-center text-xs text-slate-500">Loading attendance report data...</div>
           ) : error ? (
