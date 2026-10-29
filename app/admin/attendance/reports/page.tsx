@@ -486,22 +486,22 @@ export default function AttendanceReportsPage() {
             </div>
           ) : (
             <table className="w-full text-left border-collapse text-xs">
-              <thead className="sticky top-0 z-20 bg-slate-100 text-slate-800 border-b border-slate-200 shadow-xs">
+              <thead className="sticky top-0 z-20 bg-slate-100 text-slate-800 border-b border-slate-300 shadow-xs">
                 <tr>
-                  <th className="py-3 px-4 font-semibold bg-slate-100">Employee</th>
-                  <th className="py-3 px-4 font-semibold bg-slate-100">Date</th>
-                  <th className="py-3 px-4 font-semibold bg-slate-100">Department</th>
-                  <th className="py-3 px-4 font-semibold bg-slate-100">Check-In</th>
-                  <th className="py-3 px-4 font-semibold bg-slate-100">Check-Out</th>
-                  <th className="py-3 px-4 font-semibold bg-slate-100">Status</th>
-                  <th className="py-3 px-4 font-semibold bg-slate-100">Work / Break</th>
-                  <th className="py-3 px-4 font-semibold bg-slate-100">Overtime</th>
-                  <th className="py-3 px-4 font-semibold bg-slate-100">Terminal / Mode</th>
+                  <th className="py-3 px-4 font-bold bg-slate-100 text-slate-700 border-b border-slate-200">Employee</th>
+                  <th className="py-3 px-4 font-bold bg-slate-100 text-slate-700 border-b border-slate-200">Date</th>
+                  <th className="py-3 px-4 font-bold bg-slate-100 text-slate-700 border-b border-slate-200">Department</th>
+                  <th className="py-3 px-4 font-bold bg-slate-100 text-slate-700 border-b border-slate-200">Check-In</th>
+                  <th className="py-3 px-4 font-bold bg-slate-100 text-slate-700 border-b border-slate-200">Check-Out</th>
+                  <th className="py-3 px-4 font-bold bg-slate-100 text-slate-700 border-b border-slate-200">Status</th>
+                  <th className="py-3 px-4 font-bold bg-slate-100 text-slate-700 border-b border-slate-200">Work / Break</th>
+                  <th className="py-3 px-4 font-bold bg-slate-100 text-slate-700 border-b border-slate-200">Overtime</th>
+                  <th className="py-3 px-4 font-bold bg-slate-100 text-slate-700 border-b border-slate-200">Terminal / Mode</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-200 bg-white">
                 {filteredRecords.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50/70 transition">
+                  <tr key={item.id} className="hover:bg-slate-50 transition border-b border-slate-200">
                     <td className="py-3 px-4">
                       <div className="font-semibold text-slate-900">{item.user?.fullName}</div>
                       <div className="text-[11px] text-slate-500 font-mono">{item.user?.employeeId}</div>

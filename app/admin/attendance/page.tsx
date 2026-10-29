@@ -241,7 +241,7 @@ export default function AdminAttendancePage() {
         ) : (
           <div className="flex-1 overflow-y-auto overflow-x-auto no-scrollbar">
             {/* Mobile Card List (Hidden on sm/md/lg) */}
-            <div className="sm:hidden divide-y divide-slate-100">
+            <div className="sm:hidden divide-y divide-slate-200">
               {filteredRecords.map((item) => (
                 <div key={item.id} className="p-3.5 space-y-2.5">
                   <div className="flex items-start justify-between gap-2">
@@ -263,12 +263,12 @@ export default function AdminAttendancePage() {
                         </span>
                       )}
                       {item.currentState === "CHECKED_OUT" && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
                           Ended
                         </span>
                       )}
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        item.status === "PRESENT" ? "text-emerald-700 bg-emerald-50 border border-emerald-100" :
+                        item.status === "PRESENT" ? "text-emerald-700 bg-emerald-50 border border-emerald-200" :
                         item.status === "LATE" ? "text-rose-700 bg-rose-50 border border-rose-200" :
                         "text-amber-700 bg-amber-50 border border-amber-200"
                       }`}>
@@ -277,7 +277,7 @@ export default function AdminAttendancePage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-4 gap-2 p-2 rounded-lg bg-slate-50 border border-slate-100 text-[10px]">
+                  <div className="grid grid-cols-4 gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200 text-[10px]">
                     <div>
                       <span className="text-slate-400 block">Check In</span>
                       <span className="font-mono font-bold text-slate-800">
@@ -310,26 +310,26 @@ export default function AdminAttendancePage() {
             {/* Desktop Full Table (Hidden on mobile) */}
             <div className="hidden sm:block min-w-full">
               <table className="w-full text-left border-collapse text-xs">
-                <thead className="sticky top-0 z-20 bg-slate-100 text-slate-800 shadow-xs border-b border-slate-200">
+                <thead className="sticky top-0 z-20 bg-slate-100 text-slate-800 shadow-xs border-b border-slate-300">
                   <tr>
-                    <th className="py-3 px-4 font-bold bg-slate-100 tracking-wide text-slate-700">Employee</th>
+                    <th className="py-3 px-4 font-bold bg-slate-100 tracking-wide text-slate-700 border-b border-slate-200">Employee</th>
                     {dateRange.startDate !== dateRange.endDate && (
-                      <th className="py-3 px-4 font-bold bg-slate-100 tracking-wide text-slate-700">Date</th>
+                      <th className="py-3 px-4 font-bold bg-slate-100 tracking-wide text-slate-700 border-b border-slate-200">Date</th>
                     )}
-                    <th className="py-3 px-4 font-bold bg-slate-100 tracking-wide text-slate-700">Department</th>
-                    <th className="py-3 px-4 font-bold bg-slate-100 tracking-wide text-slate-700">Check-In</th>
-                    <th className="py-3 px-4 font-bold bg-slate-100 tracking-wide text-slate-700">Check-Out</th>
-                    <th className="py-3 px-4 font-bold bg-slate-100 tracking-wide text-slate-700">State</th>
-                    <th className="py-3 px-4 font-bold bg-slate-100 tracking-wide text-slate-700">Status</th>
-                    <th className="py-3 px-4 font-bold bg-slate-100 tracking-wide text-slate-700">Work / Break</th>
-                    <th className="py-3 px-4 font-bold bg-slate-100 tracking-wide text-slate-700">Overtime</th>
+                    <th className="py-3 px-4 font-bold bg-slate-100 tracking-wide text-slate-700 border-b border-slate-200">Department</th>
+                    <th className="py-3 px-4 font-bold bg-slate-100 tracking-wide text-slate-700 border-b border-slate-200">Check-In</th>
+                    <th className="py-3 px-4 font-bold bg-slate-100 tracking-wide text-slate-700 border-b border-slate-200">Check-Out</th>
+                    <th className="py-3 px-4 font-bold bg-slate-100 tracking-wide text-slate-700 border-b border-slate-200">State</th>
+                    <th className="py-3 px-4 font-bold bg-slate-100 tracking-wide text-slate-700 border-b border-slate-200">Status</th>
+                    <th className="py-3 px-4 font-bold bg-slate-100 tracking-wide text-slate-700 border-b border-slate-200">Work / Break</th>
+                    <th className="py-3 px-4 font-bold bg-slate-100 tracking-wide text-slate-700 border-b border-slate-200">Overtime</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100/80 bg-white">
+                <tbody className="divide-y divide-slate-200 bg-white">
                   {filteredRecords.map((item) => (
-                    <tr key={item.id} className="hover:bg-slate-50/60 transition">
+                    <tr key={item.id} className="hover:bg-slate-50 transition border-b border-slate-200">
                       <td className="py-3.5 px-4">
-                        <div className="font-semibold text-slate-800">{item.user.fullName}</div>
+                        <div className="font-semibold text-slate-900">{item.user.fullName}</div>
                         <div className="text-[11px] text-slate-500 font-mono">
                           {item.user.employeeId}
                         </div>
@@ -361,30 +361,30 @@ export default function AdminAttendancePage() {
                       </td>
                       <td className="py-3.5 px-4">
                         {item.currentState === "CHECKED_IN" && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold text-slate-800 text-slate-800 border border-emerald-200">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold text-slate-800 border border-emerald-200 bg-emerald-50/50">
                             Active
                           </span>
                         )}
                         {item.currentState === "ON_BREAK" && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-950 text-amber-700 border border-amber-200 animate-pulse">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 animate-pulse">
                             On Break
                           </span>
                         )}
                         {item.currentState === "CHECKED_OUT" && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-white text-slate-800">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
                             Ended
                           </span>
                         )}
                       </td>
                       <td className="py-3.5 px-4">
                         {item.status === "PRESENT" && (
-                          <span className="text-slate-800 font-semibold">On-Time</span>
+                          <span className="text-emerald-700 font-semibold">On-Time</span>
                         )}
                         {item.status === "LATE" && (
                           <span className="text-rose-700 font-semibold">Late</span>
                         )}
                         {item.status === "HALF_DAY" && (
-                          <span className="text-amber-400 font-semibold">Half Day</span>
+                          <span className="text-amber-600 font-semibold">Half Day</span>
                         )}
                       </td>
                       <td className="py-3.5 px-4 text-slate-800 font-mono">
