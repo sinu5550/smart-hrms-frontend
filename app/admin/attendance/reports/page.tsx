@@ -466,9 +466,9 @@ export default function AttendanceReportsPage() {
       </div>
 
       {/* Sticky Table Container */}
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs flex flex-col">
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs flex flex-col h-[calc(100vh-270px)] min-h-[380px] shrink-0">
         {/* Table Header Controls */}
-        <div className="p-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 text-xs">
+        <div className="shrink-0 p-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 text-xs">
           <span className="font-semibold text-slate-700">
             Showing <strong className="text-slate-900">{filteredRecords.length}</strong> attendance records
           </span>
@@ -476,7 +476,7 @@ export default function AttendanceReportsPage() {
         </div>
 
         {/* Scrollable Records */}
-        <div className="overflow-x-auto">
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-auto custom-scrollbar">
           {isLoading && records.length === 0 ? (
             <div className="p-8 text-center text-xs text-slate-500">Loading attendance report data...</div>
           ) : error ? (
