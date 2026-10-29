@@ -199,7 +199,12 @@ export default function AdminAttendancePage() {
 
       {/* Attendance Records Table Container */}
       <div className="flex-1 md:min-h-0 bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm flex flex-col">
-        {isLoading && records.length === 0 ? (
+        {error ? (
+          <div className="p-8 text-center text-xs text-rose-700 bg-rose-50/50 border-b border-rose-100 flex flex-col items-center justify-center gap-2">
+            <span className="font-semibold text-rose-800">Connection Error</span>
+            <span>{parseApiError(error)}</span>
+          </div>
+        ) : isLoading && records.length === 0 ? (
           <div className="overflow-y-auto no-scrollbar">
             <div className="sm:hidden p-3 space-y-3">
               {[1, 2, 3, 4].map((n) => (
@@ -231,8 +236,6 @@ export default function AdminAttendancePage() {
               ))}
             </div>
           </div>
-        ) : error ? (
-          <div className="p-8 text-center text-xs text-rose-700">{parseApiError(error)}</div>
         ) : filteredRecords.length === 0 ? (
           <div className="p-12 text-center text-slate-800 space-y-2">
             <User className="w-8 h-8 mx-auto text-slate-400" />

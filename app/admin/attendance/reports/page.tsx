@@ -516,7 +516,12 @@ export default function AttendanceReportsPage() {
 
         {/* Scrollable Container capped at exactly 10 rows (~480px) on desktop */}
         <div className="md:max-h-[480px] overflow-y-auto overflow-x-auto table-scrollbar">
-          {isLoading && records.length === 0 ? (
+          {error ? (
+            <div className="p-8 text-center text-xs text-rose-700 bg-rose-50/50 flex flex-col items-center justify-center gap-2">
+              <span className="font-semibold text-rose-800">Connection Error</span>
+              <span>{parseApiError(error)}</span>
+            </div>
+          ) : isLoading && records.length === 0 ? (
             <div className="p-4 space-y-3">
               {[1, 2, 3, 4, 5, 6].map((n) => (
                 <div key={n} className="flex items-center justify-between gap-4 py-2 border-b border-slate-100">
@@ -534,8 +539,6 @@ export default function AttendanceReportsPage() {
                 </div>
               ))}
             </div>
-          ) : error ? (
-            <div className="p-8 text-center text-xs text-rose-700">{parseApiError(error)}</div>
           ) : filteredRecords.length === 0 ? (
             <div className="p-12 text-center text-slate-500 space-y-2">
               <Users className="w-8 h-8 mx-auto text-slate-400" />
