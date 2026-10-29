@@ -98,13 +98,14 @@ export default function AdminAttendancePage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div className="h-full flex flex-col min-h-0 gap-4 overflow-hidden">
+      {/* Header Row - Sticky / Fixed at top */}
+      <div className="shrink-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-slate-800 flex items-center gap-2">
             <CalendarCheck className="w-5 h-5 text-emerald-700" /> Attendance Monitoring
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 mt-0.5">
             Real-time biometric terminal punches, dynamic QR scans, and active work sessions.
           </p>
         </div>
@@ -124,46 +125,46 @@ export default function AdminAttendancePage() {
         </div>
       </div>
 
-      {/* Metrics Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        <div className="bg-white border border-slate-200 rounded-lg p-4">
+      {/* Metrics Row - Sticky / Fixed */}
+      <div className="shrink-0 grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4 shadow-xs">
           <div className="flex items-center justify-between text-xs text-slate-800">
             <span>Logged Today</span>
             <CheckCircle2 className="w-4 h-4 text-slate-800" />
           </div>
-          <p className="text-2xl font-bold text-slate-800 mt-2">{stats.totalCheckedIn}</p>
+          <p className="text-2xl font-bold text-slate-800 mt-1.5">{stats.totalCheckedIn}</p>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-lg p-4">
+        <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4 shadow-xs">
           <div className="flex items-center justify-between text-xs text-slate-800">
             <span>On-Time</span>
             <Clock className="w-4 h-4 text-slate-800" />
           </div>
-          <p className="text-2xl font-bold text-slate-800 mt-2">{stats.present}</p>
+          <p className="text-2xl font-bold text-slate-800 mt-1.5">{stats.present}</p>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-lg p-4">
+        <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4 shadow-xs">
           <div className="flex items-center justify-between text-xs text-slate-800">
             <span>Late Arrivals</span>
             <AlertTriangle className="w-4 h-4 text-rose-700" />
           </div>
-          <p className="text-2xl font-bold text-rose-700 mt-2">{stats.late}</p>
+          <p className="text-2xl font-bold text-rose-700 mt-1.5">{stats.late}</p>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-lg p-4">
+        <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4 shadow-xs">
           <div className="flex items-center justify-between text-xs text-slate-800">
             <span>Currently on Break</span>
             <Coffee className="w-4 h-4 text-amber-500" />
           </div>
-          <p className="text-2xl font-bold text-amber-600 mt-2">{stats.onBreak}</p>
+          <p className="text-2xl font-bold text-amber-600 mt-1.5">{stats.onBreak}</p>
         </div>
 
-        <div className="bg-white border border-emerald-200 rounded-lg p-4 col-span-2 sm:col-span-1">
+        <div className="bg-white border border-emerald-200 rounded-lg p-3 sm:p-4 col-span-2 sm:col-span-1 shadow-xs">
           <div className="flex items-center justify-between text-xs text-emerald-800">
             <span>Overtime</span>
             <Clock className="w-4 h-4 text-emerald-600" />
           </div>
-          <div className="flex items-baseline gap-1.5 mt-2">
+          <div className="flex items-baseline gap-1.5 mt-1.5">
             <span className="text-2xl font-bold text-emerald-700">{stats.overtimeCount}</span>
             <span className="text-xs text-emerald-600 font-mono">
               ({Math.floor(stats.totalOvertimeMins / 60)}h {stats.totalOvertimeMins % 60}m)
@@ -172,8 +173,8 @@ export default function AdminAttendancePage() {
         </div>
       </div>
 
-      {/* Filters Bar */}
-      <div className="flex flex-col sm:flex-row gap-3 bg-white border border-slate-200 p-3 rounded-lg">
+      {/* Filters Bar - Sticky / Fixed */}
+      <div className="shrink-0 flex flex-col sm:flex-row gap-3 bg-white border border-slate-200 p-3 rounded-lg shadow-xs">
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
           <Input
@@ -196,8 +197,8 @@ export default function AdminAttendancePage() {
         </div>
       </div>
 
-      {/* Attendance Records Table */}
-      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm flex flex-col flex-1 min-h-0">
+      {/* Attendance Records Table Container */}
+      <div className="flex-1 min-h-0 bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm flex flex-col">
         {isLoading && records.length === 0 ? (
           <div className="overflow-y-auto no-scrollbar">
             <div className="sm:hidden p-3 space-y-3">
@@ -307,24 +308,24 @@ export default function AdminAttendancePage() {
             </div>
 
             {/* Desktop Full Table (Hidden on mobile) */}
-            <div className="hidden sm:block">
+            <div className="hidden sm:block min-w-full">
               <table className="w-full text-left border-collapse text-xs">
-                <thead className="sticky top-0 z-20 bg-slate-100 text-slate-800 border-b border-slate-200 shadow-xs">
+                <thead className="sticky top-0 z-20 bg-slate-100 text-slate-800 shadow-xs border-b border-slate-200">
                   <tr>
-                    <th className="py-3.5 px-4 font-semibold bg-slate-100">Employee</th>
+                    <th className="py-3 px-4 font-bold bg-slate-100 tracking-wide text-slate-700">Employee</th>
                     {dateRange.startDate !== dateRange.endDate && (
-                      <th className="py-3.5 px-4 font-semibold bg-slate-100">Date</th>
+                      <th className="py-3 px-4 font-bold bg-slate-100 tracking-wide text-slate-700">Date</th>
                     )}
-                    <th className="py-3.5 px-4 font-semibold bg-slate-100">Department</th>
-                    <th className="py-3.5 px-4 font-semibold bg-slate-100">Check-In</th>
-                    <th className="py-3.5 px-4 font-semibold bg-slate-100">Check-Out</th>
-                    <th className="py-3.5 px-4 font-semibold bg-slate-100">State</th>
-                    <th className="py-3.5 px-4 font-semibold bg-slate-100">Status</th>
-                    <th className="py-3.5 px-4 font-semibold bg-slate-100">Work / Break</th>
-                    <th className="py-3.5 px-4 font-semibold bg-slate-100">Overtime</th>
+                    <th className="py-3 px-4 font-bold bg-slate-100 tracking-wide text-slate-700">Department</th>
+                    <th className="py-3 px-4 font-bold bg-slate-100 tracking-wide text-slate-700">Check-In</th>
+                    <th className="py-3 px-4 font-bold bg-slate-100 tracking-wide text-slate-700">Check-Out</th>
+                    <th className="py-3 px-4 font-bold bg-slate-100 tracking-wide text-slate-700">State</th>
+                    <th className="py-3 px-4 font-bold bg-slate-100 tracking-wide text-slate-700">Status</th>
+                    <th className="py-3 px-4 font-bold bg-slate-100 tracking-wide text-slate-700">Work / Break</th>
+                    <th className="py-3 px-4 font-bold bg-slate-100 tracking-wide text-slate-700">Overtime</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100/60">
+                <tbody className="divide-y divide-slate-100/80 bg-white">
                   {filteredRecords.map((item) => (
                     <tr key={item.id} className="hover:bg-slate-50/60 transition">
                       <td className="py-3.5 px-4">
