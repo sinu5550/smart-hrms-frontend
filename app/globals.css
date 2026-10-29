@@ -10,10 +10,10 @@ body {
 
 body:has(.dark) { background-color: #f4f7fb; color: #1f2937; }
 
-/* Universal Sleek Greenish Custom Scrollbar matching HRMS Branding */
+/* Universal Sleek Deep-Green Semi-Transparent Custom Scrollbar matching HRMS Branding */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #a7f3d0 transparent;
+  scrollbar-color: rgba(5, 150, 105, 0.35) transparent;
 }
 
 ::-webkit-scrollbar {
@@ -26,16 +26,16 @@ body:has(.dark) { background-color: #f4f7fb; color: #1f2937; }
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #a7f3d0; /* Soft light greenish */
+  background-color: rgba(5, 150, 105, 0.32); /* Elegant semi-transparent deep emerald green */
   border-radius: 9999px;
   transition: background-color 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #059669; /* Rich emerald green on hover */
+  background-color: rgba(5, 150, 105, 0.75); /* Richer emerald on hover */
 }
 
-/* Unique Ultra-Sleek Custom Scrollbar matching HRMS Emerald Branding */
+/* Custom Scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
   height: 4px;
@@ -47,18 +47,18 @@ body:has(.dark) { background-color: #f4f7fb; color: #1f2937; }
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #a7f3d0; /* Soft light greenish */
+  background-color: rgba(5, 150, 105, 0.32);
   border-radius: 9999px;
   transition: background-color 0.2s ease;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #059669;
+  background-color: rgba(5, 150, 105, 0.75);
 }
 
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #a7f3d0 transparent;
+  scrollbar-color: rgba(5, 150, 105, 0.35) transparent;
 }
 
 /* Dedicated Table Body Scrollbar with track margin below table header */
@@ -74,18 +74,18 @@ body:has(.dark) { background-color: #f4f7fb; color: #1f2937; }
 }
 
 .table-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #a7f3d0; /* Soft light greenish */
+  background-color: rgba(5, 150, 105, 0.32);
   border-radius: 9999px;
   transition: background-color 0.2s ease;
 }
 
 .table-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #059669;
+  background-color: rgba(5, 150, 105, 0.75);
 }
 
 .table-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #a7f3d0 transparent;
+  scrollbar-color: rgba(5, 150, 105, 0.35) transparent;
 }
 
 /* Hide scrollbar while preserving scroll functionality */
