@@ -7,7 +7,7 @@ export const QUERY_KEYS = {
   },
   attendance: {
     all: ["attendance"] as const,
-    list: (filters?: { date?: string; departmentId?: string }) => ["attendance", "list", filters] as const,
+    list: (filters?: Record<string, any>) => ["attendance", "list", filters] as const,
     myToday: (userId?: string) => ["attendance", "my-today", userId || "current"] as const,
   },
   organization: {

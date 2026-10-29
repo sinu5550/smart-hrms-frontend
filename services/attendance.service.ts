@@ -57,7 +57,7 @@ export const AttendanceService = {
     return data;
   },
 
-  getByDate: async (query: string | { date?: string; startDate?: string; endDate?: string }): Promise<any[]> => {
+  getByDate: async (query: string | { date?: string; startDate?: string; endDate?: string; userId?: string }): Promise<any[]> => {
     let url = "/attendance/admin/by-date";
     if (typeof query === "string") {
       url += `?date=${query}`;
@@ -66,6 +66,7 @@ export const AttendanceService = {
       if (query.date) params.append("date", query.date);
       if (query.startDate) params.append("startDate", query.startDate);
       if (query.endDate) params.append("endDate", query.endDate);
+      if (query.userId && query.userId !== "ALL") params.append("userId", query.userId);
       url += `?${params.toString()}`;
     }
     const { data } = await apiClient.get<any[]>(url);

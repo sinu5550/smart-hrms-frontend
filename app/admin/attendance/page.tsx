@@ -197,9 +197,9 @@ export default function AdminAttendancePage() {
       </div>
 
       {/* Attendance Records Table */}
-      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm flex flex-col max-h-[calc(100vh-340px)]">
         {isLoading && records.length === 0 ? (
-          <div>
+          <div className="overflow-y-auto">
             <div className="sm:hidden p-3 space-y-3">
               {[1, 2, 3, 4].map((n) => (
                 <div key={n} className="p-3.5 space-y-2.5 rounded-lg border border-slate-100 bg-white">
@@ -238,7 +238,7 @@ export default function AdminAttendancePage() {
             <p className="text-xs">No attendance records found for this criteria.</p>
           </div>
         ) : (
-          <div>
+          <div className="flex-1 overflow-y-auto">
             {/* Mobile Card List (Hidden on sm/md/lg) */}
             <div className="sm:hidden divide-y divide-slate-100">
               {filteredRecords.map((item) => (
@@ -309,8 +309,8 @@ export default function AdminAttendancePage() {
             {/* Desktop Full Table (Hidden on mobile) */}
             <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="border-b border-slate-200 text-slate-800 bg-slate-50/70">
+                <thead className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur-xs border-b border-slate-200 shadow-xs">
+                  <tr className="text-slate-800">
                     <th className="py-3 px-4 font-semibold">Employee</th>
                     {dateRange.startDate !== dateRange.endDate && (
                       <th className="py-3 px-4 font-semibold">Date</th>

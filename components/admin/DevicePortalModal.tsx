@@ -170,7 +170,7 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
     }
   };
 
-  const handleDeletePerson = (u: TerminalUser) => {
+  const handleDeletePerson = (u: any) => {
     setConfirmModal({
       isOpen: true,
       title: `Delete Person from ${device.deviceName}`,

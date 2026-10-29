@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AttendanceService, BreakType } from "@/services/attendance.service";
 import { QUERY_KEYS } from "./queryKeys";
 
-export function useAttendanceByDate(query: string | { date?: string; startDate?: string; endDate?: string }) {
+export function useAttendanceByDate(query: string | { date?: string; startDate?: string; endDate?: string; userId?: string }) {
   const queryParam = typeof query === "string" ? { date: query } : query;
   return useQuery({
     queryKey: QUERY_KEYS.attendance.list(queryParam),

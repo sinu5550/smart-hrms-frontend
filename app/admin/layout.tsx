@@ -57,6 +57,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const isSettingsActive = pathname.startsWith("/admin/settings");
   const [isSettingsOpen, setIsSettingsOpen] = useState(true);
 
+  const isAttendanceActive = pathname.startsWith("/admin/attendance") || pathname.startsWith("/admin/attendance-reports");
+  const [isAttendanceOpen, setIsAttendanceOpen] = useState(true);
+
   const isOwner = Boolean(
     user?.isOwner ||
     user?.role === "OWNER" ||
@@ -79,7 +82,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const allMainNavItems = [
     { label: "Overview", href: "/admin", icon: LayoutDashboard },
-    { label: "Attendance Monitor", href: "/admin/attendance", icon: CalendarCheck, perm: "attendance.view" },
     { label: "Outwork & Visits", href: "/admin/outwork", icon: MapPin },
     { label: "Leave Requests", href: "/admin/leave", icon: CalendarDays },
     { label: "Employee Directory", href: "/admin/employees", icon: Users, perm: "employees.view" },
@@ -89,6 +91,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { label: "Biometric & Hardware", href: "/admin/devices", icon: Cpu, perm: "devices.view" },
     { label: "Lifecycle & ATS", href: "/admin/lifecycle", icon: Briefcase, perm: "employees.view" },
     { label: "MIS & Compliance", href: "/admin/reports", icon: FileText, perm: "reports.export" },
+  ];
+
+  const attendanceSubItems = [
+    { label: "Attendance Monitor", href: "/admin/attendance", icon: CalendarCheck, perm: "attendance.view" },
+    { label: "Attendance Reports", href: "/admin/attendance/reports", icon: FileText, perm: "attendance.view" },
   ];
 
   const allSettingsNavItems = [
@@ -122,7 +129,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Sidebar: Desktop fixed/collapsible + Mobile sliding drawer */}
       <aside
-        className={`fixed md:sticky top-0 bottom-0 left-0 z-50 bg-white border-r border-slate-200 transition-all duration-300 flex flex-col justify-between h-screen ${
+        className={`fixed md:sticky top-0 bottom-0 left-0 z-50 bg-white border-r border-slate-200 transition-all duration-300 flex flex-col justify-between h-screen overflow-hidden ${
           // Mobile classes
           isMobileMenuOpen ? "translate-x-0 w-72 shadow-2xl" : "-translate-x-full md:translate-x-0"
         } ${
@@ -130,7 +137,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           isSidebarOpen ? "md:w-64" : "md:w-20"
         }`}
       >
-        <div className="overflow-y-auto flex-1 flex flex-col min-h-0">
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           {/* Top Brand Logo */}
           <div className="h-14 flex items-center justify-between px-4 border-b border-slate-100 bg-white shrink-0">
             <div className="flex items-center gap-2 overflow-hidden">
@@ -239,11 +246,83 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             )}
           </div>
 
-          {/* Navigation Links */}
-          <nav className="p-3 space-y-1 flex-1">
-            {mainNavItems.map((item) => {
+          {/* Navigation Links (Scrollable area) */}
+          <nav className="p-3 space-y-1 flex-1 overflow-y-auto">
+            {/* Overview */}
+            {mainNavItems.filter((i) => i.href === "/admin").map((item) => {
               const Icon = item.icon;
-              const isActive = item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);
+              const isActive = pathname === "/admin";
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition active:scale-[0.99] ${
+                    isActive
+                      ? "bg-emerald-600 text-white shadow-xs"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  }`}
+                >
+                  <Icon className="w-4 h-4 shrink-0" />
+                  {(isSidebarOpen || isMobileMenuOpen) && <span className="truncate">{item.label}</span>}
+                </Link>
+              );
+            })}
+
+            {/* Collapsible Attendance Menu */}
+            {hasPerm("attendance.view") && (
+              <div className="pt-0.5">
+                <button
+                  type="button"
+                  onClick={() => setIsAttendanceOpen(!isAttendanceOpen)}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition ${
+                    isAttendanceActive
+                      ? "bg-emerald-600 text-white shadow-xs"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <CalendarCheck className="w-4 h-4 shrink-0" />
+                    {(isSidebarOpen || isMobileMenuOpen) && <span>Attendance</span>}
+                  </div>
+                  {(isSidebarOpen || isMobileMenuOpen) && (
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                        isAttendanceOpen ? "rotate-180" : ""
+                      } ${isAttendanceActive ? "text-white" : "text-slate-400"}`}
+                    />
+                  )}
+                </button>
+
+                {/* Sub-items for Attendance */}
+                {isAttendanceOpen && (
+                  <div className={`mt-1 space-y-0.5 ${(isSidebarOpen || isMobileMenuOpen) ? "pl-4 ml-2 border-l border-slate-200/80" : ""}`}>
+                    {attendanceSubItems.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = item.href === "/admin/attendance" ? pathname === "/admin/attendance" : pathname.startsWith(item.href);
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium transition ${
+                            isActive
+                              ? "bg-emerald-50 text-emerald-800 font-bold border border-emerald-200"
+                              : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
+                          }`}
+                        >
+                          <Icon className="w-3.5 h-3.5 shrink-0" />
+                          {(isSidebarOpen || isMobileMenuOpen) && <span className="truncate">{item.label}</span>}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Other main nav items */}
+            {mainNavItems.filter((i) => i.href !== "/admin").map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname.startsWith(item.href);
               return (
                 <Link
                   key={item.href}
