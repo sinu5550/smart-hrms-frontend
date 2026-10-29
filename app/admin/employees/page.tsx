@@ -176,7 +176,7 @@ export default function EmployeesDirectoryPage() {
       {/* Employee List Container - Only this table body scrolls with hidden scrollbar */}
       <div className="flex-1 min-h-0 bg-white border border-slate-200 rounded-lg overflow-hidden shadow-xs flex flex-col">
         {/* Mobile View: Standalone Rounded App Cards */}
-        <div className="sm:hidden flex-1 overflow-y-auto no-scrollbar p-3 space-y-3 bg-slate-50/60">
+        <div className="sm:hidden flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3 bg-slate-50/60">
           {/* Select all bar for mobile */}
           {filteredEmployees.length > 0 && (
             <div className="flex items-center justify-between px-3 py-2 bg-white rounded-lg border border-slate-200 text-xs">
@@ -313,8 +313,8 @@ export default function EmployeesDirectoryPage() {
           )}
         </div>
 
-        {/* Desktop View: Full Table with Sticky Header, hidden scrollbar and prominent row lines */}
-        <div className="hidden sm:block flex-1 min-h-0 overflow-y-auto overflow-x-auto no-scrollbar">
+        {/* Desktop View: Full Table with Sticky Header, sleek scrollbar and prominent row lines */}
+        <div className="hidden sm:block flex-1 min-h-0 overflow-y-auto overflow-x-auto custom-scrollbar">
           <table className="w-full text-left text-xs text-slate-800 border-collapse">
             <thead className="sticky top-0 z-20 bg-slate-100 text-[11px] uppercase font-bold text-slate-700 shadow-xs border-b border-slate-300">
               <tr>

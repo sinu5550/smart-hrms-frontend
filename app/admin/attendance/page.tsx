@@ -239,7 +239,7 @@ export default function AdminAttendancePage() {
             <p className="text-xs">No attendance records found for this criteria.</p>
           </div>
         ) : (
-          <div className="flex-1 overflow-y-auto overflow-x-auto no-scrollbar">
+          <div className="flex-1 overflow-y-auto overflow-x-auto custom-scrollbar">
             {/* Mobile Card List (Hidden on sm/md/lg) */}
             <div className="sm:hidden divide-y divide-slate-200">
               {filteredRecords.map((item) => (

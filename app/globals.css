@@ -14,22 +14,38 @@ body:has(.dark) { background-color: #f4f7fb; color: #1f2937; }
 button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 input:focus, select:focus, textarea:focus { outline: none; border-color: #10b981 !important; box-shadow: 0 0 0 3px rgb(16 185 129 / 12%); }
 
-/* Unique Sleek Custom Scrollbar */
+/* Unique Ultra-Sleek Custom Scrollbar matching HRMS Emerald Branding */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #059669;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
-  border-radius: 8px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: #cbd5e1;
-  border-radius: 8px;
-  border: 1.5px solid transparent;
-  background-clip: padding-box;
+  border-radius: 9999px;
   transition: background-color 0.2s ease;
 }
 

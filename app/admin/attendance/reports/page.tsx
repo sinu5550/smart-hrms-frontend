@@ -474,7 +474,7 @@ export default function AttendanceReportsPage() {
         </div>
 
         {/* Scrollable Records */}
-        <div className="flex-1 overflow-y-auto overflow-x-auto no-scrollbar">
+        <div className="flex-1 overflow-y-auto overflow-x-auto custom-scrollbar">
           {isLoading && records.length === 0 ? (
             <div className="p-8 text-center text-xs text-slate-500">Loading attendance report data...</div>
           ) : error ? (
