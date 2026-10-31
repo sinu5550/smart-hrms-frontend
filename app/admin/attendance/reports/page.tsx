@@ -378,20 +378,40 @@ export default function AttendanceReportsPage() {
       <head>
         <meta charset='utf-8'>
         <title>Attendance Summary Report</title>
+        <!--[if gte mso 9]>
+        <xml>
+          <w:WordDocument>
+            <w:View>Print</w:View>
+            <w:Zoom>100</w:Zoom>
+            <w:DoNotOptimizeForBrowser/>
+          </w:WordDocument>
+        </xml>
+        <![endif]-->
         <style>
-          @page { size: landscape; margin: 1.5cm; }
-          body { font-family: 'Calibri', 'Segoe UI', Arial, sans-serif; }
-          table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-          th { background-color: #f2f2f2; border: 1px solid #ccc; padding: 7px; font-size: 9pt; }
-          td { border: 1px solid #ccc; }
+          @page WordSection1 {
+            size: 841.9pt 595.3pt; /* A4 Landscape: width 297mm, height 210mm */
+            mso-page-orientation: landscape;
+            margin: 0.5in 0.5in 0.5in 0.5in; /* Slim 0.5 inch (1.27cm) margin */
+            mso-header-margin: 0.3in;
+            mso-footer-margin: 0.3in;
+            mso-paper-source: 0;
+          }
+          div.WordSection1 {
+            page: WordSection1;
+          }
+          body { font-family: 'Calibri', 'Segoe UI', Arial, sans-serif; margin: 0; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+          th { background-color: #0f172a; color: #ffffff; border: 1px solid #334155; padding: 6px 4px; font-size: 8.5pt; text-align: left; }
+          td { border: 1px solid #cbd5e1; padding: 5px 4px; font-size: 8.5pt; text-align: left; }
         </style>
       </head>
       <body>
-        <div style="text-align: center; margin-bottom: 20px;">
-          <h2 style="margin: 0; color: #1e293b; font-size: 18pt;">${organization.name}</h2>
-          <p style="margin: 3px 0 0 0; color: #64748b; font-size: 11pt;">${organization.address || ""}</p>
-          <h3 style="margin-top: 15px; font-size: 13pt; color: #0f172a;">Attendance Summary Report (${startDate} To ${endDate})</h3>
-          <p style="margin: 2px; font-size: 10pt; color: #475569;">Filtered By Department: ${selectedDeptId === "ALL" ? "All Departments" : departments.find((d: any) => d.id === selectedDeptId)?.name || "Selected"}</p>
+        <div class="WordSection1">
+        <div style="text-align: center; margin-bottom: 15px;">
+          <h2 style="margin: 0; color: #1e293b; font-size: 16pt;">${organization.name}</h2>
+          <p style="margin: 3px 0 0 0; color: #64748b; font-size: 10pt;">${organization.address || ""}</p>
+          <h3 style="margin-top: 10px; font-size: 12pt; color: #0f172a;">Attendance Summary Report (${startDate} To ${endDate})</h3>
+          <p style="margin: 2px; font-size: 9pt; color: #475569;">Filtered By Department: ${selectedDeptId === "ALL" ? "All Departments" : departments.find((d: any) => d.id === selectedDeptId)?.name || "Selected"}</p>
         </div>
         <table>
           <thead>
@@ -401,16 +421,16 @@ export default function AttendanceReportsPage() {
               <th>Employee Name</th>
               <th>Department</th>
               <th>Office Day</th>
-              <th>Absent</th>
-              <th>Leave</th>
-              <th>Present</th>
-              <th>Late</th>
+              <th style="color: #fca5a5;">Absent</th>
+              <th style="color: #93c5fd;">Leave</th>
+              <th style="color: #86efac;">Present</th>
+              <th style="color: #fde047;">Late</th>
               <th>Extreme Delay</th>
               <th>Total Delay Hour</th>
               <th>Over Time Day</th>
               <th>Expected Duty Hour</th>
               <th>Actual Duty Hour</th>
-              <th>Over Time Hour</th>
+              <th style="color: #86efac;">Over Time Hour</th>
               <th>Extra/Less Duty Balance</th>
             </tr>
           </thead>
@@ -418,6 +438,7 @@ export default function AttendanceReportsPage() {
             ${tableRowsHtml}
           </tbody>
         </table>
+        </div>
       </body>
       </html>
     `;
