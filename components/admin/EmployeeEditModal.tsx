@@ -23,6 +23,7 @@ const editEmployeeSchema = z.object({
   fullName: z.string().min(2, "Name is required"),
   email: z.string().email("Invalid business email"),
   phone: z.string().min(10, "Phone number must be at least 10-11 digits"),
+  newPassword: z.string().optional(),
   departmentId: z.string().optional(),
   shiftId: z.string().optional(),
   customRoleId: z.string().optional(),
@@ -128,6 +129,7 @@ export const EmployeeEditModal: React.FC<Props> = ({ employee, isOpen, onClose, 
         id: employee.id,
         payload: {
           ...data,
+          password: data.newPassword?.trim() ? data.newPassword.trim() : undefined,
           departmentId: departmentIdValue || undefined,
           shiftId: shiftIdValue || undefined,
           customRoleId: customRoleIdValue || undefined,
@@ -238,6 +240,21 @@ export const EmployeeEditModal: React.FC<Props> = ({ employee, isOpen, onClose, 
                     error={errors.phone?.message}
                   />
                 </div>
+              </div>
+
+              {/* Password Reset / Change Field for Authorized Personnel */}
+              <div className="p-3 bg-amber-50/60 border border-amber-200/80 rounded-lg space-y-1.5">
+                <label className="text-[11px] font-bold text-amber-950 flex items-center gap-1.5">
+                  <span>Reset / Change Password</span>
+                  <span className="text-[10px] font-normal text-amber-700">(Leave blank to keep current password)</span>
+                </label>
+                <Input
+                  {...register("newPassword")}
+                  type="password"
+                  autoComplete="new-password"
+                  placeholder="Enter new employee password (min 6 chars)..."
+                  className="h-9 text-xs rounded-lg bg-white border-amber-200 focus:border-amber-500 focus:ring-amber-500/20"
+                />
               </div>
 
               {roles.length > 0 && (
