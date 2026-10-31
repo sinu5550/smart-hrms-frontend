@@ -537,7 +537,7 @@ export default function PublicEmployeeRegistrationPage() {
             <div>
               <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                 <Lock className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Create HRMS Portal Login Password *</span>
+                <span>Create Portal Login Password *</span>
               </h3>
               <p className="text-[11px] text-slate-500 mt-0.5">
                 Set the password you will use to log into your employee self-service portal (minimum 6 characters).
