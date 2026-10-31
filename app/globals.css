@@ -97,3 +97,28 @@ body:has(.dark) { background-color: #f4f7fb; color: #1f2937; }
   scrollbar-width: none;
 }
 
+/* Universal Print Styles: Hide all navigation, sidebars, headers, mobile app bars, and floating popups during print or PDF export */
+@media print {
+  aside,
+  header,
+  nav,
+  .print\:hidden {
+    display: none !important;
+  }
+  body, html {
+    background: white !important;
+    color: black !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+

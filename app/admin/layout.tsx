@@ -143,7 +143,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Sidebar: Desktop fixed/collapsible + Mobile sliding drawer */}
       <aside
-        className={`fixed md:sticky top-0 bottom-0 left-0 z-50 bg-white border-r border-slate-200 transition-all duration-300 flex flex-col justify-between h-screen overflow-hidden shrink-0 ${
+        className={`print:hidden fixed md:sticky top-0 bottom-0 left-0 z-50 bg-white border-r border-slate-200 transition-all duration-300 flex flex-col justify-between h-screen overflow-hidden shrink-0 ${
           // Mobile classes
           isMobileMenuOpen ? "translate-x-0 w-72 shadow-2xl" : "-translate-x-full md:translate-x-0"
         } ${
@@ -440,9 +440,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen md:h-screen md:overflow-hidden pb-16 md:pb-0">
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen md:h-screen md:overflow-hidden pb-16 md:pb-0 print:h-auto print:min-h-0 print:overflow-visible print:pb-0">
         {/* Mobile & Desktop Header */}
-        <header className="h-14 bg-white/95 backdrop-blur-md border-b border-slate-200 px-3.5 md:px-7 flex items-center justify-between shrink-0 sticky top-0 z-30 shadow-xs">
+        <header className="print:hidden h-14 bg-white/95 backdrop-blur-md border-b border-slate-200 px-3.5 md:px-7 flex items-center justify-between shrink-0 sticky top-0 z-30 shadow-xs">
           <div className="flex items-center gap-2.5">
             {/* Mobile Hamburger Drawer Trigger */}
             <button
@@ -486,7 +486,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </header>
 
         {/* Page Body */}
-        <main className={`flex-1 p-4 md:p-7 w-full min-h-0 flex flex-col ${
+        <main className={`flex-1 p-4 md:p-7 w-full min-h-0 flex flex-col print:p-0 print:m-0 print:overflow-visible ${
           pathname === "/admin/attendance" || pathname === "/admin/employees"
             ? "overflow-y-auto md:overflow-hidden"
             : "overflow-y-auto"
@@ -495,7 +495,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </main>
 
         {/* Mobile Bottom App Navigation Bar (App-like feel) */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-2 py-1 flex items-center justify-around shadow-lg">
+        <div className="print:hidden md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-2 py-1 flex items-center justify-around shadow-lg">
           <Link
             href="/admin"
             className={`flex flex-col items-center py-1 px-3 rounded-lg text-[10px] font-semibold transition ${

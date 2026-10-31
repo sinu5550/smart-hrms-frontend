@@ -75,7 +75,7 @@ export function PwaRegister() {
   if (!showInstallBanner) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50 bg-slate-900 text-white p-3.5 rounded-lg shadow-2xl border border-slate-700 flex items-center justify-between gap-3 animate-in slide-in-from-bottom duration-300">
+    <div className="print:hidden fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50 bg-slate-900 text-white p-3.5 rounded-lg shadow-2xl border border-slate-700 flex items-center justify-between gap-3 animate-in slide-in-from-bottom duration-300">
       <div className="flex items-center gap-2.5 min-w-0">
         <div className="w-8 h-8 rounded-md bg-emerald-600 flex items-center justify-center shrink-0">
           <Download className="w-4 h-4 text-white" />
