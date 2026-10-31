@@ -116,7 +116,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     <Dialog open={isOpen} onOpenChange={(open) => !open && !isLoading && onClose()}>
       <DialogContent
         showCloseButton={false}
-        className="max-w-[420px] p-0 overflow-hidden rounded-2xl bg-white border border-slate-200/90 shadow-2xl animate-in fade-in-0 zoom-in-95 duration-200"
+        className="max-w-[420px] p-0 overflow-hidden rounded-lg bg-white border border-slate-200/90 shadow-2xl animate-in fade-in-0 zoom-in-95 duration-200"
       >
         {/* Soft decorative ambient glow header */}
         <div className={`relative px-6 pt-7 pb-4 bg-gradient-to-b ${currentVariant.glowBg} border-b border-slate-100/80`}>

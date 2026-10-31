@@ -560,7 +560,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
       {/* Employee ID Format Guidance Modal */}
       {showIdGuideModal && (
         <Dialog open={showIdGuideModal} onOpenChange={setShowIdGuideModal}>
-          <DialogContent className="max-w-md p-5 rounded-2xl bg-white shadow-2xl border border-slate-200">
+          <DialogContent className="max-w-md p-5 rounded-lg bg-white shadow-2xl border border-slate-200">
             <DialogHeader className="pb-3 border-b border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-800 flex items-center justify-center">

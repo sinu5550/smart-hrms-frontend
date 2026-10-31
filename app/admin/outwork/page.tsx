@@ -401,7 +401,7 @@ export default function AdminOutworkApprovalsPage() {
       {/* Approve / Reject Modal with Notes */}
       {noteModalTarget && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-5 border border-slate-200 shadow-xl space-y-4 animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-lg max-w-md w-full p-5 border border-slate-200 shadow-xl space-y-4 animate-in zoom-in-95 duration-200">
             <div>
               <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 {actionType === "APPROVED" ? (

@@ -41,7 +41,7 @@ export const BulkDeleteEmployeesModal: React.FC<BulkDeleteModalProps> = ({
 
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent showCloseButton={false} className="max-w-md rounded-xl p-6">
+      <DialogContent showCloseButton={false} className="max-w-md rounded-lg p-6">
         <div className="flex items-center justify-between">
           <div className="w-10 h-10 rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-700">
             <AlertTriangle className="w-5 h-5" />

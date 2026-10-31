@@ -209,7 +209,7 @@ export default function DepartmentsPage() {
               <div
                 key={dept.id}
                 onClick={() => setSelectedDeptId(dept.id)}
-                className="group cursor-pointer bg-white border border-slate-200 hover:border-emerald-500/50 hover:shadow-md rounded-xl p-5 transition-all space-y-4 flex flex-col justify-between relative overflow-hidden"
+                className="group cursor-pointer bg-white border border-slate-200 hover:border-emerald-500/50 hover:shadow-md rounded-lg p-5 transition-all space-y-4 flex flex-col justify-between relative overflow-hidden"
               >
                 <div>
                   <div className="flex items-start justify-between gap-2">
@@ -341,7 +341,7 @@ export default function DepartmentsPage() {
 
       {/* DEPARTMENT DETAILS, HEAD & ROSTER MODAL */}
       <Dialog open={Boolean(selectedDeptId)} onOpenChange={(open) => !open && setSelectedDeptId(null)}>
-        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto p-6 rounded-2xl bg-white space-y-6">
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto p-6 rounded-lg bg-white space-y-6">
           {isLoadingDeptDetails || !selectedDept ? (
             <div className="py-16 text-center text-xs text-slate-400">Loading department details & members...</div>
           ) : (
@@ -367,7 +367,7 @@ export default function DepartmentsPage() {
               </div>
 
               {/* Department Head Assignment Card */}
-              <div className="p-4 rounded-xl border border-emerald-100 bg-emerald-50/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="p-4 rounded-lg border border-emerald-100 bg-emerald-50/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
                     <ShieldCheck className="w-5 h-5" />
@@ -433,11 +433,11 @@ export default function DepartmentsPage() {
                 </div>
 
                 {(!selectedDept.users || selectedDept.users.length === 0) ? (
-                  <div className="p-8 text-center bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-400">
+                  <div className="p-8 text-center bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-400">
                     No employees currently assigned to {selectedDept.name}. Assign employees to this department from the Employee Directory.
                   </div>
                 ) : (
-                  <div className="border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+                  <div className="border border-slate-200 rounded-lg overflow-hidden shadow-xs">
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-xs text-slate-800">
                         <thead className="bg-slate-50 text-[11px] uppercase font-bold text-slate-600 border-b border-slate-200">

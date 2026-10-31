@@ -303,7 +303,7 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent showCloseButton={false} className="max-w-4xl p-0 overflow-hidden rounded-2xl bg-slate-50 border border-slate-200">
+      <DialogContent showCloseButton={false} className="max-w-4xl p-0 overflow-hidden rounded-lg bg-slate-50 border border-slate-200">
         {/* Header Bar */}
         <div className="p-5 bg-white border-b border-slate-200 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -709,7 +709,7 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
         {/* Modal: Select an HRMS Employee to push to this device */}
         {isPushingModalOpen && (
           <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl border border-slate-200 max-w-md w-full p-6 shadow-2xl space-y-4 animate-in fade-in-0 zoom-in-95">
+            <div className="bg-white rounded-lg border border-slate-200 max-w-md w-full p-6 shadow-2xl space-y-4 animate-in fade-in-0 zoom-in-95">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700">
@@ -788,7 +788,7 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
         {/* Edit Person Modal */}
         {editingPerson && (
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-2xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+            <div className="bg-white rounded-lg max-w-md w-full p-5 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-800 flex items-center justify-center">

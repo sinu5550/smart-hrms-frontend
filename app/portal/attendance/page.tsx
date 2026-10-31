@@ -182,7 +182,7 @@ export default function MobileAttendancePortal() {
   if (isAttendanceExempt) {
     return (
       <main className="min-h-screen bg-white text-slate-800 flex flex-col items-center justify-center p-6 max-w-md mx-auto text-center space-y-4 pb-20">
-        <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto shadow-xs">
+        <div className="w-16 h-16 rounded-lg bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto shadow-xs">
           <Sparkles className="w-8 h-8" />
         </div>
         <div>
@@ -246,7 +246,7 @@ export default function MobileAttendancePortal() {
       </header>
 
       {currentState === "CHECKED_OUT" && (
-        <div className="w-full bg-white border border-slate-200 rounded-2xl p-6 text-center shadow-xl space-y-4 my-auto">
+        <div className="w-full bg-white border border-slate-200 rounded-lg p-6 text-center shadow-xl space-y-4 my-auto">
           <div className="w-16 h-16 text-slate-800/60 border border-emerald-200 text-slate-800 rounded-full flex items-center justify-center mx-auto">
             <CheckCircle2 className="w-8 h-8" />
           </div>
@@ -280,7 +280,7 @@ export default function MobileAttendancePortal() {
       {currentState !== "CHECKED_OUT" && (
         <div className="w-full space-y-6">
           {statusData?.checkedIn && (
-            <section className="bg-white/90 border border-slate-200 rounded-2xl p-5 shadow-lg">
+            <section className="bg-white/90 border border-slate-200 rounded-lg p-5 shadow-lg">
               {currentState === "CHECKED_IN" ? (
                 <div className="text-center">
                   <div className="flex items-center justify-center space-x-1.5 text-xs text-slate-800 mb-1">
@@ -355,7 +355,7 @@ export default function MobileAttendancePortal() {
 
       {activeModal === "CONFIRM_CHECKIN" && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm p-6 text-center space-y-4">
+          <div className="bg-white border border-slate-200 rounded-lg w-full max-w-sm p-6 text-center space-y-4">
             <div className="w-12 h-12 text-slate-800 text-slate-800 border border-emerald-200 rounded-full flex items-center justify-center mx-auto">
               <CheckCircle2 className="w-6 h-6" />
             </div>
@@ -387,7 +387,7 @@ export default function MobileAttendancePortal() {
 
       {activeModal === "SELECT_BREAK" && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm p-6 space-y-4">
+          <div className="bg-white border border-slate-200 rounded-lg w-full max-w-sm p-6 space-y-4">
             <div className="flex items-center gap-2">
               <Coffee className="w-5 h-5 text-amber-500" />
               <h3 className="text-base font-bold text-slate-800">Select Break Category</h3>
@@ -430,7 +430,7 @@ export default function MobileAttendancePortal() {
       {/* MODAL: SCAN OFFICE QR TO CHECK OUT */}
       {activeModal === "SCAN_CHECKOUT" && (
         <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
+          <div className="bg-white border border-slate-200 rounded-lg w-full max-w-sm p-5 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
               <div className="flex items-center gap-2">
                 <LogOut className="w-4 h-4 text-rose-600" />
@@ -465,7 +465,7 @@ export default function MobileAttendancePortal() {
       {/* MODAL: CONFIRM CLOCK OUT AFTER QR DETECTED */}
       {activeModal === "CONFIRM_CHECKOUT" && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm p-6 text-center space-y-4 shadow-2xl">
+          <div className="bg-white border border-slate-200 rounded-lg w-full max-w-sm p-6 text-center space-y-4 shadow-2xl">
             <div className="w-12 h-12 bg-rose-50 text-rose-600 border border-rose-200 rounded-full flex items-center justify-center mx-auto">
               <LogOut className="w-6 h-6" />
             </div>
@@ -497,7 +497,7 @@ export default function MobileAttendancePortal() {
 
       {activeModal === "IP_RESTRICTED" && (
         <div className="fixed inset-0 bg-rose-50 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-rose-200/80 rounded-2xl w-full max-w-sm p-6 text-center space-y-4 shadow-2xl">
+          <div className="bg-white border border-rose-200/80 rounded-lg w-full max-w-sm p-6 text-center space-y-4 shadow-2xl">
             <div className="w-14 h-14 bg-rose-950/80 text-rose-700 border border-rose-200 rounded-full flex items-center justify-center mx-auto animate-pulse">
               <WifiOff className="w-7 h-7" />
             </div>

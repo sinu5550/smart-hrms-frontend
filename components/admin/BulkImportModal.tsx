@@ -116,7 +116,7 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-xl p-5 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+      <div className="bg-white rounded-lg shadow-xl border border-slate-200 w-full max-w-xl p-5 space-y-4 animate-in fade-in zoom-in-95 duration-150">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
             <FileSpreadsheet className="w-4 h-4 text-emerald-700" />
