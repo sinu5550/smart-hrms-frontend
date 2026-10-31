@@ -40,6 +40,12 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
     description: "Can onboard new staff and issue initial login credentials.",
   },
   {
+    id: "employees.registration",
+    name: "Employee Self-Registration & Forms",
+    category: "Employees",
+    description: "Can configure public registration forms, copy form links, and review submitted registrations.",
+  },
+  {
     id: "employees.edit",
     name: "Edit Personnel Profiles",
     category: "Employees",

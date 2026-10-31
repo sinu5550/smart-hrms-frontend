@@ -8,3 +8,4 @@ export * from "./useShifts";
 export * from "./useRoles";
 export * from "./useDevices";
 export * from "./useCoreHr";
+export * from "./useRegistrations";

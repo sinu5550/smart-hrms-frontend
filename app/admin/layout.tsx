@@ -26,6 +26,7 @@ import {
   MapPin,
   HandCoins,
   CalendarDays,
+  FileSignature,
 } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -96,6 +97,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { label: "Outwork & Visits", href: "/admin/outwork", icon: MapPin },
     { label: "Leave Requests", href: "/admin/leave", icon: CalendarDays },
     { label: "Employee Directory", href: "/admin/employees", icon: Users, perm: "employees.view" },
+    { label: "Registration Forms", href: "/admin/employee-registration", icon: FileSignature, perm: "employees.registration" },
     { label: "Company Loans", href: "/admin/loans", icon: HandCoins },
     { label: "Departments", href: "/admin/departments", icon: Building2, perm: "departments.manage" },
     { label: "Shift Schedules", href: "/admin/shifts", icon: Sliders, perm: "shift.settings" },

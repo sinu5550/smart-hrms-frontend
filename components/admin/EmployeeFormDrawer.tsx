@@ -8,10 +8,11 @@ import * as z from "zod";
 import { EmployeeService } from "@/services/employee.service";
 import { CloudinaryService } from "@/services/cloudinary.service";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { useCreateEmployee, useUpdateEmployee, useOrganization, useNextEmployeeId, useDepartments, useShifts, useRoles } from "@/hooks";
+import { useCreateEmployee, useUpdateEmployee, useOrganization, useNextEmployeeId, useDepartments, useShifts, useRoles, useRegistrations } from "@/hooks";
+import { RegistrationService, EmployeeRegistration } from "@/services/registration.service";
 import { CustomRole } from "@/services/role.service";
 import { parseApiError } from "@/services/api";
-import { X, Upload, Check, Copy, Eye, EyeOff, ShieldCheck, Sparkles, AlertCircle, HelpCircle, Info } from "lucide-react";
+import { X, Upload, Check, Copy, Eye, EyeOff, ShieldCheck, Sparkles, AlertCircle, HelpCircle, Info, UserPlus, Users, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
@@ -73,6 +74,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
   const { data: roles = [] } = useRoles();
   const createEmployeeMutation = useCreateEmployee();
   const updateEmployeeMutation = useUpdateEmployee();
+  const { data: pendingRegistrations = [] } = useRegistrations("PENDING");
 
   const [roleValue, setRoleValue] = useState<EmployeeFormData["role"]>("EMPLOYEE");
   const [customRoleIdValue, setCustomRoleIdValue] = useState<string>("");
@@ -85,6 +87,9 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
   const [formError, setFormError] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [existingAvatarUrl, setExistingAvatarUrl] = useState<string | null>(null);
+  const [selectedRegistrationId, setSelectedRegistrationId] = useState<string | null>(null);
+  const [showRegistrationsModal, setShowRegistrationsModal] = useState(false);
   const [createdCredentials, setCreatedCredentials] = useState<{
     id: string;
     email: string;
@@ -119,6 +124,9 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
       setFormError(null);
       setAvatarFile(null);
       setAvatarPreview(null);
+      setExistingAvatarUrl(null);
+      setSelectedRegistrationId(null);
+      setShowRegistrationsModal(false);
       setCopied(false);
       reset();
       if (nextIdData?.nextEmployeeId) {
@@ -133,6 +141,9 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
     setFormError(null);
     setAvatarFile(null);
     setAvatarPreview(null);
+    setExistingAvatarUrl(null);
+    setSelectedRegistrationId(null);
+    setShowRegistrationsModal(false);
     reset();
     onClose();
   };
@@ -142,8 +153,56 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
     setFormError(null);
     setAvatarFile(null);
     setAvatarPreview(null);
+    setExistingAvatarUrl(null);
+    setSelectedRegistrationId(null);
+    setShowRegistrationsModal(false);
     reset();
     onSuccess();
+  };
+
+  const handleSelectRegistration = (applicant: EmployeeRegistration) => {
+    setValue("fullName", applicant.fullName, { shouldValidate: true });
+    setValue("email", applicant.email, { shouldValidate: true });
+    if (applicant.phone) {
+      setValue("phone", applicant.phone, { shouldValidate: true });
+      setPhoneValue(applicant.phone);
+    }
+    if (applicant.bloodGroup) {
+      setValue("bloodGroup", applicant.bloodGroup);
+      setBloodGroupValue(applicant.bloodGroup);
+    }
+    if (applicant.presentAddress) {
+      setValue("presentAddress", applicant.presentAddress);
+    }
+    if (applicant.permanentAddress) {
+      setValue("permanentAddress", applicant.permanentAddress);
+    }
+    if (applicant.emergencyContactName) {
+      setValue("emergencyContactName", applicant.emergencyContactName);
+    }
+    if (applicant.emergencyContactPhone) {
+      setValue("emergencyContactPhone", applicant.emergencyContactPhone);
+    }
+    if (applicant.emergencyContactRelation) {
+      setValue("emergencyContactRelation", applicant.emergencyContactRelation);
+    }
+    if (applicant.departmentId) {
+      setDepartmentIdValue(applicant.departmentId);
+      setValue("departmentId", applicant.departmentId);
+    }
+    if (applicant.avatarUrl) {
+      setAvatarPreview(applicant.avatarUrl);
+      setExistingAvatarUrl(applicant.avatarUrl);
+      setAvatarFile(null);
+    }
+
+    // Preserve auto-generated employeeId if already fetched, or maintain current
+    if (nextIdData?.nextEmployeeId) {
+      setValue("employeeId", nextIdData.nextEmployeeId, { shouldValidate: true });
+    }
+
+    setSelectedRegistrationId(applicant.id);
+    setShowRegistrationsModal(false);
   };
 
   const isSubmitting = createEmployeeMutation.isPending || updateEmployeeMutation.isPending;
@@ -159,6 +218,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
       }
       setAvatarFile(file);
       setAvatarPreview(URL.createObjectURL(file));
+      setExistingAvatarUrl(null);
     }
   };
 
@@ -180,6 +240,8 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
         departmentId: departmentIdValue || undefined,
         shiftId: shiftIdValue || undefined,
       });
+
+      // Update avatar if provided
       if (avatarFile && response.user?.id) {
         try {
           const cloudinaryUrl = await CloudinaryService.uploadImage(avatarFile, "hrms/employee-avatars");
@@ -189,6 +251,24 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
           });
         } catch (uploadErr) {
           console.warn("Avatar upload failed:", uploadErr);
+        }
+      } else if (existingAvatarUrl && response.user?.id) {
+        try {
+          await updateEmployeeMutation.mutateAsync({
+            id: response.user.id,
+            payload: { avatarUrl: existingAvatarUrl },
+          });
+        } catch (uploadErr) {
+          console.warn("Assigning existing avatar failed:", uploadErr);
+        }
+      }
+
+      // If imported from registration, mark status as ENLISTED
+      if (selectedRegistrationId) {
+        try {
+          await RegistrationService.updateStatus(selectedRegistrationId, "ENLISTED");
+        } catch (regErr) {
+          console.warn("Could not mark registration as ENLISTED:", regErr);
         }
       }
       setCreatedCredentials({
@@ -287,6 +367,56 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
             </div>
           ) : (
             <form id="onboard-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              {pendingRegistrations.length > 0 && (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-between shadow-xs">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                      <Users className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-emerald-900">
+                        {pendingRegistrations.length} {pendingRegistrations.length === 1 ? "Employee Registered" : "Employees Registered"}
+                      </p>
+                      <p className="text-[11px] text-emerald-700">
+                        Self-registered applicants are waiting for review & enlistment
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => setShowRegistrationsModal(true)}
+                    className="h-8 text-xs bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg gap-1.5 shrink-0 px-3"
+                  >
+                    Review & Autofill
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              )}
+
+              {selectedRegistrationId && (
+                <div className="p-2.5 bg-sky-50 border border-sky-200 rounded-lg flex items-center justify-between text-xs text-sky-800">
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <Sparkles className="w-3.5 h-3.5 text-sky-600" />
+                    Applicant details autofilled from registration form.
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedRegistrationId(null);
+                      setExistingAvatarUrl(null);
+                      reset();
+                      if (nextIdData?.nextEmployeeId) {
+                        setValue("employeeId", nextIdData.nextEmployeeId);
+                      }
+                    }}
+                    className="text-[11px] font-semibold text-sky-700 hover:underline"
+                  >
+                    Clear Autofill
+                  </button>
+                </div>
+              )}
+
               {formError && (
                 <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg flex items-start gap-2.5 text-xs text-rose-700">
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -631,6 +761,106 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
                 Understood, Got it!
               </Button>
             </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Registered Applicants Selection Modal */}
+      {showRegistrationsModal && (
+        <Dialog open={showRegistrationsModal} onOpenChange={setShowRegistrationsModal}>
+          <DialogContent className="max-w-2xl max-h-[85vh] p-0 rounded-lg overflow-hidden bg-white shadow-2xl border border-slate-200 flex flex-col">
+            <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center">
+                  <UserPlus className="w-4 h-4" />
+                </div>
+                <div>
+                  <DialogTitle className="text-sm font-bold text-slate-800">
+                    Registered Applicants ({pendingRegistrations.length})
+                  </DialogTitle>
+                  <p className="text-[11px] text-slate-500">
+                    Select an applicant to autofill all details into the enlistment form
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowRegistrationsModal(false)}
+                className="h-8 w-8 rounded-lg text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+
+            <ScrollArea className="flex-1 p-5">
+              {pendingRegistrations.length === 0 ? (
+                <div className="text-center py-12 text-slate-400 text-xs">
+                  No pending applicant registrations found.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {pendingRegistrations.map((applicant) => (
+                    <div
+                      key={applicant.id}
+                      className="p-3.5 rounded-lg border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/20 transition-all flex items-center justify-between gap-3 bg-white"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center">
+                          {applicant.avatarUrl ? (
+                            <Image
+                              src={applicant.avatarUrl}
+                              alt={applicant.fullName}
+                              width={48}
+                              height={48}
+                              unoptimized
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-sm font-bold text-slate-500">
+                              {applicant.fullName.charAt(0).toUpperCase()}
+                            </span>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-xs text-slate-900 truncate">
+                            {applicant.fullName}
+                          </p>
+                          <p className="text-[11px] text-slate-500 truncate">
+                            {applicant.email} {applicant.phone ? `• ${applicant.phone}` : ""}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            {applicant.departmentName && (
+                              <span className="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium">
+                                {applicant.departmentName}
+                              </span>
+                            )}
+                            {applicant.bloodGroup && (
+                              <span className="text-[10px] bg-rose-50 text-rose-700 border border-rose-200 px-1.5 py-0.5 rounded font-medium">
+                                {applicant.bloodGroup}
+                              </span>
+                            )}
+                            <span className="text-[10px] text-slate-400">
+                              Registered {new Date(applicant.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => handleSelectRegistration(applicant)}
+                        className="h-8 text-xs bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg shrink-0 px-3 gap-1"
+                      >
+                        Select & Autofill
+                        <Check className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
           </DialogContent>
         </Dialog>
       )}
