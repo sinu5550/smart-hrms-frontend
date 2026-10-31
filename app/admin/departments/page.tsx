@@ -394,25 +394,38 @@ export default function DepartmentsPage() {
                   <div>
                     <h4 className="text-xs font-bold text-slate-900">Head of Department (In-charge)</h4>
                     <p className="text-[11px] text-slate-500">
-                      The Department Head reviews leave applications and assigns weekly off-days for roster staff.
+                      {isDeptHeadOnly
+                        ? "Designated Department Head reviewing leaves and roster off-days."
+                        : "The Department Head reviews leave applications and assigns weekly off-days for roster staff."}
                     </p>
                   </div>
                 </div>
 
                 <div className="w-full sm:w-64">
-                  <Select
-                    value={selectedDept.headUserId || "NONE"}
-                    onValueChange={(val) => handleAssignHead(val === "NONE" ? "" : val)}
-                    triggerClassName="h-9 text-xs rounded-lg"
-                    placeholder="-- Select Department Head --"
-                    options={[
-                      { value: "NONE", label: "-- No Department Head --" },
-                      ...(selectedDept.users || []).map((u) => ({
-                        value: u.id,
-                        label: `${u.fullName} (${u.employeeId})`,
-                      })),
-                    ]}
-                  />
+                  {isDeptHeadOnly ? (
+                    // Read-only badge for Dept Head
+                    <div className="px-3 py-2 bg-white border border-emerald-200 rounded-lg text-xs font-bold text-emerald-800 flex items-center gap-2 shadow-xs">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                      <span className="truncate">
+                        {selectedDept.headUser ? `${selectedDept.headUser.fullName} (${selectedDept.headUser.employeeId})` : "Not Assigned"}
+                      </span>
+                    </div>
+                  ) : (
+                    // Admin & HR can change Dept Head
+                    <Select
+                      value={selectedDept.headUserId || "NONE"}
+                      onValueChange={(val) => handleAssignHead(val === "NONE" ? "" : val)}
+                      triggerClassName="h-9 text-xs rounded-lg"
+                      placeholder="-- Select Department Head --"
+                      options={[
+                        { value: "NONE", label: "-- No Department Head --" },
+                        ...(selectedDept.users || []).map((u) => ({
+                          value: u.id,
+                          label: `${u.fullName} (${u.employeeId})`,
+                        })),
+                      ]}
+                    />
+                  )}
                 </div>
               </div>
 
