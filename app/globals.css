@@ -99,13 +99,13 @@ body:has(.dark) { background-color: #f4f7fb; color: #1f2937; }
 
 /* Universal Print Styles: Hide all navigation, sidebars, headers, mobile app bars, and floating popups during print or PDF export */
 @page {
-  size: landscape;
+  size: A4 landscape;
   margin: 8mm;
 }
 
 @media print {
   @page {
-    size: landscape;
+    size: A4 landscape;
     margin: 8mm;
   }
   aside,

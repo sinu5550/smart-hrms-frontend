@@ -700,16 +700,16 @@ export default function AttendanceReportsPage() {
         )}
       </div>
 
-      {/* Native Head Style for Automatic Landscape Printing */}
+      {/* Native Head Style for Automatic A4 Landscape Printing */}
       <style dangerouslySetInnerHTML={{
         __html: `
           @page {
-            size: landscape !important;
+            size: A4 landscape !important;
             margin: 8mm !important;
           }
           @media print {
             @page {
-              size: landscape !important;
+              size: A4 landscape !important;
               margin: 8mm !important;
             }
           }
