@@ -3,11 +3,18 @@
 import { useEffect, useState } from 'react';
 import { Download, X } from 'lucide-react';
 
+const PWA_DISMISSED_KEY = 'hrms_pwa_banner_dismissed';
+
 export function PwaRegister() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
 
   useEffect(() => {
+    // If the user already permanently dismissed or closed the banner once, never show it again
+    if (typeof window !== 'undefined' && localStorage.getItem(PWA_DISMISSED_KEY)) {
+      return;
+    }
+
     if ('serviceWorker' in navigator) {
       const registerSW = () => {
         navigator.serviceWorker
@@ -30,8 +37,11 @@ export function PwaRegister() {
     const handler = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      // Show install prompt if not installed
-      if (!window.matchMedia('(display-mode: standalone)').matches) {
+      // Show install prompt if not standalone and not previously dismissed
+      if (
+        !window.matchMedia('(display-mode: standalone)').matches &&
+        !localStorage.getItem(PWA_DISMISSED_KEY)
+      ) {
         setShowInstallBanner(true);
       }
     };
@@ -41,11 +51,22 @@ export function PwaRegister() {
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
+  const handleClose = () => {
+    // Permanently remember that user closed the popup so it never shows again
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(PWA_DISMISSED_KEY, 'true');
+    }
+    setShowInstallBanner(false);
+  };
+
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === 'accepted') {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(PWA_DISMISSED_KEY, 'true');
+      }
       setShowInstallBanner(false);
     }
     setDeferredPrompt(null);
@@ -72,8 +93,9 @@ export function PwaRegister() {
           Install
         </button>
         <button
-          onClick={() => setShowInstallBanner(false)}
+          onClick={handleClose}
           className="p-1 text-slate-400 hover:text-white rounded"
+          title="Dismiss forever"
         >
           <X className="w-3.5 h-3.5" />
         </button>
