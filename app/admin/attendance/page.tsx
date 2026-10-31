@@ -58,7 +58,7 @@ export default function AdminAttendancePage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = new Date().toLocaleDateString("en-CA");
   const [dateRange, setDateRange] = useState<DateRangeValue>({
     preset: "TODAY",
     startDate: todayStr,

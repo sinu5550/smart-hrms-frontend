@@ -38,21 +38,14 @@ export default function AttendanceReportsPage() {
   const [selectedDeptId, setSelectedDeptId] = useState<string>("ALL");
   const [searchTerm, setSearchTerm] = useState<string>("");
 
-  // Dates
+  // Local dates formatted as YYYY-MM-DD
   const today = new Date();
-  const todayStr = today.toISOString().split("T")[0];
+  const todayStr = today.toLocaleDateString("en-CA");
 
-  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-    .toISOString()
-    .split("T")[0];
-
-  const firstDayOfYear = new Date(today.getFullYear(), 0, 1)
-    .toISOString()
-    .split("T")[0];
-
-  const sevenDaysAgo = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000)
-    .toISOString()
-    .split("T")[0];
+  // Current Month: 1st of current month to today (e.g. Oct 1 to Oct 31, not fixed 30 days)
+  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toLocaleDateString("en-CA");
+  const firstDayOfYear = new Date(today.getFullYear(), 0, 1).toLocaleDateString("en-CA");
+  const sevenDaysAgo = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000).toLocaleDateString("en-CA");
 
   const [customStartDate, setCustomStartDate] = useState<string>(firstDayOfMonth);
   const [customEndDate, setCustomEndDate] = useState<string>(todayStr);
