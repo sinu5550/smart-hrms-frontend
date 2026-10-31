@@ -700,21 +700,21 @@ export default function AttendanceReportsPage() {
         )}
       </div>
 
-      {/* Global Print Style for Landscape Orientation */}
-      <style jsx global>{`
-        @media print {
+      {/* Native Head Style for Automatic Landscape Printing */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
           @page {
-            size: landscape;
-            margin: 10mm;
+            size: landscape !important;
+            margin: 8mm !important;
           }
-          body {
-            background: white !important;
-            color: black !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
+          @media print {
+            @page {
+              size: landscape !important;
+              margin: 8mm !important;
+            }
           }
-        }
-      `}</style>
+        `
+      }} />
     </div>
   );
 }

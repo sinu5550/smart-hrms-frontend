@@ -98,7 +98,16 @@ body:has(.dark) { background-color: #f4f7fb; color: #1f2937; }
 }
 
 /* Universal Print Styles: Hide all navigation, sidebars, headers, mobile app bars, and floating popups during print or PDF export */
+@page {
+  size: landscape;
+  margin: 8mm;
+}
+
 @media print {
+  @page {
+    size: landscape;
+    margin: 8mm;
+  }
   aside,
   header,
   nav,
@@ -110,6 +119,8 @@ body:has(.dark) { background-color: #f4f7fb; color: #1f2937; }
     color: black !important;
     overflow: visible !important;
     height: auto !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   main {
     padding: 0 !important;
