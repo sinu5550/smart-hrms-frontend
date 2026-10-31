@@ -81,13 +81,13 @@ export default function AttendanceReportsPage() {
     departmentId: selectedDeptId !== "ALL" ? selectedDeptId : undefined,
   });
 
-  const { data: orgData } = useOrganization();
+  const { data: orgData, isLoading: isLoadingOrg } = useOrganization();
   const { data: departmentsData = [] } = useDepartments();
   const departments = Array.isArray(departmentsData) ? departmentsData : [];
 
   const organization = reportData?.organization || {
-    name: orgData?.name || "Halal Food Service",
-    address: orgData?.address || "39/A Senpara Parbota, Mirpur 10",
+    name: orgData?.name || orgData?.name || "",
+    address: orgData?.address || orgData?.address || "",
     logoUrl: orgData?.logoUrl || null,
   };
 
@@ -516,21 +516,34 @@ export default function AttendanceReportsPage() {
 
       {/* Printable Report Canvas & Landscape Container */}
       <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-6 print:border-none print:shadow-none print:p-0">
-        {/* Organization Header (Exact replica of user sample format) */}
+        {/* Organization Header */}
         <div className="text-center space-y-1.5 border-b border-slate-200 pb-5">
-          {organization.logoUrl && (
-            <img
-              src={organization.logoUrl}
-              alt={organization.name}
-              className="h-12 object-contain mx-auto mb-2"
-            />
+          {isLoadingOrg ? (
+            <div className="space-y-2 flex flex-col items-center py-2">
+              <div className="h-6 w-56 bg-slate-200 rounded animate-pulse" />
+              <div className="h-3.5 w-72 bg-slate-100 rounded animate-pulse" />
+            </div>
+          ) : (
+            <>
+              {organization.logoUrl && (
+                <img
+                  src={organization.logoUrl}
+                  alt={organization.name || "Organization"}
+                  className="h-12 object-contain mx-auto mb-2"
+                />
+              )}
+              {organization.name && (
+                <h2 className="text-xl font-bold tracking-tight text-slate-900 uppercase">
+                  {organization.name}
+                </h2>
+              )}
+              {organization.address && (
+                <p className="text-xs text-slate-500 font-medium">
+                  {organization.address}
+                </p>
+              )}
+            </>
           )}
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 uppercase">
-            {organization.name}
-          </h2>
-          <p className="text-xs text-slate-500 font-medium">
-            {organization.address || "Office Headquarters"}
-          </p>
           <div className="pt-2">
             <h3 className="text-sm font-bold text-slate-800">
               Attendance Summary Report ({formatDate(startDate)} To {formatDate(endDate)})
