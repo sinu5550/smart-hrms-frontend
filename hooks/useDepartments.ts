@@ -11,6 +11,14 @@ export function useDepartments() {
   });
 }
 
+export function useDepartmentDetails(id?: string | null) {
+  return useQuery({
+    queryKey: ["department", id],
+    queryFn: () => (id ? DepartmentService.getById(id) : null),
+    enabled: Boolean(id),
+  });
+}
+
 export function useCreateDepartment() {
   const queryClient = useQueryClient();
 
@@ -44,6 +52,20 @@ export function useDeleteDepartment() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.departments.all });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.employees.all });
+    },
+  });
+}
+
+export function useUpdateEmployeeRosterOffDays() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ departmentId, employeeUserId, rosterOffDays }: { departmentId: string; employeeUserId: string; rosterOffDays: string[] }) =>
+      DepartmentService.updateEmployeeRosterOffDays(departmentId, employeeUserId, rosterOffDays),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["department", variables.departmentId] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.departments.all });
+      queryClient.invalidateQueries({ queryKey: ["attendance", "summary-report"] });
     },
   });
 }
