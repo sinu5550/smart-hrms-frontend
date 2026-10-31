@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useEmployees, useChangeEmployeeStatus, useOrganization, useDepartments } from "@/hooks";
+import { deviceService } from "@/services/device.service";
 
 export default function EmployeesDirectoryPage() {
   const { user: currentUser } = useAuth();
@@ -48,6 +49,12 @@ export default function EmployeesDirectoryPage() {
   const [targetEditEmployee, setTargetEditEmployee] = useState<Employee | null>(null);
   const [targetDeleteEmployee, setTargetDeleteEmployee] = useState<Employee | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  // Smart Page-Triggered Biometric Status Reconciliation:
+  // Runs once on page mount to ensure all employee face/fingerprint badges reflect real-time terminal hardware
+  React.useEffect(() => {
+    deviceService.reconcileBio().catch(() => {});
+  }, []);
 
   const filteredEmployees = employees.filter((emp) => {
     const q = searchQuery.toLowerCase().trim();

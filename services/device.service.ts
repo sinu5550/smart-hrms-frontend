@@ -128,6 +128,11 @@ export const deviceService = {
     return data;
   },
 
+  async reconcileBio(): Promise<{ success: boolean; message: string }> {
+    const { data } = await apiClient.post("/devices/reconcile-bio");
+    return data;
+  },
+
   async getRecentLogs(): Promise<BiometricRawLog[]> {
     const { data } = await apiClient.get<BiometricRawLog[]>("/devices/logs");
     return data;
