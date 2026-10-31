@@ -20,6 +20,8 @@ export interface EmployeeRegistration {
   designationId?: string | null;
   designationName?: string | null;
   avatarUrl?: string | null;
+  password?: string;
+  passwordHash?: string | null;
   status: "PENDING" | "ENLISTED" | "REJECTED";
   createdAt: string;
   updatedAt: string;

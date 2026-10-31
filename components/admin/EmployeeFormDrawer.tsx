@@ -88,6 +88,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [existingAvatarUrl, setExistingAvatarUrl] = useState<string | null>(null);
+  const [applicantPasswordHash, setApplicantPasswordHash] = useState<string | null>(null);
   const [selectedRegistrationId, setSelectedRegistrationId] = useState<string | null>(null);
   const [showRegistrationsModal, setShowRegistrationsModal] = useState(false);
   const [createdCredentials, setCreatedCredentials] = useState<{
@@ -125,6 +126,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
       setAvatarFile(null);
       setAvatarPreview(null);
       setExistingAvatarUrl(null);
+      setApplicantPasswordHash(null);
       setSelectedRegistrationId(null);
       setShowRegistrationsModal(false);
       setCopied(false);
@@ -142,6 +144,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
     setAvatarFile(null);
     setAvatarPreview(null);
     setExistingAvatarUrl(null);
+    setApplicantPasswordHash(null);
     setSelectedRegistrationId(null);
     setShowRegistrationsModal(false);
     reset();
@@ -154,6 +157,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
     setAvatarFile(null);
     setAvatarPreview(null);
     setExistingAvatarUrl(null);
+    setApplicantPasswordHash(null);
     setSelectedRegistrationId(null);
     setShowRegistrationsModal(false);
     reset();
@@ -195,6 +199,11 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
       setExistingAvatarUrl(applicant.avatarUrl);
       setAvatarFile(null);
     }
+    if (applicant.passwordHash) {
+      setApplicantPasswordHash(applicant.passwordHash);
+    } else {
+      setApplicantPasswordHash(null);
+    }
 
     // Preserve auto-generated employeeId if already fetched, or maintain current
     if (nextIdData?.nextEmployeeId) {
@@ -235,11 +244,12 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
     try {
       const response = await createEmployeeMutation.mutateAsync({
         ...data,
+        passwordHash: applicantPasswordHash || undefined,
         role: roleValue,
         customRoleId: customRoleIdValue || undefined,
         departmentId: departmentIdValue || undefined,
         shiftId: shiftIdValue || undefined,
-      });
+      } as any);
 
       // Update avatar if provided
       if (avatarFile && response.user?.id) {

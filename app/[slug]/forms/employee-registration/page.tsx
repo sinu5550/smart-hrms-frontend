@@ -20,6 +20,9 @@ import {
   Sparkles,
   Camera,
   AlertCircle,
+  Lock,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -48,6 +51,11 @@ export default function PublicEmployeeRegistrationPage() {
   const [emergencyContactPhone, setEmergencyContactPhone] = useState("");
   const [emergencyContactRelation, setEmergencyContactRelation] = useState("");
 
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -75,7 +83,43 @@ export default function PublicEmployeeRegistrationPage() {
       return;
     }
     if (!email.trim() || !email.includes("@")) {
-      setFormError("A valid email address is required.");
+      setFormError("A valid Email address is required.");
+      return;
+    }
+    if (!phone.trim()) {
+      setFormError("Phone Number is required.");
+      return;
+    }
+    if (!dateOfBirth) {
+      setFormError("Date of Birth is required.");
+      return;
+    }
+    if (!gender) {
+      setFormError("Gender is required.");
+      return;
+    }
+    if (!bloodGroup) {
+      setFormError("Blood Group is required.");
+      return;
+    }
+    if (!departmentId) {
+      setFormError("Department is required.");
+      return;
+    }
+    if (!presentAddress.trim()) {
+      setFormError("Present Address is required.");
+      return;
+    }
+    if (!emergencyContactName.trim() || !emergencyContactPhone.trim() || !emergencyContactRelation.trim()) {
+      setFormError("All Emergency Contact fields (Name, Phone, Relation) are required.");
+      return;
+    }
+    if (!password || password.length < 6) {
+      setFormError("Password must be at least 6 characters long.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setFormError("Password and Confirm Password do not match.");
       return;
     }
 
@@ -95,19 +139,20 @@ export default function PublicEmployeeRegistrationPage() {
       await RegistrationService.submitRegistration(tenantSlug, {
         fullName: fullName.trim(),
         email: email.trim().toLowerCase(),
-        phone: phone.trim() || undefined,
+        phone: phone.trim(),
         nidOrPassport: nidOrPassport.trim() || undefined,
-        dateOfBirth: dateOfBirth || undefined,
+        dateOfBirth: dateOfBirth,
         gender,
-        bloodGroup: bloodGroup || undefined,
-        departmentId: departmentId || undefined,
+        bloodGroup,
+        departmentId,
         designationId: designationId || undefined,
-        presentAddress: presentAddress.trim() || undefined,
+        presentAddress: presentAddress.trim(),
         permanentAddress: permanentAddress.trim() || undefined,
-        emergencyContactName: emergencyContactName.trim() || undefined,
-        emergencyContactPhone: emergencyContactPhone.trim() || undefined,
-        emergencyContactRelation: emergencyContactRelation.trim() || undefined,
+        emergencyContactName: emergencyContactName.trim(),
+        emergencyContactPhone: emergencyContactPhone.trim(),
+        emergencyContactRelation: emergencyContactRelation.trim(),
         avatarUrl: uploadedAvatarUrl,
+        password: password.trim(),
       });
 
       setSubmittedSuccess(true);
@@ -311,8 +356,9 @@ export default function PublicEmployeeRegistrationPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700">Phone Number</label>
+                <label className="text-xs font-semibold text-slate-700">Phone Number *</label>
                 <Input
+                  required
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
@@ -322,7 +368,9 @@ export default function PublicEmployeeRegistrationPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700">NID / Passport Number</label>
+                <label className="text-xs font-semibold text-slate-700">
+                  NID / Passport Number <span className="text-[11px] font-normal text-slate-400">(Optional)</span>
+                </label>
                 <Input
                   value={nidOrPassport}
                   onChange={(e) => setNidOrPassport(e.target.value)}
@@ -332,8 +380,9 @@ export default function PublicEmployeeRegistrationPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700">Date of Birth</label>
+                <label className="text-xs font-semibold text-slate-700">Date of Birth *</label>
                 <Input
+                  required
                   type="date"
                   value={dateOfBirth}
                   onChange={(e) => setDateOfBirth(e.target.value)}
@@ -342,7 +391,7 @@ export default function PublicEmployeeRegistrationPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700">Gender</label>
+                <label className="text-xs font-semibold text-slate-700">Gender *</label>
                 <Select
                   value={gender}
                   onValueChange={setGender}
@@ -356,11 +405,11 @@ export default function PublicEmployeeRegistrationPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700">Blood Group</label>
+                <label className="text-xs font-semibold text-slate-700">Blood Group *</label>
                 <Select
                   value={bloodGroup}
                   onValueChange={setBloodGroup}
-                  placeholder="Select Blood Group"
+                  placeholder="Select Blood Group *"
                   triggerClassName="h-9 text-xs"
                   options={bloodGroupOptions}
                 />
@@ -369,42 +418,40 @@ export default function PublicEmployeeRegistrationPage() {
           </div>
 
           {/* Department Preference */}
-          {(deptOptions.length > 0 || desigOptions.length > 0) && (
-            <div className="space-y-4 pt-2 border-t border-slate-100">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                <span>Department & Designation</span>
-              </h3>
+          <div className="space-y-4 pt-2 border-t border-slate-100">
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+              <Building2 className="w-3.5 h-3.5 text-slate-400" />
+              <span>Department & Designation</span>
+            </h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {deptOptions.length > 0 && (
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-700">Department</label>
-                    <Select
-                      value={departmentId}
-                      onValueChange={setDepartmentId}
-                      placeholder="Select Department"
-                      triggerClassName="h-9 text-xs"
-                      options={deptOptions}
-                    />
-                  </div>
-                )}
-
-                {desigOptions.length > 0 && (
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-700">Designation / Role</label>
-                    <Select
-                      value={designationId}
-                      onValueChange={setDesignationId}
-                      placeholder="Select Designation"
-                      triggerClassName="h-9 text-xs"
-                      options={desigOptions}
-                    />
-                  </div>
-                )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700">Department *</label>
+                <Select
+                  value={departmentId}
+                  onValueChange={setDepartmentId}
+                  placeholder="Select Department *"
+                  triggerClassName="h-9 text-xs"
+                  options={deptOptions}
+                />
               </div>
+
+              {desigOptions.length > 0 && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700">
+                    Designation / Role <span className="text-[11px] font-normal text-slate-400">(Optional)</span>
+                  </label>
+                  <Select
+                    value={designationId}
+                    onValueChange={setDesignationId}
+                    placeholder="Select Designation"
+                    triggerClassName="h-9 text-xs"
+                    options={desigOptions}
+                  />
+                </div>
+              )}
             </div>
-          )}
+          </div>
 
           {/* Addresses */}
           <div className="space-y-4 pt-2 border-t border-slate-100">
@@ -415,8 +462,9 @@ export default function PublicEmployeeRegistrationPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700">Present Address</label>
+                <label className="text-xs font-semibold text-slate-700">Present Address *</label>
                 <Textarea
+                  required
                   rows={2}
                   value={presentAddress}
                   onChange={(e) => setPresentAddress(e.target.value)}
@@ -426,7 +474,9 @@ export default function PublicEmployeeRegistrationPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700">Permanent Address</label>
+                <label className="text-xs font-semibold text-slate-700">
+                  Permanent Address <span className="text-[11px] font-normal text-slate-400">(Optional)</span>
+                </label>
                 <Textarea
                   rows={2}
                   value={permanentAddress}
@@ -442,13 +492,14 @@ export default function PublicEmployeeRegistrationPage() {
           <div className="space-y-4 pt-2 border-t border-slate-100">
             <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
               <Heart className="w-3.5 h-3.5 text-slate-400" />
-              <span>Emergency Contact</span>
+              <span>Emergency Contact *</span>
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700">Contact Person Name</label>
+                <label className="text-xs font-semibold text-slate-700">Contact Person Name *</label>
                 <Input
+                  required
                   value={emergencyContactName}
                   onChange={(e) => setEmergencyContactName(e.target.value)}
                   placeholder="e.g. Father/Spouse"
@@ -457,8 +508,9 @@ export default function PublicEmployeeRegistrationPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700">Emergency Phone</label>
+                <label className="text-xs font-semibold text-slate-700">Emergency Phone *</label>
                 <Input
+                  required
                   type="tel"
                   value={emergencyContactPhone}
                   onChange={(e) => setEmergencyContactPhone(e.target.value)}
@@ -468,13 +520,71 @@ export default function PublicEmployeeRegistrationPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700">Relationship</label>
+                <label className="text-xs font-semibold text-slate-700">Relationship *</label>
                 <Input
+                  required
                   value={emergencyContactRelation}
                   onChange={(e) => setEmergencyContactRelation(e.target.value)}
                   placeholder="e.g. Father, Mother, Brother"
                   className="h-9 text-xs rounded-lg"
                 />
+              </div>
+            </div>
+          </div>
+
+          {/* Create Portal Password Section */}
+          <div className="space-y-4 pt-2 border-t border-slate-100">
+            <div>
+              <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                <Lock className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Create HRMS Portal Login Password *</span>
+              </h3>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Set the password you will use to log into your employee self-service portal (minimum 6 characters).
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700">Password *</label>
+                <div className="relative">
+                  <Input
+                    required
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Minimum 6 characters"
+                    className="h-9 text-xs rounded-lg pr-9"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700">Confirm Password *</label>
+                <div className="relative">
+                  <Input
+                    required
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Repeat password"
+                    className="h-9 text-xs rounded-lg pr-9"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -494,3 +604,4 @@ export default function PublicEmployeeRegistrationPage() {
     </div>
   );
 }
+
