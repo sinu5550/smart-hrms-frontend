@@ -279,7 +279,7 @@ export default function AttendanceReportsPage() {
     }
   };
 
-  // 2. Export CSV (.csv)
+  // 2. Export CSV (.csv) - Left-aligned with text qualifiers & UTF-8 BOM
   const exportToCSV = () => {
     if (filteredRows.length === 0) {
       alert("No attendance records to export.");
@@ -310,30 +310,34 @@ export default function AttendanceReportsPage() {
     const csvLines = [headers.join(",")];
 
     filteredRows.forEach((r, i) => {
+      // Clean string quoting for robust left-alignment across Excel/Sheets CSV viewers
+      const escape = (val: string | number) => `"${String(val ?? "").replace(/"/g, '""')}"`;
+
       const row = [
-        i + 1,
-        `"${r.employeeId}"`,
-        `"${r.employeeName.replace(/"/g, '""')}"`,
-        `"${r.departmentName}"`,
-        `"${r.branchName}"`,
-        `"${r.isRoster ? "Roster" : "General"}"`,
-        r.officeDays,
-        r.absent,
-        r.leave,
-        r.present,
-        r.late,
-        r.extremeDelay,
-        `"${r.totalDelayFormatted}"`,
-        r.overtimeDays,
-        `"${r.expectedDutyFormatted}"`,
-        `"${r.actualDutyFormatted}"`,
-        `"${r.overtimeFormatted}"`,
-        `"${r.extraLessBalanceFormatted}"`,
+        escape(i + 1),
+        escape(r.employeeId),
+        escape(r.employeeName),
+        escape(r.departmentName),
+        escape(r.branchName),
+        escape(r.isRoster ? "Roster Duty" : "Regular Shift"),
+        escape(r.officeDays),
+        escape(r.absent),
+        escape(r.leave),
+        escape(r.present),
+        escape(r.late),
+        escape(r.extremeDelay),
+        escape(r.totalDelayFormatted),
+        escape(r.overtimeDays),
+        escape(r.expectedDutyFormatted),
+        escape(r.actualDutyFormatted),
+        escape(r.overtimeFormatted),
+        escape(r.extraLessBalanceFormatted),
       ];
       csvLines.push(row.join(","));
     });
 
-    const csvContent = "\uFEFF" + csvLines.join("\n");
+    // \uFEFF ensures Bengali characters, symbols, and formatting render cleanly in Excel
+    const csvContent = "\uFEFF" + csvLines.join("\r\n");
     downloadFile(csvContent, `Attendance_Summary_${startDate}_to_${endDate}.csv`, "text/csv;charset=utf-8;");
   };
 
