@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { parseApiError } from "@/services/api";
 import { formatDate } from "@/lib/utils";
+import ExcelJS from "exceljs";
 import * as XLSX from "xlsx";
 
 type ReportPeriodType = "DAY" | "WEEK" | "MONTH" | "YEAR" | "CUSTOM";
@@ -119,66 +120,163 @@ export default function AttendanceReportsPage() {
     URL.revokeObjectURL(url);
   };
 
-  // 1. Export Excel (.xlsx) with Sticky Header & Organization branding
-  const exportToExcel = () => {
+  // 1. Export Excel (.xlsx) with Sticky (Frozen) Header, Left Alignment & Software Colors (Red/Green/Amber/Blue)
+  const exportToExcel = async () => {
     if (filteredRows.length === 0) {
       alert("No attendance summary records to export for this selection.");
       return;
     }
 
-    const exportData = filteredRows.map((r, i) => ({
-      "Serial No": i + 1,
-      "Employee Code": r.employeeId,
-      "Employee Name": r.employeeName,
-      "Department": r.departmentName,
-      "Branch": r.branchName,
-      "Duty Mode": r.isRoster ? "Roster Duty" : "Regular Shift",
-      "Office Day": r.officeDays,
-      "Absent": r.absent,
-      "Leave": r.leave,
-      "Present": r.present,
-      "Late": r.late,
-      "Extreme Delay": r.extremeDelay,
-      "Total Delay Hour": r.totalDelayFormatted,
-      "Over Time Day": r.overtimeDays,
-      "Expected Duty Hour": r.expectedDutyFormatted,
-      "Actual Duty Hour": r.actualDutyFormatted,
-      "Over Time Hour": r.overtimeFormatted,
-      "Extra/Less Duty Balance": r.extraLessBalanceFormatted,
-    }));
+    try {
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = organization?.name || "HRMS Platform";
+      workbook.created = new Date();
 
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
+      const worksheet = workbook.addWorksheet("Attendance Summary", {
+        views: [{ state: "frozen", ySplit: 1 }], // Freeze header so it stays sticky during scroll
+      });
 
-    // Freeze header row so header stays sticky when scrolling in Excel
-    worksheet["!views"] = [{ state: "frozen", ySplit: 1 }];
+      // Columns definition with left alignment and custom widths
+      worksheet.columns = [
+        { header: "Serial No", key: "sl", width: 12 },
+        { header: "Employee Code", key: "code", width: 16 },
+        { header: "Employee Name", key: "name", width: 26 },
+        { header: "Department", key: "dept", width: 22 },
+        { header: "Branch", key: "branch", width: 16 },
+        { header: "Duty Mode", key: "dutyMode", width: 16 },
+        { header: "Office Day", key: "officeDays", width: 14 },
+        { header: "Absent", key: "absent", width: 12 },
+        { header: "Leave", key: "leave", width: 12 },
+        { header: "Present", key: "present", width: 12 },
+        { header: "Late", key: "late", width: 12 },
+        { header: "Extreme Delay", key: "extremeDelay", width: 16 },
+        { header: "Total Delay Hour", key: "totalDelay", width: 18 },
+        { header: "Over Time Day", key: "overtimeDays", width: 16 },
+        { header: "Expected Duty Hour", key: "expectedDuty", width: 20 },
+        { header: "Actual Duty Hour", key: "actualDuty", width: 18 },
+        { header: "Over Time Hour", key: "overtimeHour", width: 18 },
+        { header: "Extra/Less Duty Balance", key: "balance", width: 24 },
+      ];
 
-    const columnWidths = [
-      { wch: 10 },
-      { wch: 15 },
-      { wch: 24 },
-      { wch: 22 },
-      { wch: 16 },
-      { wch: 14 },
-      { wch: 12 },
-      { wch: 10 },
-      { wch: 10 },
-      { wch: 10 },
-      { wch: 10 },
-      { wch: 14 },
-      { wch: 16 },
-      { wch: 14 },
-      { wch: 18 },
-      { wch: 18 },
-      { wch: 16 },
-      { wch: 22 },
-    ];
-    worksheet["!cols"] = columnWidths;
+      // Beautiful Executive Dark Header Row Styling
+      const headerRow = worksheet.getRow(1);
+      headerRow.height = 30;
+      headerRow.eachCell((cell) => {
+        cell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "FF0F172A" }, // Elegant dark slate
+        };
+        cell.font = {
+          name: "Calibri",
+          size: 11,
+          bold: true,
+          color: { argb: "FFFFFFFF" },
+        };
+        cell.alignment = {
+          vertical: "middle",
+          horizontal: "left", // Headers aligned to left
+        };
+        cell.border = {
+          top: { style: "thin", color: { argb: "FF334155" } },
+          left: { style: "thin", color: { argb: "FF334155" } },
+          bottom: { style: "medium", color: { argb: "FF0F172A" } },
+          right: { style: "thin", color: { argb: "FF334155" } },
+        };
+      });
 
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance Summary");
+      // Populate Data Rows with Left Alignment and UI-matched Colors
+      filteredRows.forEach((r, idx) => {
+        const rowData = {
+          sl: idx + 1,
+          code: r.employeeId,
+          name: r.employeeName,
+          dept: r.departmentName,
+          branch: r.branchName,
+          dutyMode: r.isRoster ? "Roster Duty" : "Regular Shift",
+          officeDays: r.officeDays,
+          absent: r.absent,
+          leave: r.leave,
+          present: r.present,
+          late: r.late,
+          extremeDelay: r.extremeDelay,
+          totalDelay: r.totalDelayFormatted,
+          overtimeDays: r.overtimeDays,
+          expectedDuty: r.expectedDutyFormatted,
+          actualDuty: r.actualDutyFormatted,
+          overtimeHour: r.overtimeFormatted,
+          balance: r.extraLessBalanceFormatted,
+        };
 
-    const filename = `Attendance_Summary_${startDate}_to_${endDate}.xlsx`;
-    XLSX.writeFile(workbook, filename);
+        const row = worksheet.addRow(rowData);
+        row.height = 22;
+
+        row.eachCell({ includeEmpty: true }, (cell) => {
+          cell.alignment = {
+            vertical: "middle",
+            horizontal: "left", // ALL cell data aligned to the left
+          };
+          cell.font = {
+            name: "Calibri",
+            size: 10.5,
+            color: { argb: "FF1E293B" },
+          };
+          cell.border = {
+            top: { style: "thin", color: { argb: "FFE2E8F0" } },
+            left: { style: "thin", color: { argb: "FFE2E8F0" } },
+            bottom: { style: "thin", color: { argb: "FFE2E8F0" } },
+            right: { style: "thin", color: { argb: "FFE2E8F0" } },
+          };
+        });
+
+        // Software Matched Color Annotations:
+        // 1. Absent -> Red (FFDC2626)
+        if (r.absent > 0) {
+          const c = row.getCell("absent");
+          c.font = { name: "Calibri", size: 10.5, bold: true, color: { argb: "FFDC2626" } };
+        }
+
+        // 2. Leave -> Blue (FF2563EB)
+        if (r.leave > 0) {
+          const c = row.getCell("leave");
+          c.font = { name: "Calibri", size: 10.5, bold: true, color: { argb: "FF2563EB" } };
+        }
+
+        // 3. Present -> Rich Emerald Green (FF059669)
+        if (r.present > 0) {
+          const c = row.getCell("present");
+          c.font = { name: "Calibri", size: 10.5, bold: true, color: { argb: "FF059669" } };
+        }
+
+        // 4. Late -> Amber / Orange (FFD97706)
+        if (r.late > 0) {
+          const c = row.getCell("late");
+          c.font = { name: "Calibri", size: 10.5, bold: true, color: { argb: "FFD97706" } };
+        }
+
+        // 5. Over Time Hour -> Green (FF059669)
+        if (r.overtimeFormatted !== "00:00") {
+          const c = row.getCell("overtimeHour");
+          c.font = { name: "Calibri", size: 10.5, bold: true, color: { argb: "FF059669" } };
+        }
+
+        // 6. Extra/Less Duty Balance -> Red if negative (FFDC2626), Green if positive (FF059669)
+        const balCell = row.getCell("balance");
+        balCell.font = {
+          name: "Calibri",
+          size: 10.5,
+          bold: true,
+          color: { argb: r.balanceMinutes < 0 ? "FFDC2626" : "FF059669" },
+        };
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const filename = `Attendance_Summary_${startDate}_to_${endDate}.xlsx`;
+      downloadFile(buffer, filename, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    } catch (err) {
+      console.error("Excel export error:", err);
+      alert("Failed to export Excel file. Please try again.");
+    }
   };
 
   // 2. Export CSV (.csv)
