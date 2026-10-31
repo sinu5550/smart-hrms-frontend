@@ -72,6 +72,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const userPerms = Array.isArray(user?.permissions) ? user.permissions : [];
   const hasFullAccess = user?.role === "PLATFORM_ADMIN" || user?.role === "OWNER" || user?.role === "ADMIN" || isOwner;
 
+  // If user is a Department Head only (role === EMPLOYEE), force redirect them away from any admin route except /admin/departments
+  useEffect(() => {
+    if (isDeptHeadOnly && pathname !== "/admin/departments") {
+      router.replace("/admin/departments");
+    }
+  }, [isDeptHeadOnly, pathname, router]);
+
   const hasPerm = (requiredPerm?: string) => {
     if (hasFullAccess || !requiredPerm) return true;
     // If user has specific permission in their list
