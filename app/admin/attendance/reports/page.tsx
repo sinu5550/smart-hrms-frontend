@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from "react";
-import { useAttendanceByDate, useEmployees, QUERY_KEYS } from "@/hooks";
+import { useAttendanceSummaryReport, useDepartments, useOrganization } from "@/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   FileText,
@@ -12,10 +12,13 @@ import {
   Clock,
   AlertTriangle,
   FileSpreadsheet,
-  PieChart as PieChartIcon,
-  BarChart3,
+  Download,
+  Printer,
+  FileDown,
   RefreshCw,
-  Award,
+  Building2,
+  MapPin,
+  Filter,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -23,17 +26,16 @@ import { parseApiError } from "@/services/api";
 import { formatDate } from "@/lib/utils";
 import * as XLSX from "xlsx";
 
-type ReportPeriodType = "DAY" | "WEEK" | "MONTH" | "CUSTOM";
+type ReportPeriodType = "DAY" | "WEEK" | "MONTH" | "YEAR" | "CUSTOM";
 
 export default function AttendanceReportsPage() {
   const queryClient = useQueryClient();
 
-  // Period Preset selection
+  // Period Preset selection (Default to MONTH)
   const [periodType, setPeriodType] = useState<ReportPeriodType>("MONTH");
 
-  // Selected Employee filter ("ALL" or specific user.id)
-  const [selectedUserId, setSelectedUserId] = useState<string>("ALL");
-  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  // Selected Department filter ("ALL" or specific department.id)
+  const [selectedDeptId, setSelectedDeptId] = useState<string>("ALL");
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   // Dates
@@ -41,6 +43,10 @@ export default function AttendanceReportsPage() {
   const todayStr = today.toISOString().split("T")[0];
 
   const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+    .toISOString()
+    .split("T")[0];
+
+  const firstDayOfYear = new Date(today.getFullYear(), 0, 1)
     .toISOString()
     .split("T")[0];
 
@@ -62,166 +68,344 @@ export default function AttendanceReportsPage() {
     if (periodType === "MONTH") {
       return { startDate: firstDayOfMonth, endDate: todayStr };
     }
+    if (periodType === "YEAR") {
+      return { startDate: firstDayOfYear, endDate: todayStr };
+    }
     return { startDate: customStartDate, endDate: customEndDate };
-  }, [periodType, todayStr, sevenDaysAgo, firstDayOfMonth, customStartDate, customEndDate]);
+  }, [periodType, todayStr, sevenDaysAgo, firstDayOfMonth, firstDayOfYear, customStartDate, customEndDate]);
 
-  // Query parameter for hook
-  const queryArg = useMemo(() => {
-    return {
-      startDate,
-      endDate,
-      userId: selectedUserId !== "ALL" ? selectedUserId : undefined,
-    };
-  }, [startDate, endDate, selectedUserId]);
+  // Fetch Summary Report from API
+  const { data: reportData, isLoading, error } = useAttendanceSummaryReport({
+    startDate,
+    endDate,
+    departmentId: selectedDeptId !== "ALL" ? selectedDeptId : undefined,
+  });
 
-  const { data, isLoading, error } = useAttendanceByDate(queryArg);
-  const records = data || [];
+  const { data: orgData } = useOrganization();
+  const { data: departmentsData = [] } = useDepartments();
+  const departments = Array.isArray(departmentsData) ? departmentsData : [];
 
-  // Fetch employees for dropdown filter
-  const { data: employeesData } = useEmployees();
-  const employees = Array.isArray(employeesData) ? employeesData : [];
+  const organization = reportData?.organization || {
+    name: orgData?.name || "Halal Food Service",
+    address: orgData?.address || "39/A Senpara Parbota, Mirpur 10",
+    logoUrl: orgData?.logoUrl || null,
+  };
 
-  // Filter records by search & status
-  const filteredRecords = useMemo(() => {
-    return records.filter((r) => {
+  const rows = reportData?.summary || [];
+
+  // Filter rows by employee name, id, or department
+  const filteredRows = useMemo(() => {
+    return rows.filter((r) => {
       const q = searchTerm.toLowerCase().trim();
       const matchesSearch =
         !q ||
-        (r.user?.fullName || "").toLowerCase().includes(q) ||
-        (r.user?.employeeId || "").toLowerCase().includes(q) ||
-        (r.user?.email || "").toLowerCase().includes(q);
-
-      const matchesStatus =
-        statusFilter === "ALL" || r.status === statusFilter || r.currentState === statusFilter;
-
-      return matchesSearch && matchesStatus;
+        (r.employeeName || "").toLowerCase().includes(q) ||
+        (r.employeeId || "").toLowerCase().includes(q) ||
+        (r.departmentName || "").toLowerCase().includes(q);
+      return matchesSearch;
     });
-  }, [records, searchTerm, statusFilter]);
+  }, [rows, searchTerm]);
 
-  // Report Metrics & Analytics
-  const analytics = useMemo(() => {
-    const total = records.length;
-    const onTime = records.filter((r) => r.status === "PRESENT").length;
-    const late = records.filter((r) => r.status === "LATE").length;
-    const halfDay = records.filter((r) => r.status === "HALF_DAY").length;
-    const overtimeRecords = records.filter((r) => (r.overtimeMinutes || 0) > 0);
-    const totalOvertimeMins = records.reduce((acc, r) => acc + (r.overtimeMinutes || 0), 0);
-    const totalWorkMins = records.reduce((acc, r) => acc + (r.totalWorkMinutes || 0), 0);
+  // Group filtered rows by Category (General Employees vs Roster Duty Employees)
+  const { generalEmployees, rosterEmployees } = useMemo(() => {
+    const general = filteredRows.filter((r) => !r.isRoster);
+    const roster = filteredRows.filter((r) => r.isRoster);
+    return { generalEmployees: general, rosterEmployees: roster };
+  }, [filteredRows]);
 
-    const onTimePercent = total > 0 ? Math.round((onTime / total) * 100) : 0;
-    const latePercent = total > 0 ? Math.round((late / total) * 100) : 0;
-    const halfDayPercent = total > 0 ? Math.round((halfDay / total) * 100) : 0;
+  // Download helper: creates and clicks download anchor
+  const downloadFile = (content: BlobPart, filename: string, mimeType: string) => {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
-    return {
-      total,
-      onTime,
-      late,
-      halfDay,
-      overtimeCount: overtimeRecords.length,
-      totalOvertimeMins,
-      totalWorkMins,
-      onTimePercent,
-      latePercent,
-      halfDayPercent,
-    };
-  }, [records]);
-
-  // Excel Export Handler
+  // 1. Export Excel (.xlsx) with Sticky Header & Organization branding
   const exportToExcel = () => {
-    if (filteredRecords.length === 0) {
-      alert("No attendance records to export for this selection.");
+    if (filteredRows.length === 0) {
+      alert("No attendance summary records to export for this selection.");
       return;
     }
 
-    const exportRows = filteredRecords.map((item, index) => {
-      const workHours = item.totalWorkMinutes ? `${Math.floor(item.totalWorkMinutes / 60)}h ${item.totalWorkMinutes % 60}m` : "0h 0m";
-      const overtimeHours = item.overtimeMinutes ? `${Math.floor(item.overtimeMinutes / 60)}h ${item.overtimeMinutes % 60}m` : "0h 0m";
+    const exportData = filteredRows.map((r, i) => ({
+      "Serial No": i + 1,
+      "Employee Code": r.employeeId,
+      "Employee Name": r.employeeName,
+      "Department": r.departmentName,
+      "Branch": r.branchName,
+      "Duty Mode": r.isRoster ? "Roster Duty" : "Regular Shift",
+      "Office Day": r.officeDays,
+      "Absent": r.absent,
+      "Leave": r.leave,
+      "Present": r.present,
+      "Late": r.late,
+      "Extreme Delay": r.extremeDelay,
+      "Total Delay Hour": r.totalDelayFormatted,
+      "Over Time Day": r.overtimeDays,
+      "Expected Duty Hour": r.expectedDutyFormatted,
+      "Actual Duty Hour": r.actualDutyFormatted,
+      "Over Time Hour": r.overtimeFormatted,
+      "Extra/Less Duty Balance": r.extraLessBalanceFormatted,
+    }));
 
-      return {
-        "SL": index + 1,
-        "Employee ID": item.user?.employeeId || "—",
-        "Employee Name": item.user?.fullName || "—",
-        "Department": item.user?.department?.name || "General",
-        "Designation": item.user?.designation?.title || "Staff",
-        "Date": formatDate(item.date),
-        "Check-In Time": item.checkInTime ? new Date(item.checkInTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—",
-        "Check-Out Time": item.checkOutTime ? new Date(item.checkOutTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—",
-        "Status": item.status === "PRESENT" ? "On-Time" : item.status === "LATE" ? "Late" : item.status,
-        "Total Work Time": workHours,
-        "Break Time (mins)": item.totalBreakMinutes || 0,
-        "Overtime": overtimeHours,
-        "Punch Mode": item.punchInDeviceType || "WEB_PORTAL",
-      };
-    });
-
-    const worksheet = XLSX.utils.json_to_sheet(exportRows);
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
 
     // Freeze header row so header stays sticky when scrolling in Excel
     worksheet["!views"] = [{ state: "frozen", ySplit: 1 }];
 
-    // Auto column widths
     const columnWidths = [
-      { wch: 6 },
+      { wch: 10 },
       { wch: 15 },
-      { wch: 25 },
-      { wch: 18 },
-      { wch: 18 },
-      { wch: 14 },
-      { wch: 14 },
+      { wch: 24 },
+      { wch: 22 },
+      { wch: 16 },
       { wch: 14 },
       { wch: 12 },
-      { wch: 16 },
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 14 },
       { wch: 16 },
       { wch: 14 },
-      { wch: 20 },
+      { wch: 18 },
+      { wch: 18 },
+      { wch: 16 },
+      { wch: 22 },
     ];
     worksheet["!cols"] = columnWidths;
 
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance Report");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance Summary");
 
-    const selectedEmpObj = employees.find((e: any) => e.id === selectedUserId);
-    const empPart = selectedEmpObj ? `_${selectedEmpObj.employeeId}` : "_All_Staff";
-    const filename = `Attendance_Report_${startDate}_to_${endDate}${empPart}.xlsx`;
-
+    const filename = `Attendance_Summary_${startDate}_to_${endDate}.xlsx`;
     XLSX.writeFile(workbook, filename);
+  };
+
+  // 2. Export CSV (.csv)
+  const exportToCSV = () => {
+    if (filteredRows.length === 0) {
+      alert("No attendance records to export.");
+      return;
+    }
+
+    const headers = [
+      "Serial No",
+      "Employee Code",
+      "Employee Name",
+      "Department",
+      "Branch",
+      "Duty Mode",
+      "Office Day",
+      "Absent",
+      "Leave",
+      "Present",
+      "Late",
+      "Extreme Delay",
+      "Total Delay Hour",
+      "Over Time Day",
+      "Expected Duty Hour",
+      "Actual Duty Hour",
+      "Over Time Hour",
+      "Extra/Less Duty Balance",
+    ];
+
+    const csvLines = [headers.join(",")];
+
+    filteredRows.forEach((r, i) => {
+      const row = [
+        i + 1,
+        `"${r.employeeId}"`,
+        `"${r.employeeName.replace(/"/g, '""')}"`,
+        `"${r.departmentName}"`,
+        `"${r.branchName}"`,
+        `"${r.isRoster ? "Roster" : "General"}"`,
+        r.officeDays,
+        r.absent,
+        r.leave,
+        r.present,
+        r.late,
+        r.extremeDelay,
+        `"${r.totalDelayFormatted}"`,
+        r.overtimeDays,
+        `"${r.expectedDutyFormatted}"`,
+        `"${r.actualDutyFormatted}"`,
+        `"${r.overtimeFormatted}"`,
+        `"${r.extraLessBalanceFormatted}"`,
+      ];
+      csvLines.push(row.join(","));
+    });
+
+    const csvContent = "\uFEFF" + csvLines.join("\n");
+    downloadFile(csvContent, `Attendance_Summary_${startDate}_to_${endDate}.csv`, "text/csv;charset=utf-8;");
+  };
+
+  // 3. Export Word / DOCX (.doc)
+  const exportToWord = () => {
+    if (filteredRows.length === 0) {
+      alert("No attendance records to export.");
+      return;
+    }
+
+    const tableRowsHtml = filteredRows
+      .map(
+        (r, i) => `
+        <tr style="border-bottom: 1px solid #ddd; font-size: 9pt;">
+          <td style="padding: 6px; text-align: center;">${i + 1}</td>
+          <td style="padding: 6px; font-weight: bold;">${r.employeeId}</td>
+          <td style="padding: 6px;">${r.employeeName}</td>
+          <td style="padding: 6px;">${r.departmentName}</td>
+          <td style="padding: 6px; text-align: center;">${r.officeDays}</td>
+          <td style="padding: 6px; text-align: center; color: red;">${r.absent}</td>
+          <td style="padding: 6px; text-align: center; color: blue;">${r.leave}</td>
+          <td style="padding: 6px; text-align: center; font-weight: bold;">${r.present}</td>
+          <td style="padding: 6px; text-align: center; color: orange;">${r.late}</td>
+          <td style="padding: 6px; text-align: center;">${r.extremeDelay}</td>
+          <td style="padding: 6px; text-align: center;">${r.totalDelayFormatted}</td>
+          <td style="padding: 6px; text-align: center;">${r.overtimeDays}</td>
+          <td style="padding: 6px; text-align: center;">${r.expectedDutyFormatted}</td>
+          <td style="padding: 6px; text-align: center; font-weight: bold;">${r.actualDutyFormatted}</td>
+          <td style="padding: 6px; text-align: center; color: green; font-weight: bold;">${r.overtimeFormatted}</td>
+          <td style="padding: 6px; text-align: center;">${r.extraLessBalanceFormatted}</td>
+        </tr>
+      `
+      )
+      .join("");
+
+    const wordHtml = `
+      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+      <head>
+        <meta charset='utf-8'>
+        <title>Attendance Summary Report</title>
+        <style>
+          @page { size: landscape; margin: 1.5cm; }
+          body { font-family: 'Calibri', 'Segoe UI', Arial, sans-serif; }
+          table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+          th { background-color: #f2f2f2; border: 1px solid #ccc; padding: 7px; font-size: 9pt; }
+          td { border: 1px solid #ccc; }
+        </style>
+      </head>
+      <body>
+        <div style="text-align: center; margin-bottom: 20px;">
+          <h2 style="margin: 0; color: #1e293b; font-size: 18pt;">${organization.name}</h2>
+          <p style="margin: 3px 0 0 0; color: #64748b; font-size: 11pt;">${organization.address || ""}</p>
+          <h3 style="margin-top: 15px; font-size: 13pt; color: #0f172a;">Attendance Summary Report (${startDate} To ${endDate})</h3>
+          <p style="margin: 2px; font-size: 10pt; color: #475569;">Filtered By Department: ${selectedDeptId === "ALL" ? "All Departments" : departments.find((d: any) => d.id === selectedDeptId)?.name || "Selected"}</p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>SL</th>
+              <th>Employee Code</th>
+              <th>Employee Name</th>
+              <th>Department</th>
+              <th>Office Day</th>
+              <th>Absent</th>
+              <th>Leave</th>
+              <th>Present</th>
+              <th>Late</th>
+              <th>Extreme Delay</th>
+              <th>Total Delay Hour</th>
+              <th>Over Time Day</th>
+              <th>Expected Duty Hour</th>
+              <th>Actual Duty Hour</th>
+              <th>Over Time Hour</th>
+              <th>Extra/Less Duty Balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRowsHtml}
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `;
+
+    downloadFile(wordHtml, `Attendance_Summary_${startDate}_to_${endDate}.doc`, "application/msword;charset=utf-8;");
+  };
+
+  // 4. Print / PDF Export in Clean Landscape Orientation
+  const handlePrint = () => {
+    window.print();
   };
 
   return (
     <div className="space-y-6">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      {/* Top Header - Hidden on Print */}
+      <div className="print:hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-slate-800 flex items-center gap-2">
-            <FileText className="w-5 h-5 text-emerald-700" /> Attendance Reports & Analytics
+            <FileText className="w-5 h-5 text-emerald-700" /> Attendance Summary Report
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Generate and export day, week, month, or custom date-range Excel reports for bulk staff or specific individuals.
+            1 Row per Employee comprehensive summary: Present, Leave, Late, Over Time, and Duty Balance.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap">
+        {/* 4 Download / Export Options with clean icons */}
+        <div className="flex items-center gap-2 flex-wrap">
           <button
-            onClick={() => queryClient.invalidateQueries({ queryKey: QUERY_KEYS.attendance.list(queryArg) })}
+            onClick={() => queryClient.invalidateQueries({ queryKey: ["attendance", "summary-report"] })}
             className="p-2.5 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-700 transition shadow-xs"
             title="Refresh logs"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin text-emerald-700" : ""}`} />
           </button>
 
+          {/* PDF / Landscape Print */}
+          <button
+            onClick={handlePrint}
+            disabled={filteredRows.length === 0}
+            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white text-xs font-bold transition shadow-xs active:scale-95"
+            title="Export / Print PDF (Landscape)"
+          >
+            <Printer className="w-4 h-4" />
+            <span>PDF (Print)</span>
+          </button>
+
+          {/* Excel .xlsx */}
           <button
             onClick={exportToExcel}
-            disabled={filteredRecords.length === 0}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold transition shadow-xs active:scale-95"
+            disabled={filteredRows.length === 0}
+            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold transition shadow-xs active:scale-95"
+            title="Export Excel Worksheet"
           >
             <FileSpreadsheet className="w-4 h-4" />
-            <span>Export to Excel (.xlsx)</span>
+            <span>Excel (.xlsx)</span>
+          </button>
+
+          {/* CSV .csv */}
+          <button
+            onClick={exportToCSV}
+            disabled={filteredRows.length === 0}
+            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold transition shadow-xs active:scale-95"
+            title="Export Comma-Separated Values"
+          >
+            <FileDown className="w-4 h-4" />
+            <span>CSV</span>
+          </button>
+
+          {/* Word .doc */}
+          <button
+            onClick={exportToWord}
+            disabled={filteredRows.length === 0}
+            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold transition shadow-xs active:scale-95"
+            title="Export Microsoft Word Document"
+          >
+            <Download className="w-4 h-4" />
+            <span>DOCX (.doc)</span>
           </button>
         </div>
       </div>
 
-      {/* Filter and Period Selection Bar */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs space-y-4">
+      {/* Filter and Period Selection Bar - Hidden on Print */}
+      <div className="print:hidden bg-white border border-slate-200 rounded-xl p-4 shadow-xs space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
           {/* Preset Buttons */}
           <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
@@ -248,6 +432,14 @@ export default function AttendanceReportsPage() {
               }`}
             >
               This Month
+            </button>
+            <button
+              onClick={() => setPeriodType("YEAR")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                periodType === "YEAR" ? "bg-white text-emerald-800 shadow-xs" : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              This Year
             </button>
             <button
               onClick={() => setPeriodType("CUSTOM")}
@@ -280,28 +472,26 @@ export default function AttendanceReportsPage() {
             <div className="flex items-center gap-2 text-xs font-mono text-slate-600 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
               <Calendar className="w-3.5 h-3.5 text-slate-400" />
               <span>
-                {startDate} → {endDate}
+                {formatDate(startDate)} → {formatDate(endDate)}
               </span>
             </div>
           )}
         </div>
 
-        {/* Person Wise / Bulk Select & Search */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {/* Employee Filter */}
+        {/* Department Filter & Search Bar */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Department Filter */}
           <div>
-            <label className="text-[12px] font-semibold text-slate-700 block mb-1">Scope / Individual</label>
+            <label className="text-[12px] font-semibold text-slate-700 block mb-1">Filter by Department</label>
             <Select
-              value={selectedUserId}
-              onValueChange={setSelectedUserId}
-              triggerClassName="h-8 text-[12px]"
-              searchable={true}
-              searchPlaceholder="Search employee name or ID..."
+              value={selectedDeptId}
+              onValueChange={setSelectedDeptId}
+              triggerClassName="h-9 text-[12px]"
               options={[
-                { value: "ALL", label: "All Employees (Bulk Report)" },
-                ...employees.map((emp: any) => ({
-                  value: emp.id,
-                  label: `${emp.fullName} (${emp.employeeId || "No ID"})`,
+                { value: "ALL", label: "All Departments (Combined Report)" },
+                ...departments.map((d: any) => ({
+                  value: d.id,
+                  label: d.name,
                 })),
               ]}
             />
@@ -309,320 +499,216 @@ export default function AttendanceReportsPage() {
 
           {/* Search Bar */}
           <div>
-            <label className="text-[12px] font-semibold text-slate-700 block mb-1">Search within records</label>
+            <label className="text-[12px] font-semibold text-slate-700 block mb-1">Search Employee</label>
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3" />
               <Input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search name or ID..."
-                className="h-8 pl-8 text-[12px] rounded-lg"
+                placeholder="Search by employee name or code..."
+                className="h-9 pl-8 text-[12px] rounded-lg"
               />
             </div>
           </div>
-
-          {/* Status Filter */}
-          <div>
-            <label className="text-[12px] font-semibold text-slate-700 block mb-1">Status Filter</label>
-            <Select
-              value={statusFilter}
-              onValueChange={setStatusFilter}
-              triggerClassName="h-8 text-[12px]"
-              options={[
-                { value: "ALL", label: "All Statuses" },
-                { value: "PRESENT", label: "On-Time (Present)" },
-                { value: "LATE", label: "Late Arrivals" },
-                { value: "HALF_DAY", label: "Half Day" },
-                { value: "ON_BREAK", label: "Currently on Break" },
-                { value: "CHECKED_OUT", label: "Shift Concluded" },
-              ]}
-            />
-          </div>
         </div>
       </div>
 
-      {/* Analytics & Visual Breakdown Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Metric Overview (KPIs) */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
-              <BarChart3 className="w-4 h-4 text-emerald-600" /> Attendance Breakdown
+      {/* Printable Report Canvas & Landscape Container */}
+      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-6 print:border-none print:shadow-none print:p-0">
+        {/* Organization Header (Exact replica of user sample format) */}
+        <div className="text-center space-y-1.5 border-b border-slate-200 pb-5">
+          {organization.logoUrl && (
+            <img
+              src={organization.logoUrl}
+              alt={organization.name}
+              className="h-12 object-contain mx-auto mb-2"
+            />
+          )}
+          <h2 className="text-xl font-bold tracking-tight text-slate-900 uppercase">
+            {organization.name}
+          </h2>
+          <p className="text-xs text-slate-500 font-medium">
+            {organization.address || "Office Headquarters"}
+          </p>
+          <div className="pt-2">
+            <h3 className="text-sm font-bold text-slate-800">
+              Attendance Summary Report ({formatDate(startDate)} To {formatDate(endDate)})
             </h3>
-            {isLoading && records.length === 0 ? (
-              <div className="h-5 w-16 bg-slate-200/80 rounded-full animate-pulse" />
-            ) : (
-              <span className="text-xs font-bold font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
-                {analytics.total} Logs
-              </span>
+          </div>
+        </div>
+
+        {/* Filtered By Info Bar */}
+        <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs flex items-center gap-4 text-slate-700">
+          <span className="font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Filtered By:</span>
+          <div>
+            <strong className="text-slate-800">Department: </strong>
+            <span>{selectedDeptId === "ALL" ? "All Departments" : departments.find((d: any) => d.id === selectedDeptId)?.name || "Selected"}</span>
+          </div>
+        </div>
+
+        {/* Error / Loading / Data rendering */}
+        {error ? (
+          <div className="p-8 text-center text-xs text-rose-700 bg-rose-50/50 flex flex-col items-center justify-center gap-2 rounded-xl">
+            <span className="font-semibold text-rose-800">Connection Error</span>
+            <span>{parseApiError(error)}</span>
+          </div>
+        ) : isLoading ? (
+          <div className="p-12 text-center text-slate-400 space-y-3">
+            <RefreshCw className="w-6 h-6 animate-spin mx-auto text-emerald-600" />
+            <p className="text-xs font-semibold">Generating Attendance Summary Report...</p>
+          </div>
+        ) : filteredRows.length === 0 ? (
+          <div className="p-12 text-center text-slate-500 space-y-2">
+            <Users className="w-8 h-8 mx-auto text-slate-400" />
+            <p className="text-xs">No employee attendance records found for this period.</p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {/* Section 1: General Employees */}
+            {generalEmployees.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-200 pb-1.5">
+                  <h4 className="text-sm font-bold text-slate-800">General Employees</h4>
+                  <span className="text-[11px] text-slate-500 font-mono">
+                    Branch: {generalEmployees[0]?.branchName || "Head Office"}
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto border border-slate-200 rounded-lg">
+                  <table className="w-full text-left border-collapse text-[11px]">
+                    <thead className="bg-slate-100/90 text-slate-800 border-b border-slate-300 font-bold">
+                      <tr>
+                        <th className="py-2.5 px-2 text-center border-r border-slate-200">Serial No</th>
+                        <th className="py-2.5 px-2 border-r border-slate-200">Employee Code</th>
+                        <th className="py-2.5 px-3 border-r border-slate-200">Employee Name</th>
+                        <th className="py-2.5 px-2 text-center border-r border-slate-200">Office Day</th>
+                        <th className="py-2.5 px-2 text-center border-r border-slate-200 text-rose-600">Absent</th>
+                        <th className="py-2.5 px-2 text-center border-r border-slate-200 text-blue-600">Leave</th>
+                        <th className="py-2.5 px-2 text-center border-r border-slate-200 text-emerald-700">Present</th>
+                        <th className="py-2.5 px-2 text-center border-r border-slate-200 text-amber-600">Late</th>
+                        <th className="py-2.5 px-2 text-center border-r border-slate-200">Extreme Delay</th>
+                        <th className="py-2.5 px-2 text-center border-r border-slate-200">Total Delay Hour</th>
+                        <th className="py-2.5 px-2 text-center border-r border-slate-200">Over Time Day</th>
+                        <th className="py-2.5 px-2 text-center border-r border-slate-200">Expected Duty Hour</th>
+                        <th className="py-2.5 px-2 text-center border-r border-slate-200">Actual Duty Hour</th>
+                        <th className="py-2.5 px-2 text-center border-r border-slate-200 text-emerald-700">Over Time Hour</th>
+                        <th className="py-2.5 px-2 text-center">Extra/Less Duty Balance</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 bg-white">
+                      {generalEmployees.map((row, idx) => (
+                        <tr key={row.employeeId} className="hover:bg-slate-50/70 transition">
+                          <td className="py-2.5 px-2 text-center border-r border-slate-100 font-mono text-slate-500">{idx + 1}</td>
+                          <td className="py-2.5 px-2 border-r border-slate-100 font-mono font-bold text-slate-800">{row.employeeId}</td>
+                          <td className="py-2.5 px-3 border-r border-slate-100 font-semibold text-slate-900">
+                            <div>{row.employeeName}</div>
+                            <div className="text-[10px] text-slate-400 font-normal">{row.departmentName}</div>
+                          </td>
+                          <td className="py-2.5 px-2 text-center border-r border-slate-100 font-mono font-bold">{row.officeDays}</td>
+                          <td className="py-2.5 px-2 text-center border-r border-slate-100 font-mono text-rose-600 font-bold">{row.absent}</td>
+                          <td className="py-2.5 px-2 text-center border-r border-slate-100 font-mono text-blue-600 font-bold">{row.leave}</td>
+                          <td className="py-2.5 px-2 text-center border-r border-slate-100 font-mono text-emerald-700 font-bold">{row.present}</td>
+                          <td className="py-2.5 px-2 text-center border-r border-slate-100 font-mono text-amber-600 font-bold">{row.late}</td>
+                          <td className="py-2.5 px-2 text-center border-r border-slate-100 font-mono">{row.extremeDelay}</td>
+                          <td className="py-2.5 px-2 text-center border-r border-slate-100 font-mono">{row.totalDelayFormatted}</td>
+                          <td className="py-2.5 px-2 text-center border-r border-slate-100 font-mono">{row.overtimeDays}</td>
+                          <td className="py-2.5 px-2 text-center border-r border-slate-100 font-mono text-slate-600">{row.expectedDutyFormatted}</td>
+                          <td className="py-2.5 px-2 text-center border-r border-slate-100 font-mono font-bold text-slate-800">{row.actualDutyFormatted}</td>
+                          <td className="py-2.5 px-2 text-center border-r border-slate-100 font-mono text-emerald-700 font-bold">{row.overtimeFormatted}</td>
+                          <td className={`py-2.5 px-2 text-center font-mono font-bold ${row.balanceMinutes < 0 ? "text-rose-600" : "text-emerald-700"}`}>
+                            {row.extraLessBalanceFormatted}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Section 2: Roster Duty Employees (if any) */}
+            {rosterEmployees.length > 0 && (
+              <div className="space-y-3 pt-4">
+                <div className="flex items-center justify-between border-b border-indigo-200 pb-1.5">
+                  <h4 className="text-sm font-bold text-indigo-900 flex items-center gap-1.5">
+                    <Clock className="w-4 h-4 text-indigo-600" /> Roster Duty Employees
+                  </h4>
+                  <span className="text-[11px] text-indigo-600 font-mono">
+                    Continuous Shift / No Fixed Weekends
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto border border-indigo-100 rounded-lg">
+                  <table className="w-full text-left border-collapse text-[11px]">
+                    <thead className="bg-indigo-50/80 text-indigo-950 border-b border-indigo-200 font-bold">
+                      <tr>
+                        <th className="py-2.5 px-2 text-center border-r border-indigo-100">Serial No</th>
+                        <th className="py-2.5 px-2 border-r border-indigo-100">Employee Code</th>
+                        <th className="py-2.5 px-3 border-r border-indigo-100">Employee Name</th>
+                        <th className="py-2.5 px-2 text-center border-r border-indigo-100">Office Day</th>
+                        <th className="py-2.5 px-2 text-center border-r border-indigo-100 text-rose-600">Absent</th>
+                        <th className="py-2.5 px-2 text-center border-r border-indigo-100 text-blue-600">Leave</th>
+                        <th className="py-2.5 px-2 text-center border-r border-indigo-100 text-emerald-700">Present</th>
+                        <th className="py-2.5 px-2 text-center border-r border-indigo-100 text-amber-600">Late</th>
+                        <th className="py-2.5 px-2 text-center border-r border-indigo-100">Extreme Delay</th>
+                        <th className="py-2.5 px-2 text-center border-r border-indigo-100">Total Delay Hour</th>
+                        <th className="py-2.5 px-2 text-center border-r border-indigo-100">Over Time Day</th>
+                        <th className="py-2.5 px-2 text-center border-r border-indigo-100">Expected Duty Hour</th>
+                        <th className="py-2.5 px-2 text-center border-r border-indigo-100">Actual Duty Hour</th>
+                        <th className="py-2.5 px-2 text-center border-r border-indigo-100 text-emerald-700">Over Time Hour</th>
+                        <th className="py-2.5 px-2 text-center">Extra/Less Duty Balance</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-indigo-100 bg-white">
+                      {rosterEmployees.map((row, idx) => (
+                        <tr key={row.employeeId} className="hover:bg-indigo-50/40 transition">
+                          <td className="py-2.5 px-2 text-center border-r border-indigo-50 font-mono text-slate-500">{idx + 1}</td>
+                          <td className="py-2.5 px-2 border-r border-indigo-50 font-mono font-bold text-slate-800">{row.employeeId}</td>
+                          <td className="py-2.5 px-3 border-r border-indigo-50 font-semibold text-slate-900">
+                            <div>{row.employeeName}</div>
+                            <div className="text-[10px] text-slate-400 font-normal">{row.departmentName}</div>
+                          </td>
+                          <td className="py-2.5 px-2 text-center border-r border-indigo-50 font-mono font-bold">{row.officeDays}</td>
+                          <td className="py-2.5 px-2 text-center border-r border-indigo-50 font-mono text-rose-600 font-bold">{row.absent}</td>
+                          <td className="py-2.5 px-2 text-center border-r border-indigo-50 font-mono text-blue-600 font-bold">{row.leave}</td>
+                          <td className="py-2.5 px-2 text-center border-r border-indigo-50 font-mono text-emerald-700 font-bold">{row.present}</td>
+                          <td className="py-2.5 px-2 text-center border-r border-indigo-50 font-mono text-amber-600 font-bold">{row.late}</td>
+                          <td className="py-2.5 px-2 text-center border-r border-indigo-50 font-mono">{row.extremeDelay}</td>
+                          <td className="py-2.5 px-2 text-center border-r border-indigo-50 font-mono">{row.totalDelayFormatted}</td>
+                          <td className="py-2.5 px-2 text-center border-r border-indigo-50 font-mono">{row.overtimeDays}</td>
+                          <td className="py-2.5 px-2 text-center border-r border-indigo-50 font-mono text-slate-600">{row.expectedDutyFormatted}</td>
+                          <td className="py-2.5 px-2 text-center border-r border-indigo-50 font-mono font-bold text-slate-800">{row.actualDutyFormatted}</td>
+                          <td className="py-2.5 px-2 text-center border-r border-indigo-50 font-mono text-emerald-700 font-bold">{row.overtimeFormatted}</td>
+                          <td className={`py-2.5 px-2 text-center font-mono font-bold ${row.balanceMinutes < 0 ? "text-rose-600" : "text-emerald-700"}`}>
+                            {row.extraLessBalanceFormatted}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             )}
           </div>
-
-          {isLoading && records.length === 0 ? (
-            <div className="grid grid-cols-2 gap-3">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="p-3 rounded-xl bg-slate-50 border border-slate-100 space-y-2">
-                  <div className="h-2.5 w-20 bg-slate-200/80 rounded animate-pulse" />
-                  <div className="h-7 w-12 bg-slate-200 rounded animate-pulse" />
-                  <div className="h-2 w-16 bg-slate-200/60 rounded animate-pulse" />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 rounded-xl bg-emerald-50/60 border border-emerald-100">
-                <p className="text-[10px] uppercase font-bold text-emerald-800">On-Time Present</p>
-                <p className="text-2xl font-black text-emerald-700 mt-1">{analytics.onTime}</p>
-                <span className="text-[10px] text-emerald-600 font-medium">{analytics.onTimePercent}% of logs</span>
-              </div>
-
-              <div className="p-3 rounded-xl bg-rose-50/60 border border-rose-100">
-                <p className="text-[10px] uppercase font-bold text-rose-800">Late Arrivals</p>
-                <p className="text-2xl font-black text-rose-700 mt-1">{analytics.late}</p>
-                <span className="text-[10px] text-rose-600 font-medium">{analytics.latePercent}% of logs</span>
-              </div>
-
-              <div className="p-3 rounded-xl bg-indigo-50/60 border border-indigo-100">
-                <p className="text-[10px] uppercase font-bold text-indigo-800">Overtime Recorded</p>
-                <p className="text-2xl font-black text-indigo-700 mt-1">{analytics.overtimeCount}</p>
-                <span className="text-[10px] text-indigo-600 font-medium">
-                  {Math.floor(analytics.totalOvertimeMins / 60)}h {analytics.totalOvertimeMins % 60}m total
-                </span>
-              </div>
-
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-                <p className="text-[10px] uppercase font-bold text-slate-600">Total Work Hours</p>
-                <p className="text-2xl font-black text-slate-800 mt-1">
-                  {Math.floor(analytics.totalWorkMins / 60)}h
-                </p>
-                <span className="text-[10px] text-slate-500 font-medium">
-                  {analytics.totalWorkMins % 60}m net time
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Visual Progress / Ratio Graph */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
-              <PieChartIcon className="w-4 h-4 text-emerald-600" /> Compliance & Ratio
-            </h3>
-            <span className="text-xs text-slate-400 font-medium">Accuracy: 100%</span>
-          </div>
-
-          {isLoading && records.length === 0 ? (
-            <div className="space-y-4 pt-1">
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <div className="h-3 w-24 bg-slate-200/80 rounded animate-pulse" />
-                  <div className="h-3 w-10 bg-slate-200 rounded animate-pulse" />
-                </div>
-                <div className="w-full h-3 bg-slate-200/70 rounded-full animate-pulse" />
-              </div>
-              <div className="grid grid-cols-3 gap-2 pt-2">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="p-2 rounded-lg bg-slate-50 border border-slate-100 space-y-1.5 flex flex-col items-center">
-                    <div className="w-2 h-2 rounded-full bg-slate-200 animate-pulse" />
-                    <div className="h-2 w-12 bg-slate-200/80 rounded animate-pulse" />
-                    <div className="h-3 w-8 bg-slate-200 rounded animate-pulse" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4 pt-1">
-              {/* Visual Bar representation */}
-              <div>
-                <div className="flex items-center justify-between text-xs mb-1.5">
-                  <span className="font-semibold text-slate-700">Punctuality Score</span>
-                  <span className="font-mono font-bold text-emerald-700">{analytics.onTimePercent}%</span>
-                </div>
-                <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden flex">
-                  <div
-                    style={{ width: `${analytics.onTimePercent}%` }}
-                    className="bg-emerald-500 h-full transition-all duration-500"
-                  />
-                  <div
-                    style={{ width: `${analytics.latePercent}%` }}
-                    className="bg-rose-500 h-full transition-all duration-500"
-                  />
-                  <div
-                    style={{ width: `${analytics.halfDayPercent}%` }}
-                    className="bg-amber-400 h-full transition-all duration-500"
-                  />
-                </div>
-              </div>
-
-              {/* Legend */}
-              <div className="grid grid-cols-3 gap-2 pt-2 text-center text-xs">
-                <div className="p-2 rounded-lg bg-emerald-50 border border-emerald-100">
-                  <span className="block w-2 h-2 rounded-full bg-emerald-500 mx-auto mb-1" />
-                  <p className="text-[10px] text-slate-500 font-semibold">On-Time</p>
-                  <p className="font-mono font-bold text-emerald-800">{analytics.onTimePercent}%</p>
-                </div>
-                <div className="p-2 rounded-lg bg-rose-50 border border-rose-100">
-                  <span className="block w-2 h-2 rounded-full bg-rose-500 mx-auto mb-1" />
-                  <p className="text-[10px] text-slate-500 font-semibold">Late</p>
-                  <p className="font-mono font-bold text-rose-800">{analytics.latePercent}%</p>
-                </div>
-                <div className="p-2 rounded-lg bg-indigo-50 border border-indigo-100">
-                  <span className="block w-2 h-2 rounded-full bg-indigo-500 mx-auto mb-1" />
-                  <p className="text-[10px] text-slate-500 font-semibold">Overtime</p>
-                  <p className="font-mono font-bold text-indigo-800">{analytics.overtimeCount}</p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Selected Scope Summary */}
-        <div className="bg-gradient-to-br from-emerald-900 to-slate-900 text-white rounded-xl p-5 shadow-xs flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between border-b border-emerald-800/60 pb-3">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-300">
-                Active Selection
-              </span>
-              <Award className="w-4 h-4 text-emerald-400" />
-            </div>
-            <div className="mt-4">
-              <h4 className="text-lg font-bold text-white">
-                {selectedUserId === "ALL" ? "All Organization Staff" : employees.find((e: any) => e.id === selectedUserId)?.fullName || "Employee"}
-              </h4>
-              <p className="text-xs text-emerald-200 mt-1 font-mono">
-                {selectedUserId === "ALL" ? `${employees.length} Enlisted Employees` : `ID: ${employees.find((e: any) => e.id === selectedUserId)?.employeeId}`}
-              </p>
-              <div className="mt-3 flex items-center gap-2 text-[11px] text-emerald-300 bg-white/10 px-3 py-1.5 rounded-lg border border-white/10">
-                <Clock className="w-3.5 h-3.5" />
-                <span>Period: {periodType} ({formatDate(startDate)} to {formatDate(endDate)})</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-emerald-800/60 flex items-center justify-between text-xs text-emerald-200">
-            <span>Ready for Export</span>
-            <span className="font-bold font-mono text-white">{filteredRecords.length} Rows</span>
-          </div>
-        </div>
+        )}
       </div>
 
-      {/* Records Table - Max 10 Rows Visible with Smooth Internal Scroll & Sticky Header */}
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs flex flex-col">
-        {/* Table Header Controls */}
-        <div className="shrink-0 p-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 text-xs">
-          <span className="font-semibold text-slate-700">
-            Showing <strong className="text-slate-900">{filteredRecords.length}</strong> attendance records
-          </span>
-          <span className="text-slate-400 text-[11px]">10 records view • Scrollable table body</span>
-        </div>
-
-        {/* Scrollable Container capped at exactly 10 rows (~480px) on desktop */}
-        <div className="md:max-h-[480px] overflow-y-auto overflow-x-auto table-scrollbar">
-          {error ? (
-            <div className="p-8 text-center text-xs text-rose-700 bg-rose-50/50 flex flex-col items-center justify-center gap-2">
-              <span className="font-semibold text-rose-800">Connection Error</span>
-              <span>{parseApiError(error)}</span>
-            </div>
-          ) : isLoading && records.length === 0 ? (
-            <div className="p-4 space-y-3">
-              {[1, 2, 3, 4, 5, 6].map((n) => (
-                <div key={n} className="flex items-center justify-between gap-4 py-2 border-b border-slate-100">
-                  <div className="space-y-1.5 w-36">
-                    <div className="h-3.5 w-28 bg-slate-200/80 rounded animate-pulse" />
-                    <div className="h-2.5 w-16 bg-slate-200/60 rounded animate-pulse" />
-                  </div>
-                  <div className="h-3.5 w-20 bg-slate-200/80 rounded animate-pulse" />
-                  <div className="h-3.5 w-24 bg-slate-200/80 rounded animate-pulse" />
-                  <div className="h-3.5 w-16 bg-slate-200/80 rounded animate-pulse" />
-                  <div className="h-3.5 w-16 bg-slate-200/80 rounded animate-pulse" />
-                  <div className="h-5 w-16 bg-slate-200/80 rounded-full animate-pulse" />
-                  <div className="h-3.5 w-24 bg-slate-200/80 rounded animate-pulse" />
-                  <div className="h-3.5 w-16 bg-slate-200/80 rounded animate-pulse" />
-                </div>
-              ))}
-            </div>
-          ) : filteredRecords.length === 0 ? (
-            <div className="p-12 text-center text-slate-500 space-y-2">
-              <Users className="w-8 h-8 mx-auto text-slate-400" />
-              <p className="text-xs">No attendance entries recorded for this selection.</p>
-            </div>
-          ) : (
-            <table className="w-full text-left border-collapse text-xs">
-              <thead className="sticky top-0 z-20 bg-slate-100 text-slate-800 border-b border-slate-300 shadow-xs">
-                <tr>
-                  <th className="py-3 px-4 font-bold bg-slate-100 text-slate-700 border-b border-slate-200">Employee</th>
-                  <th className="py-3 px-4 font-bold bg-slate-100 text-slate-700 border-b border-slate-200">Date</th>
-                  <th className="py-3 px-4 font-bold bg-slate-100 text-slate-700 border-b border-slate-200">Department</th>
-                  <th className="py-3 px-4 font-bold bg-slate-100 text-slate-700 border-b border-slate-200">Check-In</th>
-                  <th className="py-3 px-4 font-bold bg-slate-100 text-slate-700 border-b border-slate-200">Check-Out</th>
-                  <th className="py-3 px-4 font-bold bg-slate-100 text-slate-700 border-b border-slate-200">Status</th>
-                  <th className="py-3 px-4 font-bold bg-slate-100 text-slate-700 border-b border-slate-200">Work / Break</th>
-                  <th className="py-3 px-4 font-bold bg-slate-100 text-slate-700 border-b border-slate-200">Overtime</th>
-                  <th className="py-3 px-4 font-bold bg-slate-100 text-slate-700 border-b border-slate-200">Terminal / Mode</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200 bg-white">
-                {filteredRecords.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50 transition border-b border-slate-200">
-                    <td className="py-3 px-4">
-                      <div className="font-semibold text-slate-900">{item.user?.fullName}</div>
-                      <div className="text-[11px] text-slate-500 font-mono">{item.user?.employeeId}</div>
-                    </td>
-                    <td className="py-3 px-4 font-mono text-slate-700">
-                      {formatDate(item.date)}
-                    </td>
-                    <td className="py-3 px-4 text-slate-700">
-                      <div>{item.user?.department?.name || "General"}</div>
-                      <div className="text-[10px] text-slate-400">{item.user?.designation?.title || "Staff"}</div>
-                    </td>
-                    <td className="py-3 px-4 font-mono text-slate-800">
-                      {item.checkInTime ? new Date(item.checkInTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}
-                    </td>
-                    <td className="py-3 px-4 font-mono text-slate-800">
-                      {item.checkOutTime ? new Date(item.checkOutTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}
-                    </td>
-                    <td className="py-3 px-4">
-                      {item.status === "PRESENT" && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          On-Time
-                        </span>
-                      )}
-                      {item.status === "LATE" && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
-                          Late
-                        </span>
-                      )}
-                      {item.status === "HALF_DAY" && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                          Half Day
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 font-mono text-slate-800">
-                      {item.totalWorkMinutes !== undefined ? `${Math.floor(item.totalWorkMinutes / 60)}h ${item.totalWorkMinutes % 60}m` : "—"}{" "}
-                      / <span className="text-slate-400">{item.totalBreakMinutes || 0}m break</span>
-                    </td>
-                    <td className="py-3 px-4 font-mono">
-                      {(item.overtimeMinutes || 0) > 0 ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                          +{Math.floor(item.overtimeMinutes / 60)}h {item.overtimeMinutes % 60}m
-                        </span>
-                      ) : (
-                        <span className="text-slate-400">—</span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 text-[11px] font-mono text-slate-500">
-                      {item.punchInDeviceType || "WEB_PORTAL"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
+      {/* Global Print Style for Landscape Orientation */}
+      <style jsx global>{`
+        @media print {
+          @page {
+            size: landscape;
+            margin: 10mm;
+          }
+          body {
+            background: white !important;
+            color: black !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

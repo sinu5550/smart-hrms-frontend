@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { CloudinaryService } from "@/services/cloudinary.service";
 import { parseApiError } from "@/services/api";
-import { useOrganization, useUpdateOrganization } from "@/hooks";
+import { useOrganization, useUpdateOrganization, useDepartments } from "@/hooks";
 import {
   Building2,
   Upload,
@@ -15,27 +15,70 @@ import {
   Sparkles,
   RefreshCw,
   Image as ImageIcon,
+  Calendar,
+  Clock,
+  MapPin,
 } from "lucide-react";
 
 export default function OrganizationSettingsPage() {
   const { user, refreshProfile } = useAuth();
   const { data: org, isLoading } = useOrganization();
+  const { data: departments = [] } = useDepartments();
   const updateOrgMutation = useUpdateOrganization();
 
   const [name, setName] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [employeePrefix, setEmployeePrefix] = useState("");
+  const [address, setAddress] = useState("");
+  const [weekendDays, setWeekendDays] = useState<string[]>(["Friday"]);
+  const [hasRosterDuty, setHasRosterDuty] = useState(false);
+  const [rosterDepartmentIds, setRosterDepartmentIds] = useState<string[]>([]);
+
   const [isUploading, setIsUploading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+
+  const ALL_DAYS = [
+    { label: "Fri", full: "Friday" },
+    { label: "Sat", full: "Saturday" },
+    { label: "Sun", full: "Sunday" },
+    { label: "Mon", full: "Monday" },
+    { label: "Tue", full: "Tuesday" },
+    { label: "Wed", full: "Wednesday" },
+    { label: "Thu", full: "Thursday" },
+  ];
 
   useEffect(() => {
     if (org) {
       setName(org.name || "");
       setLogoUrl(org.logoUrl || "");
       setEmployeePrefix(org.employeePrefix || "");
+      setAddress(org.address || "");
+      setWeekendDays(Array.isArray(org.weekendDays) && org.weekendDays.length > 0 ? org.weekendDays : ["Friday"]);
+      setHasRosterDuty(Boolean(org.hasRosterDuty));
+      setRosterDepartmentIds(Array.isArray(org.rosterDepartmentIds) ? org.rosterDepartmentIds : []);
     }
   }, [org]);
+
+  const toggleWeekendDay = (day: string) => {
+    if (weekendDays.includes(day)) {
+      if (weekendDays.length === 1) {
+        alert("At least 1 day should remain selected or manage via Roster.");
+        return;
+      }
+      setWeekendDays(weekendDays.filter((d) => d !== day));
+    } else {
+      setWeekendDays([...weekendDays, day]);
+    }
+  };
+
+  const toggleRosterDepartment = (deptId: string) => {
+    if (rosterDepartmentIds.includes(deptId)) {
+      setRosterDepartmentIds(rosterDepartmentIds.filter((id) => id !== deptId));
+    } else {
+      setRosterDepartmentIds([...rosterDepartmentIds, deptId]);
+    }
+  };
 
   const isSaving = updateOrgMutation.isPending || isUploading;
 
@@ -49,9 +92,13 @@ export default function OrganizationSettingsPage() {
         name,
         logoUrl: logoUrl.trim() || undefined,
         employeePrefix: employeePrefix.trim() || undefined,
+        address: address.trim(),
+        weekendDays,
+        hasRosterDuty,
+        rosterDepartmentIds: hasRosterDuty ? rosterDepartmentIds : [],
       });
 
-      setSuccessMessage("Workspace settings updated successfully!");
+      setSuccessMessage("Workspace & Attendance settings updated successfully!");
       await refreshProfile();
     } catch (err) {
       setErrorMessage(parseApiError(err));
@@ -190,6 +237,106 @@ export default function OrganizationSettingsPage() {
                 placeholder="https://example.com/logo.png"
                 className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-600 focus:outline-none text-xs text-slate-800 bg-white"
               />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-emerald-700" /> Organization Address (For Reports & Header)
+              </label>
+              <input
+                type="text"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="e.g. 39/A Senpara Parbota, Mirpur 10, Dhaka - 1216"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-600 focus:outline-none text-xs text-slate-800 bg-white"
+              />
+              <p className="text-[11px] text-slate-400 mt-1">This address will be automatically displayed at the top of Attendance Reports & Exports.</p>
+            </div>
+
+            {/* Weekend Configuration */}
+            <div className="pt-2 border-t border-slate-100">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-emerald-700" /> Weekly Office Weekend / Off Days
+              </label>
+              <p className="text-[11px] text-slate-500 mb-2.5">
+                Select the days of the week that are official off-days for standard employees.
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                {ALL_DAYS.map((d) => {
+                  const isSelected = weekendDays.includes(d.full);
+                  return (
+                    <button
+                      key={d.full}
+                      type="button"
+                      onClick={() => toggleWeekendDay(d.full)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition border ${
+                        isSelected
+                          ? "bg-rose-50 border-rose-300 text-rose-700 shadow-xs"
+                          : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
+                      }`}
+                    >
+                      {d.label} {isSelected && "✕ Off"}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Roster Duty Configuration */}
+            <div className="pt-2 border-t border-slate-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-indigo-600" /> Roster Duty Mode
+                  </label>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Enable if your organization has specific departments working on shifts/rosters (e.g. Customer Support, Factory) without fixed weekend off-days.
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={hasRosterDuty}
+                    onChange={(e) => setHasRosterDuty(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                </label>
+              </div>
+
+              {hasRosterDuty && (
+                <div className="mt-3 p-3 bg-indigo-50/50 border border-indigo-100 rounded-xl space-y-2">
+                  <p className="text-xs font-semibold text-indigo-900">
+                    Select Departments with Roster Duty:
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {departments.length === 0 ? (
+                      <p className="text-[11px] text-slate-400">No departments found.</p>
+                    ) : (
+                      departments.map((dept: any) => {
+                        const isRoster = rosterDepartmentIds.includes(dept.id);
+                        return (
+                          <button
+                            key={dept.id}
+                            type="button"
+                            onClick={() => toggleRosterDepartment(dept.id)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition border ${
+                              isRoster
+                                ? "bg-indigo-600 border-indigo-600 text-white font-bold shadow-xs"
+                                : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                            }`}
+                          >
+                            {dept.name} {isRoster && "✓"}
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                  <p className="text-[10px] text-indigo-700 leading-normal">
+                    Employees in selected roster departments will be evaluated based on continuous shift duty rather than fixed weekends.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div>

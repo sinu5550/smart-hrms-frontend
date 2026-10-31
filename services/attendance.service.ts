@@ -78,4 +78,44 @@ export const AttendanceService = {
     const { data } = await apiClient.post<TodayAttendanceRecord>("/attendance/check-out", body);
     return data;
   },
+
+  getSummaryReport: async (query: { startDate: string; endDate: string; departmentId?: string }): Promise<{
+    organization: { name: string; address: string | null; logoUrl: string | null };
+    reportPeriod: { startDate: string; endDate: string };
+    summary: Array<{
+      serialNo: number;
+      employeeId: string;
+      employeeName: string;
+      departmentName: string;
+      designation: string;
+      branchName: string;
+      isRoster: boolean;
+      officeDays: number;
+      absent: number;
+      leave: number;
+      present: number;
+      late: number;
+      extremeDelay: number;
+      totalDelayFormatted: string;
+      totalDelayMinutes: number;
+      overtimeDays: number;
+      expectedDutyFormatted: string;
+      expectedDutyMinutes: number;
+      actualDutyFormatted: string;
+      actualDutyMinutes: number;
+      overtimeFormatted: string;
+      overtimeMinutes: number;
+      extraLessBalanceFormatted: string;
+      balanceMinutes: number;
+    }>;
+  }> => {
+    const params = new URLSearchParams();
+    params.append("startDate", query.startDate);
+    params.append("endDate", query.endDate);
+    if (query.departmentId && query.departmentId !== "ALL") {
+      params.append("departmentId", query.departmentId);
+    }
+    const { data } = await apiClient.get<any>(`/attendance/admin/summary-report?${params.toString()}`);
+    return data;
+  },
 };

@@ -15,8 +15,15 @@ export function useUpdateOrganization() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload: { name?: string; logoUrl?: string; employeePrefix?: string }) =>
-      OrganizationService.updateCurrent(payload),
+    mutationFn: (payload: {
+      name?: string;
+      logoUrl?: string;
+      employeePrefix?: string;
+      address?: string;
+      weekendDays?: string[];
+      hasRosterDuty?: boolean;
+      rosterDepartmentIds?: string[];
+    }) => OrganizationService.updateCurrent(payload),
     onSuccess: (updatedOrg) => {
       // Invalidate cache for real-time consistency across layout and pages
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.organization.current });

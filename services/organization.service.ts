@@ -8,6 +8,10 @@ export interface OrganizationDetails {
   employeePrefix: string;
   ownerEmail: string;
   logoUrl?: string | null;
+  address?: string | null;
+  weekendDays?: string[];
+  hasRosterDuty?: boolean;
+  rosterDepartmentIds?: string[];
   status: string;
   createdAt: string;
   subscriptions?: Array<{
@@ -33,7 +37,15 @@ export const OrganizationService = {
     return data.organization;
   },
 
-  async updateCurrent(payload: { name?: string; logoUrl?: string; employeePrefix?: string }): Promise<OrganizationDetails> {
+  async updateCurrent(payload: {
+    name?: string;
+    logoUrl?: string;
+    employeePrefix?: string;
+    address?: string;
+    weekendDays?: string[];
+    hasRosterDuty?: boolean;
+    rosterDepartmentIds?: string[];
+  }): Promise<OrganizationDetails> {
     const { data } = await apiClient.patch<{ organization: OrganizationDetails }>("/organizations/current", payload);
     return data.organization;
   },

@@ -15,6 +15,14 @@ export function useAttendanceByDate(query: string | { date?: string; startDate?:
   });
 }
 
+export function useAttendanceSummaryReport(query: { startDate: string; endDate: string; departmentId?: string }) {
+  return useQuery({
+    queryKey: ["attendance", "summary-report", query],
+    queryFn: () => AttendanceService.getSummaryReport(query),
+    enabled: Boolean(query.startDate && query.endDate),
+  });
+}
+
 import { useAuth } from "@/components/auth/AuthProvider";
 
 export function useMyTodayAttendance() {
