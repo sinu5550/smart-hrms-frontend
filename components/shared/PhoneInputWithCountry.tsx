@@ -187,6 +187,19 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
     return value;
   });
 
+  // Sync internal state when external `value` prop changes (e.g. from Autofill)
+  useEffect(() => {
+    if (!value) {
+      setRawNumber("");
+      return;
+    }
+    if (value.startsWith(selectedCountry.dialCode)) {
+      setRawNumber(value.replace(selectedCountry.dialCode, ""));
+    } else {
+      setRawNumber(value);
+    }
+  }, [value, selectedCountry.dialCode]);
+
   // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
