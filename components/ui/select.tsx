@@ -33,11 +33,14 @@ export function Select({
   triggerClassName,
   name,
   required,
-  searchable = false,
+  searchable,
   searchPlaceholder = "Search options...",
 }: SelectProps) {
   const [open, setOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
+
+  // Automatically enable search if options > 15, or if explicitly passed searchable === true
+  const isSearchable = searchable ?? (options.length > 15);
 
   // Clear search on close
   React.useEffect(() => {
@@ -47,10 +50,10 @@ export function Select({
   }, [open]);
 
   const filteredOptions = React.useMemo(() => {
-    if (!searchable || !searchTerm.trim()) return options;
+    if (!isSearchable || !searchTerm.trim()) return options;
     const q = searchTerm.toLowerCase().trim();
     return options.filter((o) => o.label.toLowerCase().includes(q) || o.value.toLowerCase().includes(q));
-  }, [options, searchable, searchTerm]);
+  }, [options, isSearchable, searchTerm]);
 
   return (
     <SelectPrimitive.Root
@@ -84,8 +87,8 @@ export function Select({
             className
           )}
         >
-          {/* Optional In-Dropdown Search Input */}
-          {searchable && (
+          {/* In-Dropdown Search Input (auto enabled if >15 rows or searchable prop) */}
+          {isSearchable && (
             <div className="sticky top-0 z-10 bg-white border-b border-slate-100 p-1.5 shadow-2xs">
               <div className="relative flex items-center">
                 <Search className="h-3.5 w-3.5 text-slate-400 absolute left-2 pointer-events-none" />

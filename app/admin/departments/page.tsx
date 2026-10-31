@@ -29,6 +29,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select } from "@/components/ui/select";
 import Image from "next/image";
 
 const WEEK_DAYS = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
@@ -381,18 +382,19 @@ export default function DepartmentsPage() {
                 </div>
 
                 <div className="w-full sm:w-64">
-                  <select
-                    value={selectedDept.headUserId || ""}
-                    onChange={(e) => handleAssignHead(e.target.value)}
-                    className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-600"
-                  >
-                    <option value="">-- No Department Head --</option>
-                    {(selectedDept.users || []).map((u) => (
-                      <option key={u.id} value={u.id}>
-                        {u.fullName} ({u.employeeId})
-                      </option>
-                    ))}
-                  </select>
+                  <Select
+                    value={selectedDept.headUserId || "NONE"}
+                    onValueChange={(val) => handleAssignHead(val === "NONE" ? "" : val)}
+                    triggerClassName="h-9 text-xs rounded-lg"
+                    placeholder="-- Select Department Head --"
+                    options={[
+                      { value: "NONE", label: "-- No Department Head --" },
+                      ...(selectedDept.users || []).map((u) => ({
+                        value: u.id,
+                        label: `${u.fullName} (${u.employeeId})`,
+                      })),
+                    ]}
+                  />
                 </div>
               </div>
 

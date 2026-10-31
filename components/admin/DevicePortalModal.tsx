@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { Select } from "@/components/ui/select";
 import { useEmployees } from "@/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -732,18 +733,19 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
                 <label className="text-xs font-semibold text-slate-700 block">
                   Select Employee from HRMS Directory:
                 </label>
-                <select
-                  value={selectedPushEmployeeId}
-                  onChange={(e) => setSelectedPushEmployeeId(e.target.value)}
-                  className="w-full h-10 px-3 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-emerald-600 font-medium"
-                >
-                  <option value="">-- Choose an employee --</option>
-                  {dbEmployees.map((emp) => (
-                    <option key={emp.id} value={emp.employeeId}>
-                      {emp.fullName} ({emp.employeeId})
-                    </option>
-                  ))}
-                </select>
+                <Select
+                  value={selectedPushEmployeeId || "NONE"}
+                  onValueChange={(val) => setSelectedPushEmployeeId(val === "NONE" ? "" : val)}
+                  triggerClassName="h-10 text-xs rounded-lg bg-slate-50 border-slate-200"
+                  placeholder="-- Choose an employee --"
+                  options={[
+                    { value: "NONE", label: "-- Choose an employee --" },
+                    ...dbEmployees.map((emp) => ({
+                      value: emp.employeeId,
+                      label: `${emp.fullName} (${emp.employeeId})`,
+                    })),
+                  ]}
+                />
 
                 <p className="text-[11px] text-slate-500 leading-relaxed bg-slate-50 p-2.5 rounded-lg border border-slate-100">
                   ℹ️ Once pushed, this employee profile will be registered on the Hikvision terminal with door access rights. The employee can then enroll their face or fingerprint directly at the machine.
