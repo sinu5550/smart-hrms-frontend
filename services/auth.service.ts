@@ -12,6 +12,8 @@ export interface AuthUser {
   fullName: string;
   role: "PLATFORM_ADMIN" | "OWNER" | "ADMIN" | "HR" | "EMPLOYEE";
   isOwner?: boolean;
+  isDeptHead?: boolean;
+  headedDepartments?: Array<{ id: string; name: string; code: string }>;
   attendanceExempt?: boolean;
   permissions?: string[];
   mustChangePassword?: boolean;

@@ -65,6 +65,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     user?.role === "OWNER" ||
     (user?.email && user?.organization?.ownerEmail && user?.email.toLowerCase() === user?.organization?.ownerEmail.toLowerCase())
   );
+  const isDeptHeadOnly = Boolean(
+    user?.role === "EMPLOYEE" &&
+    (user?.isDeptHead || (user?.headedDepartments && user.headedDepartments.length > 0))
+  );
   const userPerms = Array.isArray(user?.permissions) ? user.permissions : [];
   const hasFullAccess = user?.role === "PLATFORM_ADMIN" || user?.role === "OWNER" || user?.role === "ADMIN" || isOwner;
 
@@ -93,7 +97,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { label: "MIS & Compliance", href: "/admin/reports", icon: FileText, perm: "reports.export" },
   ];
 
-  const attendanceSubItems = [
+  const attendanceSubItems = isDeptHeadOnly ? [] : [
     { label: "Attendance Monitor", href: "/admin/attendance", icon: CalendarCheck, perm: "attendance.view" },
     { label: "Attendance Reports", href: "/admin/attendance/reports", icon: FileText, perm: "attendance.view" },
   ];
@@ -104,8 +108,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { label: "Organization & Branding", href: "/admin/settings/organization", icon: Building2, perm: "organization.settings" },
   ];
 
-  const mainNavItems = allMainNavItems.filter((i) => hasPerm(i.perm));
-  const settingsNavItems = allSettingsNavItems.filter((i) => hasPerm(i.perm));
+  // If user is Department Head (without Admin/HR role), only show Departments & Unit management
+  const mainNavItems = isDeptHeadOnly
+    ? [{ label: "My Departments", href: "/admin/departments", icon: Building2 }]
+    : allMainNavItems.filter((i) => hasPerm(i.perm));
+  const settingsNavItems = isDeptHeadOnly ? [] : allSettingsNavItems.filter((i) => hasPerm(i.perm));
 
   const orgName = user?.organization?.name || "Ekhone IT";
   const orgLogo = user?.organization?.logoUrl;

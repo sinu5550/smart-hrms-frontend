@@ -30,17 +30,29 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select } from "@/components/ui/select";
+import { useAuth } from "@/components/auth/AuthProvider";
 import Image from "next/image";
 
 const WEEK_DAYS = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
 export default function DepartmentsPage() {
-  const { data: departments = [], isLoading } = useDepartments();
+  const { user } = useAuth();
+  const { data: allDepartments = [], isLoading } = useDepartments();
   const { data: organization } = useOrganization();
   const createDepartmentMutation = useCreateDepartment();
   const updateDepartmentMutation = useUpdateDepartment();
   const deleteDepartmentMutation = useDeleteDepartment();
   const updateRosterOffDaysMutation = useUpdateEmployeeRosterOffDays();
+
+  // If logged-in user is a Department Head with EMPLOYEE role, only show the department(s) they manage
+  const isDeptHeadOnly = Boolean(
+    user?.role === "EMPLOYEE" &&
+    (user?.isDeptHead || (user?.headedDepartments && user.headedDepartments.length > 0))
+  );
+
+  const departments = isDeptHeadOnly
+    ? allDepartments.filter((d) => d.headUserId === user?.id || user?.headedDepartments?.some((hd) => hd.id === d.id))
+    : allDepartments;
 
   // Create / Edit Form Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -164,15 +176,19 @@ export default function DepartmentsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-emerald-700" /> Departments & Units
+            <Building2 className="w-5 h-5 text-emerald-700" /> {isDeptHeadOnly ? "My Managed Department" : "Departments & Units"}
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Organize personnel into functional units. Click any department card to manage its members, appoint Head of Department, and assign roster off-days.
+            {isDeptHeadOnly
+              ? "Click on your department card below to view team members and manage their weekly roster off-days."
+              : "Organize personnel into functional units. Click any department card to manage its members, appoint Head of Department, and assign roster off-days."}
           </p>
         </div>
-        <Button onClick={openCreateModal} className="h-9 rounded-lg px-4 text-xs font-semibold">
-          <Plus className="w-4 h-4" /> Add Department
-        </Button>
+        {!isDeptHeadOnly && (
+          <Button onClick={openCreateModal} className="h-9 rounded-lg px-4 text-xs font-semibold">
+            <Plus className="w-4 h-4" /> Add Department
+          </Button>
+        )}
       </div>
 
       {successMsg && (
@@ -229,22 +245,24 @@ export default function DepartmentsPage() {
                         {dept.code}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button
-                        onClick={(e) => openEditModal(e, dept)}
-                        className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition"
-                        title="Edit Department"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={(e) => handleDelete(e, dept)}
-                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
-                        title="Delete Department"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+                    {!isDeptHeadOnly && (
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          onClick={(e) => openEditModal(e, dept)}
+                          className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition"
+                          title="Edit Department"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={(e) => handleDelete(e, dept)}
+                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                          title="Delete Department"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   {/* Department Head Preview */}

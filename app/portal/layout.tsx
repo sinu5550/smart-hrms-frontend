@@ -51,13 +51,14 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
         </div>
 
         <div className="flex items-center gap-3">
-          {(user?.role === "OWNER" || user?.role === "ADMIN" || user?.role === "HR" || user?.role === "PLATFORM_ADMIN" || user?.isOwner) && (
+          {/* Allow Admin Console for Owners, Admins, HRs, and Department Heads */}
+          {(user?.role === "OWNER" || user?.role === "ADMIN" || user?.role === "HR" || user?.role === "PLATFORM_ADMIN" || user?.isOwner || user?.isDeptHead || (user?.headedDepartments && user.headedDepartments.length > 0)) && (
             <Link
-              href="/admin"
+              href="/admin/departments"
               className="text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 px-3 py-1.5 rounded-lg border border-emerald-600 flex items-center gap-1.5 transition shadow-xs active:scale-95"
             >
               <Building2 className="w-3.5 h-3.5" />
-              <span>Admin Console</span>
+              <span>{user?.role === "EMPLOYEE" ? "Dept Head Portal" : "Admin Console"}</span>
             </Link>
           )}
 
