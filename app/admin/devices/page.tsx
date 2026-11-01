@@ -359,13 +359,24 @@ export default function BiometricDevicesAdminPage() {
           </div>
 
           {activeTab === "DEVICES" && canManageDevices && (
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="mt-2 sm:mt-0 flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg shadow-sm transition w-full sm:w-auto shrink-0"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add Biometric Machine</span>
-            </button>
+            <div className="flex items-center gap-2 flex-wrap">
+              <a
+                href="/downloads/SmartHRM-Biometric-Agent.zip"
+                download="SmartHRM-Biometric-Agent.zip"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-lg shadow-sm transition"
+                title="Download portable desktop biometric sync agent for Windows"
+              >
+                <Download className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Download Biometric Agent</span>
+              </a>
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg shadow-sm transition shrink-0"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Biometric Machine</span>
+              </button>
+            </div>
           )}
 
           {activeTab === "WIFI_NETWORKS" && canManageWifi && (
