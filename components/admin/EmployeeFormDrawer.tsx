@@ -12,7 +12,7 @@ import { useCreateEmployee, useUpdateEmployee, useOrganization, useNextEmployeeI
 import { RegistrationService, EmployeeRegistration } from "@/services/registration.service";
 import { CustomRole } from "@/services/role.service";
 import { parseApiError } from "@/services/api";
-import { X, Upload, Check, Copy, Eye, EyeOff, ShieldCheck, Sparkles, AlertCircle, HelpCircle, Info, UserPlus, Users, ArrowRight } from "lucide-react";
+import { X, Upload, Check, Copy, Eye, EyeOff, ShieldCheck, Sparkles, AlertCircle, HelpCircle, Info, UserPlus, Users, ArrowRight, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
@@ -109,6 +109,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
     setValue,
     setError,
     clearErrors,
+    watch,
     formState: { errors },
     reset,
   } = useForm<EmployeeFormData>({
@@ -217,6 +218,25 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
   const isSubmitting = createEmployeeMutation.isPending || updateEmployeeMutation.isPending;
 
   if (!isOpen) return null;
+
+  const handleDownloadAvatar = async () => {
+    if (!avatarPreview) return;
+    try {
+      const res = await fetch(avatarPreview);
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      const cleanId = (watch("employeeId") || "employee").replace(/[^a-zA-Z0-9_-]/g, "");
+      link.download = `${cleanId}_face.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch {
+      window.open(avatarPreview, "_blank");
+    }
+  };
 
   const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -448,6 +468,16 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
                     <input type="file" accept="image/*" onChange={handleAvatarSelect} className="hidden" />
                   </label>
                   <p className="text-[10px] text-slate-500 mt-1">PNG, JPG, or WEBP up to 3MB</p>
+                {avatarPreview && (
+                  <button
+                    type="button"
+                    onClick={handleDownloadAvatar}
+                    className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-md shadow-xs transition"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download Face Photo</span>
+                  </button>
+                )}
                 </div>
               </div>
 
