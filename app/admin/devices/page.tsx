@@ -364,10 +364,18 @@ export default function BiometricDevicesAdminPage() {
                 href="/downloads/SmartHRM-Biometric-Agent.zip"
                 download="SmartHRM-Biometric-Agent.zip"
                 className="flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-lg shadow-sm transition"
-                title="Download portable desktop biometric sync agent for Windows"
+                title="Download latest desktop biometric sync agent"
               >
                 <Download className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Download Biometric Agent</span>
+                <span>Download Agent (Latest)</span>
+              </a>
+              <a
+                href="/downloads/SmartHRM-Biometric-Agent-Previous.zip"
+                download="SmartHRM-Biometric-Agent-Previous.zip"
+                className="flex items-center justify-center gap-1 px-2.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-medium rounded-lg border border-slate-200 transition"
+                title="Download previous stable version if latest encounters any issue"
+              >
+                <span>Fallback (Old)</span>
               </a>
               <button
                 onClick={() => setIsModalOpen(true)}
