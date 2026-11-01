@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { parseApiError } from "@/services/api";
 import { useAttendanceByDate, QUERY_KEYS } from "@/hooks";
 import { useQueryClient } from "@tanstack/react-query";
+import { deviceService } from "@/services/device.service";
 import {
   CalendarCheck,
   Search,
@@ -14,6 +15,7 @@ import {
   AlertTriangle,
   RefreshCw,
   User,
+  Radio,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -57,6 +59,8 @@ export default function AdminAttendancePage() {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [isPulling, setIsPulling] = useState(false);
+  const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
 
   const todayStr = new Date().toLocaleDateString("en-CA");
   const [dateRange, setDateRange] = useState<DateRangeValue>({
@@ -72,6 +76,41 @@ export default function AdminAttendancePage() {
       : { startDate: dateRange.startDate, endDate: dateRange.endDate };
 
   const { data, error, isLoading } = useAttendanceByDate(queryArg);
+
+  // Sync recent punches on page load if date is today
+  useEffect(() => {
+    let isMounted = true;
+    const fetchLatestOnMount = async () => {
+      try {
+        await deviceService.syncAllDevices();
+        if (isMounted) {
+          queryClient.invalidateQueries({ queryKey: QUERY_KEYS.attendance.list(queryArg) });
+        }
+      } catch {
+        // Silently skip if devices are offline during initial mount
+      }
+    };
+    fetchLatestOnMount();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handlePullLatest = async () => {
+    setIsPulling(true);
+    setSyncFeedback(null);
+    try {
+      const res = await deviceService.syncAllDevices();
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.attendance.list(queryArg) });
+      setSyncFeedback(res.message || "Attendance synced successfully!");
+      setTimeout(() => setSyncFeedback(null), 4000);
+    } catch (err: any) {
+      setSyncFeedback(parseApiError(err) || "Failed to pull punches from terminal.");
+      setTimeout(() => setSyncFeedback(null), 5000);
+    } finally {
+      setIsPulling(false);
+    }
+  };
 
   const records = data || [];
 
@@ -116,6 +155,17 @@ export default function AdminAttendancePage() {
             value={dateRange}
             onChange={(val) => setDateRange(val)}
           />
+
+          <button
+            onClick={handlePullLatest}
+            disabled={isPulling}
+            className="flex items-center gap-2 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white rounded-lg text-xs font-medium shadow-xs transition"
+            title="Fetch latest punches directly from all active biometric machines"
+          >
+            <Radio className={`w-3.5 h-3.5 ${isPulling ? "animate-ping text-white" : ""}`} />
+            <span>{isPulling ? "Pulling..." : "Pull Latest Attendance"}</span>
+          </button>
+
           <button
             onClick={() => queryClient.invalidateQueries({ queryKey: QUERY_KEYS.attendance.list(queryArg) })}
             className="p-2.5 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-700 transition shadow-xs"
@@ -125,6 +175,13 @@ export default function AdminAttendancePage() {
           </button>
         </div>
       </div>
+
+      {syncFeedback && (
+        <div className="shrink-0 flex items-center justify-between px-3.5 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-lg animate-in fade-in duration-200">
+          <span>{syncFeedback}</span>
+          <button onClick={() => setSyncFeedback(null)} className="text-emerald-600 hover:text-emerald-900 font-bold ml-2">×</button>
+        </div>
+      )}
 
       {/* Metrics Row - Sticky / Fixed */}
       <div className="shrink-0 grid grid-cols-2 sm:grid-cols-5 gap-3">

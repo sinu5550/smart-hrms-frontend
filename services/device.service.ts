@@ -133,6 +133,11 @@ export const deviceService = {
     return data;
   },
 
+  async syncAllDevices(): Promise<{ success: boolean; message: string }> {
+    const { data } = await apiClient.post("/devices/sync-all");
+    return data;
+  },
+
   async getRecentLogs(): Promise<BiometricRawLog[]> {
     const { data } = await apiClient.get<BiometricRawLog[]>("/devices/logs");
     return data;
