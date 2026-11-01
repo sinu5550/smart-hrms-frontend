@@ -133,6 +133,26 @@ export default function BiometricDevicesAdminPage() {
 
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+  const [downloadingAgentId, setDownloadingAgentId] = useState<string | null>(null);
+
+  const handleDownloadAgent = async (device: BiometricDevice) => {
+    try {
+      setDownloadingAgentId(device.id);
+      await deviceService.downloadConfiguredAgent(device.id, device.deviceName);
+      setMessage({
+        type: "success",
+        text: `Configured agent downloaded for ${device.deviceName}. Extract and double click Start-Agent.bat!`,
+      });
+    } catch (err: any) {
+      setMessage({
+        type: "error",
+        text: err?.response?.data?.message || "Failed to generate configured agent.",
+      });
+    } finally {
+      setDownloadingAgentId(null);
+    }
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.deviceName.trim() || !form.deviceSerialNumber.trim()) return;
@@ -475,6 +495,15 @@ export default function BiometricDevicesAdminPage() {
                   <div className="flex items-center gap-1.5 flex-wrap justify-end">
                     {device.ipAddress && (
                       <>
+                        <button
+                          onClick={() => handleDownloadAgent(device)}
+                          disabled={downloadingAgentId === device.id}
+                          className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg shadow-2xs transition disabled:opacity-50"
+                          title="Download ready-to-run desktop agent pre-configured for this device"
+                        >
+                          <Download className={`w-3.5 h-3.5 text-emerald-700 ${downloadingAgentId === device.id ? "animate-bounce" : ""}`} />
+                          <span>{downloadingAgentId === device.id ? "Preparing..." : "Download Agent"}</span>
+                        </button>
                         <button
                           onClick={() => setPortalDevice(device)}
                           className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg shadow-2xs transition"

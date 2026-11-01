@@ -154,4 +154,20 @@ export const deviceService = {
     const { data } = await apiClient.get("/devices/qr-code");
     return data;
   },
+
+  async downloadConfiguredAgent(deviceId: string, deviceName: string): Promise<void> {
+    const response = await apiClient.get(`/devices/${deviceId}/download-agent`, {
+      responseType: "blob",
+    });
+    const blob = new Blob([response.data], { type: "application/zip" });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    const safeName = (deviceName || "device").replace(/[^a-zA-Z0-9_-]/g, "_");
+    link.download = `SmartHRM-Agent-${safeName}.zip`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  },
 };
