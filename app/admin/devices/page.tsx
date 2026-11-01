@@ -380,23 +380,6 @@ export default function BiometricDevicesAdminPage() {
 
           {activeTab === "DEVICES" && canManageDevices && (
             <div className="flex items-center gap-2 flex-wrap">
-              <a
-                href="/downloads/SmartHRM-Biometric-Agent.zip"
-                download="SmartHRM-Biometric-Agent.zip"
-                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-lg shadow-sm transition"
-                title="Download latest desktop biometric sync agent"
-              >
-                <Download className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Download Agent (Latest)</span>
-              </a>
-              <a
-                href="/downloads/SmartHRM-Biometric-Agent-Previous.zip"
-                download="SmartHRM-Biometric-Agent-Previous.zip"
-                className="flex items-center justify-center gap-1 px-2.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-medium rounded-lg border border-slate-200 transition"
-                title="Download previous stable version if latest encounters any issue"
-              >
-                <span>Fallback (Old)</span>
-              </a>
               <button
                 onClick={() => setIsModalOpen(true)}
                 className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg shadow-sm transition shrink-0"
