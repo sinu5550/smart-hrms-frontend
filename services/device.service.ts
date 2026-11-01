@@ -156,18 +156,17 @@ export const deviceService = {
   },
 
   async downloadConfiguredAgent(deviceId: string, deviceName: string): Promise<void> {
-    const response = await apiClient.get(`/devices/${deviceId}/download-agent`, {
-      responseType: "blob",
-    });
-    const blob = new Blob([response.data], { type: "application/zip" });
-    const url = window.URL.createObjectURL(blob);
+    const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+    const rawBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:7000";
+    const apiBaseUrl = rawBaseUrl.endsWith("/api") ? rawBaseUrl : `${rawBaseUrl.replace(/\/+$/, "")}/api`;
+    const downloadUrl = `${apiBaseUrl}/devices/${deviceId}/download-agent${token ? `?token=${encodeURIComponent(token)}` : ""}`;
+
     const link = document.createElement("a");
-    link.href = url;
+    link.href = downloadUrl;
     const safeName = (deviceName || "device").replace(/[^a-zA-Z0-9_-]/g, "_");
     link.download = `SmartHRM-Agent-${safeName}.zip`;
     document.body.appendChild(link);
     link.click();
     link.remove();
-    window.URL.revokeObjectURL(url);
   },
 };
