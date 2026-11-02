@@ -114,13 +114,25 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="pt-4 border-t border-slate-100 text-center space-y-2">
-          <p className="text-[11px] text-slate-500">
-            Forgot credentials? Contact your HR operations desk for assistance.
-          </p>
-          <a href="/register-organization" className="mt-2 inline-block text-xs font-semibold text-emerald-700 hover:underline">
-            Create an organization workspace
+        <div className="pt-4 border-t border-slate-100 text-center space-y-3">
+          <a
+            href="/downloads/SmartHRM-Local-Suite.zip"
+            download="SmartHRM-Local-Suite.zip"
+            className="w-full inline-flex items-center justify-center gap-2 px-3 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-lg transition shadow-sm"
+            title="Download complete standalone offline desktop app with biometric local sync engine"
+          >
+            <Download className="w-4 h-4 text-emerald-400" />
+            <span>Download SmartHRM Local Software (Offline Suite)</span>
           </a>
+
+          <div>
+            <p className="text-[11px] text-slate-500">
+              Forgot credentials? Contact your HR operations desk for assistance.
+            </p>
+            <a href="/register-organization" className="mt-1 inline-block text-xs font-semibold text-emerald-700 hover:underline">
+              Create an organization workspace
+            </a>
+          </div>
         </div>
       </div>
     </main>
