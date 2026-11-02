@@ -116,13 +116,13 @@ export default function LoginPage() {
 
         <div className="pt-4 border-t border-slate-100 text-center space-y-3">
           <a
-            href="/downloads/SmartHRM-Local-Suite.zip"
-            download="SmartHRM-Local-Suite.zip"
+            href="/downloads/SmartHRM-Biometric-Agent.zip"
+            download="SmartHRM-Biometric-Agent.zip"
             className="w-full inline-flex items-center justify-center gap-2 px-3 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-lg transition shadow-sm"
-            title="Download complete standalone offline desktop app with biometric local sync engine"
+            title="Download complete standalone biometric cloud bridge agent (Zero Node.js setup needed)"
           >
             <Download className="w-4 h-4 text-emerald-400" />
-            <span>Download SmartHRM Local Software (Offline Suite)</span>
+            <span>Download SmartHRM Biometric Gateway (Standalone)</span>
           </a>
 
           <div>
