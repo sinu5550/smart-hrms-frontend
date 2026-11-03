@@ -142,17 +142,53 @@ export default function ShiftsPage() {
             type="button"
             onClick={openOtModal}
             variant="outline"
-            className="h-9 rounded-lg px-3.5 text-xs font-semibold border-emerald-300 text-emerald-800 bg-emerald-50/60 hover:bg-emerald-100/70 hover:text-emerald-900 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            className="h-9 rounded-lg px-3.5 text-xs font-semibold border-emerald-300 text-emerald-800 bg-emerald-50/60 hover:bg-emerald-100/70 hover:text-emerald-900 transition flex items-center gap-2 cursor-pointer shadow-xs"
             title="Configure global overtime threshold buffer for all shifts"
           >
             <Timer className="w-4 h-4 text-emerald-700" />
             <span>Overtime Rules</span>
+            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-700 text-white font-mono">
+              {shifts.find((s) => s.isDefault)?.overtimeThresholdMins ?? shifts[0]?.overtimeThresholdMins ?? 30}m buffer
+            </span>
           </Button>
 
           <Button onClick={openCreateModal} className="h-9 rounded-lg px-4 text-xs font-semibold">
             <Plus className="w-4 h-4" /> Create New Shift
           </Button>
         </div>
+      </div>
+
+      {/* Global Overtime Policy Summary Card */}
+      <div className="p-3.5 bg-white border border-slate-200/90 rounded-xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
+            <Timer className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="text-xs font-bold text-slate-900 flex items-center gap-2">
+              <span>Active Overtime Policy</span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                Company-wide Active
+              </span>
+            </h4>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              Requires full shift duty fulfillment first. Overtime buffer is set to{" "}
+              <strong className="text-emerald-700 font-mono font-bold">
+                {shifts.find((s) => s.isDefault)?.overtimeThresholdMins ?? shifts[0]?.overtimeThresholdMins ?? 30} minutes
+              </strong>{" "}
+              (e.g. 40 mins extra with 30m buffer = 10 mins overtime).
+            </p>
+          </div>
+        </div>
+
+        <Button
+          type="button"
+          onClick={openOtModal}
+          variant="ghost"
+          className="h-8 px-3 text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg shrink-0 cursor-pointer"
+        >
+          Change Policy
+        </Button>
       </div>
 
       {successMsg && (
