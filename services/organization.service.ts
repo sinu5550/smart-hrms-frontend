@@ -12,6 +12,7 @@ export interface OrganizationDetails {
   weekendDays?: string[];
   hasRosterDuty?: boolean;
   rosterDepartmentIds?: string[];
+  dayCutoffHour?: number;
   status: string;
   createdAt: string;
   subscriptions?: Array<{
@@ -45,6 +46,7 @@ export const OrganizationService = {
     weekendDays?: string[];
     hasRosterDuty?: boolean;
     rosterDepartmentIds?: string[];
+    dayCutoffHour?: number;
   }): Promise<OrganizationDetails> {
     const { data } = await apiClient.patch<{ organization: OrganizationDetails }>("/organizations/current", payload);
     return data.organization;

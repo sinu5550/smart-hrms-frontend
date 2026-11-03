@@ -23,6 +23,7 @@ export function useUpdateOrganization() {
       weekendDays?: string[];
       hasRosterDuty?: boolean;
       rosterDepartmentIds?: string[];
+      dayCutoffHour?: number;
     }) => OrganizationService.updateCurrent(payload),
     onSuccess: (updatedOrg) => {
       // Invalidate cache for real-time consistency across layout and pages

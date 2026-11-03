@@ -33,6 +33,7 @@ export default function OrganizationSettingsPage() {
   const [weekendDays, setWeekendDays] = useState<string[]>(["Friday"]);
   const [hasRosterDuty, setHasRosterDuty] = useState(false);
   const [rosterDepartmentIds, setRosterDepartmentIds] = useState<string[]>([]);
+  const [dayCutoffHour, setDayCutoffHour] = useState<number>(6);
 
   const [isUploading, setIsUploading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -57,6 +58,7 @@ export default function OrganizationSettingsPage() {
       setWeekendDays(Array.isArray(org.weekendDays) && org.weekendDays.length > 0 ? org.weekendDays : ["Friday"]);
       setHasRosterDuty(Boolean(org.hasRosterDuty));
       setRosterDepartmentIds(Array.isArray(org.rosterDepartmentIds) ? org.rosterDepartmentIds : []);
+      setDayCutoffHour(org.dayCutoffHour !== undefined && org.dayCutoffHour !== null ? Number(org.dayCutoffHour) : 6);
     }
   }, [org]);
 
@@ -96,6 +98,7 @@ export default function OrganizationSettingsPage() {
         weekendDays,
         hasRosterDuty,
         rosterDepartmentIds: hasRosterDuty ? rosterDepartmentIds : [],
+        dayCutoffHour: Number(dayCutoffHour),
       });
 
       setSuccessMessage("Workspace & Attendance settings updated successfully!");
@@ -337,6 +340,33 @@ export default function OrganizationSettingsPage() {
                   </p>
                 </div>
               )}
+            </div>
+
+            {/* Attendance Day Cutoff / Rollover Configuration */}
+            <div className="pt-2 border-t border-slate-100 space-y-2">
+              <label className="block text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-emerald-700" /> New Attendance Day Start Time (Overnight Punch Buffer)
+              </label>
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                Choose the official time when a new calendar day starts for attendance recording. For example, if set to <strong>06:00 AM</strong>, any employee biometric punch occurring after midnight (e.g. 12:25 AM, 02:00 AM, or employees sleeping/overworking at the office) will be recorded as part of the <strong>previous day's duty</strong>, and a brand new day's attendance ledger will only begin after <strong>06:00 AM</strong>.
+              </p>
+              <div className="flex items-center gap-3">
+                <select
+                  value={dayCutoffHour}
+                  onChange={(e) => setDayCutoffHour(Number(e.target.value))}
+                  className="h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-600"
+                >
+                  <option value={4}>04:00 AM (Early morning cutoff)</option>
+                  <option value={5}>05:00 AM (Early morning cutoff)</option>
+                  <option value={6}>06:00 AM (Recommended - Standard Bangladesh Office)</option>
+                  <option value={7}>07:00 AM (Morning cutoff)</option>
+                  <option value={8}>08:00 AM (Morning cutoff)</option>
+                  <option value={0}>12:00 AM (Midnight - Strict Calendar Day)</option>
+                </select>
+                <span className="text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+                  Active Cutoff: {String(dayCutoffHour).padStart(2, "0")}:00 AM
+                </span>
+              </div>
             </div>
 
             <div>
