@@ -21,6 +21,8 @@ import {
   MapPin,
   ShieldAlert,
   ArrowRight,
+  CalendarDays,
+  Layers,
 } from "lucide-react";
 
 const formatSecondsToHMS = (totalSeconds: number) => {
@@ -244,6 +246,55 @@ export default function MobileAttendancePortal() {
           </span>
         )}
       </header>
+
+      {/* Roster Employee Shift & Off-Day Banner */}
+      {statusData?.rosterDetails?.isRosterEmployee && (
+        <section className="w-full mb-4 bg-gradient-to-r from-purple-50 to-indigo-50/60 border border-purple-200/90 rounded-2xl p-4 shadow-xs">
+          <div className="flex items-center justify-between mb-2.5">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-purple-600 animate-pulse" />
+              <span className="text-[11px] font-bold text-purple-900 tracking-wider uppercase">My Roster Duty Schedule</span>
+            </div>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-200/80 text-purple-900">
+              Roster Staff
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="bg-white/90 border border-purple-100 rounded-xl p-2.5 flex flex-col justify-between">
+              <div className="flex items-center gap-1 text-[11px] text-slate-500 mb-1">
+                <Clock className="w-3.5 h-3.5 text-purple-600" />
+                <span className="font-semibold text-slate-700">Assigned Shift</span>
+              </div>
+              <p className="font-bold text-slate-900 truncate">{statusData.rosterDetails.shiftName}</p>
+              <p className="text-[11px] font-mono font-medium text-purple-700 mt-0.5">
+                {statusData.rosterDetails.startTime} - {statusData.rosterDetails.endTime}
+              </p>
+            </div>
+
+            <div className="bg-white/90 border border-purple-100 rounded-xl p-2.5 flex flex-col justify-between">
+              <div className="flex items-center gap-1 text-[11px] text-slate-500 mb-1">
+                <CalendarDays className="w-3.5 h-3.5 text-purple-600" />
+                <span className="font-semibold text-slate-700">Designated Off-Days</span>
+              </div>
+              {statusData.rosterDetails.offDays && statusData.rosterDetails.offDays.length > 0 ? (
+                <div className="flex flex-wrap gap-1 mt-0.5">
+                  {statusData.rosterDetails.offDays.map((d) => (
+                    <span
+                      key={d}
+                      className="px-1.5 py-0.5 bg-purple-100 text-purple-900 font-extrabold rounded text-[10px]"
+                    >
+                      {d.slice(0, 3)}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[11px] text-slate-500 italic mt-0.5">None assigned yet</p>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
       {currentState === "CHECKED_OUT" && (
         <div className="w-full bg-white border border-slate-200 rounded-lg p-6 text-center shadow-xl space-y-4 my-auto">

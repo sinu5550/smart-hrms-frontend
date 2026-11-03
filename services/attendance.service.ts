@@ -26,11 +26,20 @@ export interface TodayAttendanceRecord {
   breaks: AttendanceBreakRecord[];
 }
 
+export interface RosterEmployeeDetails {
+  isRosterEmployee: boolean;
+  shiftName: string;
+  startTime: string;
+  endTime: string;
+  offDays: string[];
+}
+
 export interface TodayStatusResponse {
   checkedIn: boolean;
   checkedOut: boolean;
   attendance: TodayAttendanceRecord | null;
   isExempt?: boolean;
+  rosterDetails?: RosterEmployeeDetails | null;
 }
 
 export const AttendanceService = {
