@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { parseApiError } from "@/services/api";
 import { useAttendanceByDate, QUERY_KEYS } from "@/hooks";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { deviceService } from "@/services/device.service";
 import {
   CalendarCheck,
@@ -58,6 +59,7 @@ interface AttendanceRecord {
 
 export default function AdminAttendancePage() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [isPulling, setIsPulling] = useState(false);
@@ -139,9 +141,48 @@ export default function AdminAttendancePage() {
   };
 
   return (
-    <div className="flex-1 md:h-full flex flex-col md:min-h-0 gap-4 md:overflow-hidden">
+    <div className="flex-1 md:h-full flex flex-col md:min-h-0 gap-4 md:overflow-hidden print:overflow-visible print:h-auto print:gap-2">
+      {/* Official PDF Print Letterhead - Only shown during Print / PDF Export */}
+      <div className="hidden print:flex items-center justify-between pb-3 mb-2 border-b-2 border-slate-900">
+        <div className="flex items-center gap-3">
+          {user?.organization?.logoUrl ? (
+            <img
+              src={user.organization.logoUrl}
+              alt="Logo"
+              className="w-12 h-12 object-contain rounded"
+            />
+          ) : (
+            <div className="w-10 h-10 bg-emerald-800 text-white font-extrabold flex items-center justify-center rounded-lg text-lg">
+              {user?.organization?.name ? user.organization.name.charAt(0).toUpperCase() : "E"}
+            </div>
+          )}
+          <div>
+            <h2 className="text-lg font-black tracking-tight text-slate-900 uppercase">
+              {user?.organization?.name || "Ekhone HRM"}
+            </h2>
+            <p className="text-xs font-semibold text-emerald-800 tracking-wide">
+              ATTENDANCE MONITORING REPORT
+            </p>
+          </div>
+        </div>
+
+        <div className="text-right text-xs">
+          <p className="font-bold text-slate-900">
+            Date / Range:{" "}
+            <span className="font-mono text-emerald-900">
+              {dateRange.startDate === dateRange.endDate
+                ? formatDate(dateRange.startDate)
+                : `${formatDate(dateRange.startDate)} — ${formatDate(dateRange.endDate)}`}
+            </span>
+          </p>
+          <p className="text-[10px] text-slate-500 mt-0.5">
+            Total Employees Logged: <span className="font-bold text-slate-800">{filteredRecords.length}</span> · Generated: {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+          </p>
+        </div>
+      </div>
+
       {/* Header Row - Sticky / Fixed at top */}
-      <div className="shrink-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <div className="shrink-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 print:hidden">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-slate-800 flex items-center gap-2">
             <CalendarCheck className="w-5 h-5 text-emerald-700" /> Attendance Monitoring
@@ -195,7 +236,7 @@ export default function AdminAttendancePage() {
       )}
 
       {/* Metrics Row - Sticky / Fixed */}
-      <div className="shrink-0 grid grid-cols-2 sm:grid-cols-5 gap-3">
+      <div className="shrink-0 grid grid-cols-2 sm:grid-cols-5 gap-3 print:hidden">
         <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4 shadow-xs">
           <div className="flex items-center justify-between text-xs text-slate-800">
             <span>Logged Today</span>
@@ -311,7 +352,7 @@ export default function AdminAttendancePage() {
             <p className="text-xs">No attendance records found for this criteria.</p>
           </div>
         ) : (
-          <div className="flex-1 md:overflow-y-auto overflow-x-auto table-scrollbar">
+          <div className="flex-1 md:overflow-y-auto overflow-x-auto table-scrollbar print:overflow-visible print:max-h-none print:h-auto">
             {/* Mobile Card List (Hidden on sm/md/lg and print) */}
             <div className="sm:hidden print:hidden divide-y divide-slate-200">
               {filteredRecords.map((item) => (
