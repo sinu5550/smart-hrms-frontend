@@ -118,7 +118,7 @@ export default function LoginPage() {
           <a
             href="/downloads/SmartHRM-Biometric-Agent.zip"
             download="SmartHRM-Biometric-Agent.zip"
-            className="w-full inline-flex items-center justify-center gap-2 px-3 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-lg transition shadow-sm"
+            className="hidden md:inline-flex w-full items-center justify-center gap-2 px-3 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-lg transition shadow-sm"
             title="Download complete standalone biometric cloud bridge agent (Zero Node.js setup needed)"
           >
             <Download className="w-4 h-4 text-emerald-400" />
