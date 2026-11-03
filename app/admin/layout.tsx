@@ -27,6 +27,7 @@ import {
   HandCoins,
   CalendarDays,
   FileSignature,
+  Download,
 } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -36,6 +37,40 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isWorkspaceMenuOpen, setIsWorkspaceMenuOpen] = useState(false);
   const workspaceMenuRef = useRef<HTMLDivElement>(null);
+
+  // Desktop Suite Update Checker (Runs only ONCE when application boots/opens)
+  const [updateAvailable, setUpdateAvailable] = useState<{
+    versionName: string;
+    fileSizeMb: number;
+    patchZipUrl: string;
+    releaseNotes?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    // Only check if running on Desktop Suite (localhost / 127.0.0.1)
+    if (typeof window === "undefined") return;
+    const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+    if (!isLocal) return;
+
+    // Check once per session / boot using sessionStorage flag
+    const hasCheckedSession = sessionStorage.getItem("smarthrm_update_checked");
+    if (hasCheckedSession) return;
+    sessionStorage.setItem("smarthrm_update_checked", "true");
+
+    fetch("http://localhost:7000/api/settings/check-update?currentVersionCode=1")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.hasUpdate) {
+          setUpdateAvailable({
+            versionName: data.versionName || "v2.1.0-Patch",
+            fileSizeMb: data.fileSizeMb || 6.8,
+            patchZipUrl: data.patchZipUrl || "https://app.creativeboxbd.com/downloads/SmartHRM-Desktop-Patch.zip",
+            releaseNotes: data.releaseNotes,
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!localStorage.getItem("access_token")) {
@@ -470,6 +505,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
 
           <div className="flex items-center gap-2.5 text-xs">
+            {/* Desktop Update Notification Button */}
+            {updateAvailable && (
+              <a
+                href={updateAvailable.patchZipUrl}
+                download="SmartHRM-Desktop-Patch.zip"
+                title={`New update ${updateAvailable.versionName} available (${updateAvailable.fileSizeMb}MB). Click to download patch.`}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-xs animate-bounce"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Update Available ({updateAvailable.versionName})</span>
+              </a>
+            )}
+
             <Link
               href="/admin/settings/organization"
               className="hidden sm:flex text-slate-600 hover:text-emerald-700 text-xs items-center gap-1.5 font-medium px-2.5 py-1.5 rounded-lg hover:bg-slate-50 transition"

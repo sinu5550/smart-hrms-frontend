@@ -41,7 +41,11 @@ export default function EmployeeRegistrationAdminPage() {
 
   useEffect(() => {
     if (typeof window !== "undefined" && tenantSlug) {
-      setFormUrl(`${window.location.origin}/${tenantSlug}/forms/employee-registration`);
+      // If running locally (localhost / 127.0.0.1), use official cloud domain https://app.creativeboxbd.com
+      // so applicants / new employees can access and submit the form from their phones/devices anywhere!
+      const isLocalHost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+      const baseUrl = isLocalHost ? "https://app.creativeboxbd.com" : window.location.origin;
+      setFormUrl(`${baseUrl}/${tenantSlug}/forms/employee-registration`);
     }
   }, [tenantSlug]);
 
