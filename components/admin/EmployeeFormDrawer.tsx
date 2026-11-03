@@ -396,7 +396,10 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
               </div>
             </div>
           ) : (
-            <form id="onboard-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <form id="onboard-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4" autoComplete="off">
+              {/* Dummy inputs to absorb Chrome/Edge aggressive credential autofill */}
+              <input type="text" style={{ display: "none" }} aria-hidden="true" tabIndex={-1} />
+              <input type="password" style={{ display: "none" }} aria-hidden="true" tabIndex={-1} />
               {pendingRegistrations.length > 0 && (
                 <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-between shadow-xs">
                   <div className="flex items-center gap-2.5">
@@ -571,6 +574,8 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
                     <label className="text-[11px] font-semibold text-slate-800">Work Email *</label>
                     <Input
                       {...register("email")}
+                      autoComplete="off"
+                      data-lpignore="true"
                       className="mt-1 h-10 rounded-lg"
                     />
                     {errors.email && (
@@ -603,6 +608,9 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
                   <Input
                     {...register("password")}
                     type={showPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    data-lpignore="true"
+                    data-form-type="other"
                     placeholder="Set custom password (min. 6 characters)"
                     className="h-10 rounded-lg pr-10"
                   />
