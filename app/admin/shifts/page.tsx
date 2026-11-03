@@ -22,7 +22,6 @@ export default function ShiftsPage() {
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("18:00");
   const [gracePeriodMinutes, setGracePeriodMinutes] = useState(30);
-  const [overtimeThresholdMins, setOvertimeThresholdMins] = useState(30);
   const [isDefault, setIsDefault] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -33,7 +32,6 @@ export default function ShiftsPage() {
     setStartTime("09:00");
     setEndTime("18:00");
     setGracePeriodMinutes(30);
-    setOvertimeThresholdMins(30);
     setIsDefault(shifts.length === 0);
     setFormError(null);
     setIsModalOpen(true);
@@ -45,7 +43,6 @@ export default function ShiftsPage() {
     setStartTime(shift.startTime);
     setEndTime(shift.endTime);
     setGracePeriodMinutes(shift.gracePeriodMinutes);
-    setOvertimeThresholdMins(shift.overtimeThresholdMins ?? 30);
     setIsDefault(shift.isDefault);
     setFormError(null);
     setIsModalOpen(true);
@@ -61,7 +58,6 @@ export default function ShiftsPage() {
       startTime,
       endTime,
       gracePeriodMinutes: Number(gracePeriodMinutes),
-      overtimeThresholdMins: Number(overtimeThresholdMins),
       isDefault,
     };
 
@@ -185,9 +181,6 @@ export default function ShiftsPage() {
                   <p>
                     Late Grace Period: <span className="font-semibold text-slate-800">{shift.gracePeriodMinutes} mins</span>
                   </p>
-                  <p>
-                    Overtime Threshold: <span className="font-semibold text-emerald-700">{shift.overtimeThresholdMins ?? 30} mins buffer</span>
-                  </p>
                 </div>
               </div>
 
@@ -265,23 +258,6 @@ export default function ShiftsPage() {
                 required
               />
               <p className="text-[10px] text-slate-500 mt-1">Arrivals within this grace period are not marked as late.</p>
-            </div>
-
-            <div>
-              <label className="text-xs font-semibold text-slate-800">Overtime Threshold Buffer (Minutes)</label>
-              <Input
-                type="number"
-                min={0}
-                max={300}
-                value={overtimeThresholdMins}
-                onChange={(e) => setOvertimeThresholdMins(Number(e.target.value))}
-                className="mt-1 h-10 rounded-lg"
-                placeholder="30"
-                required
-              />
-              <p className="text-[10px] text-slate-500 mt-1">
-                Once required duty hours are fulfilled, overtime begins after this buffer (e.g. 30 mins).
-              </p>
             </div>
 
             <label className="flex items-center gap-2 text-xs font-medium text-slate-800 cursor-pointer pt-1">

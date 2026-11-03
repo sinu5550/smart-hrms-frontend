@@ -113,6 +113,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const allSettingsNavItems = [
     { label: "Core HR & Branches", href: "/admin/settings/core-hr", icon: Layers, perm: "organization.settings" },
+    { label: "Shift & Overtime Rules", href: "/admin/settings/shift", icon: Sliders, perm: "shift.settings" },
     { label: "Permission & Access", href: "/admin/settings/permissions", icon: ShieldCheck, perm: "employees.permissions" },
     { label: "Organization & Branding", href: "/admin/settings/organization", icon: Building2, perm: "organization.settings" },
   ];
