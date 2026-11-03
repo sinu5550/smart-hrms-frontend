@@ -51,6 +51,7 @@ export default function DepartmentsPage() {
   // Optimistic UI state maps
   const [optimisticOffDays, setOptimisticOffDays] = useState<Record<string, string[]>>({});
   const [optimisticShifts, setOptimisticShifts] = useState<Record<string, string | null>>({});
+  const [optimisticHeadUserIds, setOptimisticHeadUserIds] = useState<Record<string, string | null>>({});
 
   // If logged-in user is a Department Head with EMPLOYEE role, only show the department(s) they manage
   const isDeptHeadOnly = Boolean(
@@ -140,13 +141,27 @@ export default function DepartmentsPage() {
   // Change Department Head
   const handleAssignHead = async (headUserId: string) => {
     if (!selectedDeptId) return;
+    const previousHeadId = selectedDept?.headUserId ?? null;
+    const newHeadId = headUserId ? headUserId : null;
+
+    // Instant optimistic update in modal
+    setOptimisticHeadUserIds((prev) => ({
+      ...prev,
+      [selectedDeptId]: newHeadId,
+    }));
+
     try {
       await updateDepartmentMutation.mutateAsync({
         id: selectedDeptId,
-        payload: { headUserId: headUserId || null },
+        payload: { headUserId: newHeadId },
       });
       setSuccessMsg("Department Head updated successfully.");
     } catch (err) {
+      // Revert optimistic state on error
+      setOptimisticHeadUserIds((prev) => ({
+        ...prev,
+        [selectedDeptId]: previousHeadId,
+      }));
       alert(parseApiError(err));
     }
   };
@@ -448,7 +463,11 @@ export default function DepartmentsPage() {
                   ) : (
                     // Admin & HR can change Dept Head
                     <Select
-                      value={selectedDept.headUserId || "NONE"}
+                      value={
+                        (selectedDeptId && optimisticHeadUserIds[selectedDeptId] !== undefined
+                          ? optimisticHeadUserIds[selectedDeptId]
+                          : selectedDept.headUserId) || "NONE"
+                      }
                       onValueChange={(val) => handleAssignHead(val === "NONE" ? "" : val)}
                       triggerClassName="h-9 text-xs rounded-lg"
                       placeholder="-- Select Department Head --"

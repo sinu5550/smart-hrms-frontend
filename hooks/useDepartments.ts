@@ -37,9 +37,12 @@ export function useUpdateDepartment() {
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: UpdateDepartmentPayload }) =>
       DepartmentService.update(id, payload),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.departments.all });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.employees.all });
+      if (variables?.id) {
+        queryClient.invalidateQueries({ queryKey: ["department", variables.id] });
+      }
     },
   });
 }
