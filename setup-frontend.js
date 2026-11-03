@@ -138,7 +138,7 @@ export default function HomePage() {
         <div className="space-y-3 pt-4">
           <Link
             href="/portal/attendance"
-            className="flex items-center justify-between p-4 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-emerald-500/50 transition group"
+            className="flex items-center justify-between p-4 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-emerald-500/50 transition group"
           >
             <div className="flex items-center gap-3 text-left">
               <QrCode className="w-6 h-6 text-emerald-400" />
@@ -152,7 +152,7 @@ export default function HomePage() {
 
           <Link
             href="/admin/employees"
-            className="flex items-center justify-between p-4 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-blue-500/50 transition group"
+            className="flex items-center justify-between p-4 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-blue-500/50 transition group"
           >
             <div className="flex items-center gap-3 text-left">
               <Users className="w-6 h-6 text-blue-400" />
@@ -691,13 +691,13 @@ export default function MobileAttendancePortal() {
             <p className="text-xs text-zinc-400 mt-1">Attendance logs committed.</p>
           </div>
           <div className="grid grid-cols-2 gap-3 pt-4 border-t border-zinc-800">
-            <div className="bg-zinc-950 p-3 rounded-xl border border-zinc-800/80">
+            <div className="bg-zinc-950 p-3 rounded-lg border border-zinc-800/80">
               <p className="text-[10px] uppercase font-semibold text-zinc-400">Total Work</p>
               <p className="text-lg font-bold text-zinc-100 mt-1">
                 {Math.floor((activeRecord?.totalWorkMinutes || 0) / 60)}h {(activeRecord?.totalWorkMinutes || 0) % 60}m
               </p>
             </div>
-            <div className="bg-zinc-950 p-3 rounded-xl border border-zinc-800/80">
+            <div className="bg-zinc-950 p-3 rounded-lg border border-zinc-800/80">
               <p className="text-[10px] uppercase font-semibold text-zinc-400">Total Breaks</p>
               <p className="text-lg font-bold text-zinc-100 mt-1">{activeRecord?.totalBreakMinutes || 0}m</p>
             </div>
@@ -749,13 +749,13 @@ export default function MobileAttendancePortal() {
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() => setActiveModal("SELECT_BREAK")}
-                className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-xs font-semibold transition"
+                className="flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-xs font-semibold transition"
               >
                 <Coffee className="w-4 h-4" /> Take a Break
               </button>
               <button
                 onClick={executeCheckOut}
-                className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-xs font-semibold transition"
+                className="flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-xs font-semibold transition"
               >
                 <LogOut className="w-4 h-4" /> Clock Out
               </button>
@@ -808,7 +808,7 @@ export default function MobileAttendancePortal() {
                 <button
                   key={type}
                   onClick={() => setSelectedBreakType(type)}
-                  className={\`w-full flex items-center justify-between p-3 rounded-xl border text-xs font-medium transition \${
+                  className={\`w-full flex items-center justify-between p-3 rounded-lg border text-xs font-medium transition \${
                     selectedBreakType === type
                       ? "border-amber-500 bg-amber-500/10 text-amber-300"
                       : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-700"
@@ -855,7 +855,7 @@ export default function MobileAttendancePortal() {
             </div>
             <button
               onClick={() => setActiveModal("NONE")}
-              className="w-full py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-zinc-200 transition"
+              className="w-full py-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-zinc-200 transition"
             >
               Acknowledged
             </button>
@@ -922,7 +922,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={\`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition \${
+                  className={\`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold transition \${
                     isActive
                       ? "bg-emerald-600 text-white shadow-lg shadow-emerald-950"
                       : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
@@ -1020,7 +1020,7 @@ export default function EmployeesDirectoryPage() {
         </div>
         <button
           onClick={() => setIsDrawerOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-emerald-950 transition"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow-lg shadow-emerald-950 transition"
         >
           <UserPlus className="w-4 h-4" /> Enlist New Employee
         </button>
@@ -1034,14 +1034,14 @@ export default function EmployeesDirectoryPage() {
             placeholder="Search by name, ID (e.g. EKH-25-0001)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none"
+            className="w-full pl-9 pr-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none"
           />
         </div>
 
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-300 focus:outline-none"
+          className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-300 focus:outline-none"
         >
           <option value="ALL">All Employment Statuses</option>
           <option value="ACTIVE">ACTIVE</option>
@@ -1053,7 +1053,7 @@ export default function EmployeesDirectoryPage() {
         <select
           value={bloodGroupFilter}
           onChange={(e) => setBloodGroupFilter(e.target.value)}
-          className="bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-300 focus:outline-none"
+          className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-300 focus:outline-none"
         >
           <option value="ALL">All Blood Groups</option>
           {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((bg) => (
@@ -1283,13 +1283,13 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
               <p className="text-xs text-zinc-300">
                 Temporary credentials for employee:
               </p>
-              <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800 font-mono text-xs text-emerald-400 space-y-1">
+              <div className="bg-zinc-950 p-4 rounded-lg border border-zinc-800 font-mono text-xs text-emerald-400 space-y-1">
                 <p>Employee ID: {createdCredentials.id}</p>
                 <p>Temporary Password: {createdCredentials.tempPass}</p>
               </div>
               <button
                 onClick={onSuccess}
-                className="w-full py-2.5 bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold rounded-xl text-white"
+                className="w-full py-2.5 bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold rounded-lg text-white"
               >
                 Close & Refresh List
               </button>
@@ -1297,7 +1297,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
           ) : (
             <form id="onboard-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="flex items-center gap-4 p-3 bg-zinc-950 border border-zinc-800 rounded-2xl">
-                <div className="w-16 h-16 rounded-xl bg-zinc-900 border border-zinc-700 overflow-hidden shrink-0 flex items-center justify-center">
+                <div className="w-16 h-16 rounded-lg bg-zinc-900 border border-zinc-700 overflow-hidden shrink-0 flex items-center justify-center">
                   {avatarPreview ? (
                     <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
                   ) : (
@@ -1319,7 +1319,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
                   <input
                     {...register("employeeId")}
                     placeholder="EKH-25-0001"
-                    className="w-full mt-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs font-mono text-zinc-200 uppercase"
+                    className="w-full mt-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-xs font-mono text-zinc-200 uppercase"
                   />
                   {errors.employeeId && (
                     <p className="text-[10px] text-rose-400 mt-1">{errors.employeeId.message}</p>
@@ -1329,7 +1329,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
                   <label className="text-[11px] font-semibold text-zinc-400">System Role</label>
                   <select
                     {...register("role")}
-                    className="w-full mt-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-200"
+                    className="w-full mt-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-zinc-200"
                   >
                     <option value="EMPLOYEE">EMPLOYEE</option>
                     <option value="HR">HR</option>
@@ -1343,7 +1343,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
                   <label className="text-[11px] font-semibold text-zinc-400">Full Legal Name *</label>
                   <input
                     {...register("fullName")}
-                    className="w-full mt-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-200"
+                    className="w-full mt-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-zinc-200"
                   />
                   {errors.fullName && (
                     <p className="text-[10px] text-rose-400 mt-1">{errors.fullName.message}</p>
@@ -1354,7 +1354,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
                     <label className="text-[11px] font-semibold text-zinc-400">Work Email *</label>
                     <input
                       {...register("email")}
-                      className="w-full mt-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-200"
+                      className="w-full mt-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-zinc-200"
                     />
                     {errors.email && (
                       <p className="text-[10px] text-rose-400 mt-1">{errors.email.message}</p>
@@ -1364,7 +1364,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
                     <label className="text-[11px] font-semibold text-zinc-400">Contact Phone *</label>
                     <input
                       {...register("phone")}
-                      className="w-full mt-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-200"
+                      className="w-full mt-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-zinc-200"
                     />
                     {errors.phone && (
                       <p className="text-[10px] text-rose-400 mt-1">{errors.phone.message}</p>
@@ -1377,7 +1377,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
                 <label className="text-[11px] font-semibold text-zinc-400">Blood Group</label>
                 <select
                   {...register("bloodGroup")}
-                  className="w-full mt-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-200"
+                  className="w-full mt-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-zinc-200"
                 >
                   <option value="">Select Blood Group</option>
                   {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((bg) => (
@@ -1394,7 +1394,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
                   <textarea
                     {...register("presentAddress")}
                     rows={2}
-                    className="w-full mt-1 p-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-200"
+                    className="w-full mt-1 p-2 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-zinc-200"
                   />
                 </div>
                 <div>
@@ -1402,12 +1402,12 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
                   <textarea
                     {...register("permanentAddress")}
                     rows={2}
-                    className="w-full mt-1 p-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-200"
+                    className="w-full mt-1 p-2 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-zinc-200"
                   />
                 </div>
               </div>
 
-              <div className="p-3 bg-zinc-950/60 border border-zinc-800 rounded-xl space-y-3">
+              <div className="p-3 bg-zinc-950/60 border border-zinc-800 rounded-lg space-y-3">
                 <p className="text-[11px] font-bold text-zinc-300">Emergency Contact</p>
                 <div className="grid grid-cols-3 gap-2">
                   <input
@@ -1436,7 +1436,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
             <button
               onClick={onClose}
               type="button"
-              className="flex-1 py-2.5 border border-zinc-700 text-xs font-semibold rounded-xl text-zinc-300"
+              className="flex-1 py-2.5 border border-zinc-700 text-xs font-semibold rounded-lg text-zinc-300"
             >
               Cancel
             </button>
@@ -1444,7 +1444,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
               form="onboard-form"
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold rounded-xl text-white shadow-lg shadow-emerald-950"
+              className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold rounded-lg text-white shadow-lg shadow-emerald-950"
             >
               {isSubmitting ? "Registering..." : "Submit & Create"}
             </button>
@@ -1507,7 +1507,7 @@ export const DeleteEmployeeConfirmModal: React.FC<Props> = ({ employee, onClose,
           </p>
         </div>
 
-        <div className="bg-zinc-900 p-3 rounded-xl border border-zinc-800">
+        <div className="bg-zinc-900 p-3 rounded-lg border border-zinc-800">
           <p className="text-[11px] text-zinc-400 mb-1">To execute this, enter this exact string:</p>
           <code className="text-xs font-mono font-bold text-rose-400 select-all">{requiredString}</code>
         </div>
@@ -1517,20 +1517,20 @@ export const DeleteEmployeeConfirmModal: React.FC<Props> = ({ employee, onClose,
           value={typedConfirmation}
           onChange={(e) => setTypedConfirmation(e.target.value)}
           placeholder={\`Type "\${requiredString}"\`}
-          className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-xs font-mono text-zinc-200 focus:outline-none focus:border-rose-700"
+          className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-xs font-mono text-zinc-200 focus:outline-none focus:border-rose-700"
         />
 
         <div className="flex gap-2 pt-2">
           <button
             onClick={onClose}
-            className="flex-1 py-2.5 border border-zinc-700 text-xs font-semibold rounded-xl text-zinc-300"
+            className="flex-1 py-2.5 border border-zinc-700 text-xs font-semibold rounded-lg text-zinc-300"
           >
             Cancel
           </button>
           <button
             onClick={handleDelete}
             disabled={!isMatch || isDeleting}
-            className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-xs font-semibold rounded-xl text-white transition flex items-center justify-center gap-1.5"
+            className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-xs font-semibold rounded-lg text-white transition flex items-center justify-center gap-1.5"
           >
             <Trash2 className="w-3.5 h-3.5" />
             {isDeleting ? "Archiving..." : "Delete Employee"}
@@ -1603,7 +1603,7 @@ export default function ShiftConfigurationPage() {
             <label className="text-xs font-semibold text-zinc-300">Shift Name</label>
             <input
               {...register("shiftName")}
-              className="w-full mt-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-200"
+              className="w-full mt-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-zinc-200"
             />
           </div>
 
@@ -1614,7 +1614,7 @@ export default function ShiftConfigurationPage() {
                 type="text"
                 {...register("startTime")}
                 placeholder="09:00"
-                className="w-full mt-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs font-mono text-zinc-200"
+                className="w-full mt-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-xs font-mono text-zinc-200"
               />
               <p className="text-[10px] text-zinc-500 mt-1">Format: HH:mm (e.g. 09:00)</p>
             </div>
@@ -1624,13 +1624,13 @@ export default function ShiftConfigurationPage() {
                 type="text"
                 {...register("endTime")}
                 placeholder="18:00"
-                className="w-full mt-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs font-mono text-zinc-200"
+                className="w-full mt-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-xs font-mono text-zinc-200"
               />
               <p className="text-[10px] text-zinc-500 mt-1">Format: HH:mm (e.g. 18:00)</p>
             </div>
           </div>
 
-          <div className="p-4 bg-zinc-950 border border-zinc-800 rounded-xl space-y-2">
+          <div className="p-4 bg-zinc-950 border border-zinc-800 rounded-lg space-y-2">
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-amber-400" />
               <label className="text-xs font-semibold text-zinc-200">Grace Period (Minutes)</label>
@@ -1638,7 +1638,7 @@ export default function ShiftConfigurationPage() {
             <input
               type="number"
               {...register("gracePeriodMinutes")}
-              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-xs font-mono text-zinc-200"
+              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-xs font-mono text-zinc-200"
             />
             <p className="text-[11px] text-zinc-400">
               Arrivals after <span className="text-amber-400 font-semibold">[Shift Start + Grace Period]</span> are
@@ -1649,7 +1649,7 @@ export default function ShiftConfigurationPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex items-center justify-center gap-2 w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-emerald-950 transition"
+            className="flex items-center justify-center gap-2 w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow-lg shadow-emerald-950 transition"
           >
             <Save className="w-4 h-4" />
             {isSubmitting ? "Committing Changes..." : "Save Shift Rules"}

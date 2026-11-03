@@ -207,7 +207,7 @@ export default function EmployeesDirectoryPage() {
           {isLoading ? (
             <>
               {[1, 2, 3, 4].map((n) => (
-                <div key={n} className="p-3.5 space-y-3 rounded-xl border border-slate-200 bg-white shadow-xs">
+                <div key={n} className="p-3.5 space-y-3 rounded-lg border border-slate-200 bg-white shadow-xs">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <div className="w-10 h-10 rounded-full bg-slate-200/80 animate-pulse shrink-0" />
@@ -226,7 +226,7 @@ export default function EmployeesDirectoryPage() {
               ))}
             </>
           ) : filteredEmployees.length === 0 ? (
-            <div className="p-8 text-center text-xs text-slate-500 bg-white rounded-xl border border-slate-200">
+            <div className="p-8 text-center text-xs text-slate-500 bg-white rounded-lg border border-slate-200">
               No matching personnel found.
             </div>
           ) : (
@@ -235,7 +235,7 @@ export default function EmployeesDirectoryPage() {
               return (
                 <div
                   key={emp.id}
-                  className={`p-3.5 space-y-3 rounded-xl border transition ${
+                  className={`p-3.5 space-y-3 rounded-lg border transition ${
                     isChecked ? "border-rose-300 bg-rose-50/20 shadow-xs" : "border-slate-200/90 bg-white shadow-xs"
                   }`}
                 >

@@ -112,14 +112,14 @@ export default function HrLoansPage() {
       )}
 
       {/* Simulator & Application Form */}
-      <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4">
+      <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-4">
         <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
           <Calculator className="w-4 h-4 text-emerald-700" />
           Loan EMI Calculator & Application
         </h2>
 
         {/* Live EMI Preview Box */}
-        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between">
+        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-between">
           <div>
             <p className="text-[10px] uppercase font-bold text-emerald-800">Estimated Monthly Deduction</p>
             <p className="text-xl font-black text-emerald-950 font-mono mt-0.5">
@@ -210,7 +210,7 @@ export default function HrLoansPage() {
       </div>
 
       {/* Loan History */}
-      <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-3">
+      <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-3">
         <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
           <Clock className="w-4 h-4 text-slate-500" />
           My Loan Ledger & Approvals

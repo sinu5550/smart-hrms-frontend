@@ -222,7 +222,7 @@ export default function OrganizationSettingsPage() {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Ekhone IT"
                 required
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-600 focus:outline-none text-xs text-slate-800 bg-white"
+                className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 focus:border-emerald-600 focus:outline-none text-xs text-slate-800 bg-white"
               />
             </div>
 
@@ -235,7 +235,7 @@ export default function OrganizationSettingsPage() {
                 value={logoUrl}
                 onChange={(e) => setLogoUrl(e.target.value)}
                 placeholder="https://example.com/logo.png"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-600 focus:outline-none text-xs text-slate-800 bg-white"
+                className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 focus:border-emerald-600 focus:outline-none text-xs text-slate-800 bg-white"
               />
             </div>
 
@@ -248,7 +248,7 @@ export default function OrganizationSettingsPage() {
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder="e.g. 39/A Senpara Parbota, Mirpur 10, Dhaka - 1216"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-600 focus:outline-none text-xs text-slate-800 bg-white"
+                className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 focus:border-emerald-600 focus:outline-none text-xs text-slate-800 bg-white"
               />
               <p className="text-[11px] text-slate-400 mt-1">This address will be automatically displayed at the top of Attendance Reports & Exports.</p>
             </div>
@@ -305,7 +305,7 @@ export default function OrganizationSettingsPage() {
               </div>
 
               {hasRosterDuty && (
-                <div className="mt-3 p-3 bg-indigo-50/50 border border-indigo-100 rounded-xl space-y-2">
+                <div className="mt-3 p-3 bg-indigo-50/50 border border-indigo-100 rounded-lg space-y-2">
                   <p className="text-xs font-semibold text-indigo-900">
                     Select Departments with Roster Duty:
                   </p>
@@ -361,21 +361,21 @@ export default function OrganizationSettingsPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
 
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
                 <p className="text-[10px] uppercase font-semibold text-slate-400">Email Domain</p>
                 <p className="text-xs font-bold text-slate-700 mt-1">
                   {org?.emailDomain || "—"}
                 </p>
               </div>
 
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
                 <p className="text-[10px] uppercase font-semibold text-slate-400">Account Owner</p>
                 <p className="text-xs font-bold text-slate-700 mt-1 truncate">
                   {org?.ownerEmail || user?.email || "—"}
                 </p>
               </div>
 
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
                 <p className="text-[10px] uppercase font-semibold text-slate-400">Subscription Status</p>
                 <p className="text-xs font-bold text-emerald-700 mt-1 uppercase">
                   {org?.status || "TRIAL"}
@@ -387,7 +387,7 @@ export default function OrganizationSettingsPage() {
               <button
                 type="submit"
                 disabled={isSaving}
-                className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition flex items-center gap-2 shadow-sm disabled:opacity-50"
+                className="px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition flex items-center gap-2 shadow-sm disabled:opacity-50"
               >
                 {isSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
                 <span>{isSaving ? "Saving changes..." : "Save Workspace Settings"}</span>

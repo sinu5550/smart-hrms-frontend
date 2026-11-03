@@ -26,7 +26,7 @@ export function TableRowSkeleton({ columns = 6 }: { columns?: number }) {
 
 export function CardSkeleton() {
   return (
-    <div className="p-4 space-y-3 bg-white rounded-xl border border-slate-100 shadow-xs">
+    <div className="p-4 space-y-3 bg-white rounded-lg border border-slate-100 shadow-xs">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <Skeleton className="w-10 h-10 rounded-full shrink-0" />
@@ -47,7 +47,7 @@ export function CardSkeleton() {
 
 export function StatCardSkeleton() {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-3">
+    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs space-y-3">
       <div className="flex items-start justify-between">
         <div className="space-y-2">
           <Skeleton className="h-3 w-24" />

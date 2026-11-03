@@ -328,7 +328,7 @@ export default function BiometricDevicesAdminPage() {
 
         <div className="w-full sm:w-auto">
           {/* Tab Switcher - Horizontal scroll on mobile */}
-          <div className="flex items-center p-1 bg-slate-100 border border-slate-200 rounded-xl overflow-x-auto no-scrollbar max-w-full">
+          <div className="flex items-center p-1 bg-slate-100 border border-slate-200 rounded-lg overflow-x-auto no-scrollbar max-w-full">
             <button
               onClick={() => setActiveTab("DEVICES")}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg shrink-0 transition ${
@@ -668,7 +668,7 @@ export default function BiometricDevicesAdminPage() {
                         className="w-16 h-16 object-contain mx-auto rounded-lg border border-slate-200 p-1 bg-white shadow-xs"
                       />
                     ) : (
-                      <div className="w-14 h-14 rounded-xl bg-emerald-100 text-emerald-800 font-extrabold text-xl flex items-center justify-center mx-auto border border-emerald-300 shadow-xs">
+                      <div className="w-14 h-14 rounded-lg bg-emerald-100 text-emerald-800 font-extrabold text-xl flex items-center justify-center mx-auto border border-emerald-300 shadow-xs">
                         {qrData.organization.name.charAt(0).toUpperCase()}
                       </div>
                     )}
@@ -681,7 +681,7 @@ export default function BiometricDevicesAdminPage() {
                   </div>
 
                   {/* High Quality Scannable QR Code */}
-                  <div className="bg-emerald-50/50 border border-emerald-200 rounded-xl p-4 inline-block mx-auto shadow-inner">
+                  <div className="bg-emerald-50/50 border border-emerald-200 rounded-lg p-4 inline-block mx-auto shadow-inner">
                     <img
                       src={qrData.qrDataUrl}
                       alt="Office Check-in QR"
@@ -690,7 +690,7 @@ export default function BiometricDevicesAdminPage() {
                   </div>
 
                   {/* Verification Tag & Scan Instructions */}
-                  <div className="space-y-2 bg-slate-50 border border-slate-200/80 rounded-xl p-3.5">
+                  <div className="space-y-2 bg-slate-50 border border-slate-200/80 rounded-lg p-3.5">
                     <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-800">
                       <ShieldCheck className="w-4 h-4 text-emerald-600" />
                       <span>Cryptographically Signed QR</span>
@@ -1179,7 +1179,7 @@ export default function BiometricDevicesAdminPage() {
             </div>
 
             {/* Video Snapshot Frame */}
-            <div className="relative aspect-video w-full bg-black rounded-xl overflow-hidden border border-slate-800 flex items-center justify-center group shadow-inner">
+            <div className="relative aspect-video w-full bg-black rounded-lg overflow-hidden border border-slate-800 flex items-center justify-center group shadow-inner">
               {activePreviewDevice.ipAddress ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img

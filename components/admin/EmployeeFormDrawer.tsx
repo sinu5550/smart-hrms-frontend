@@ -756,7 +756,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
             </DialogHeader>
 
             <div className="space-y-4 py-2 text-xs">
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-1">
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg space-y-1">
                 <p className="font-bold text-amber-900 flex items-center gap-1.5 text-xs">
                   <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
                   Must Match Organization Prefix!
@@ -772,7 +772,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
 
               <div className="space-y-2">
                 <p className="font-semibold text-slate-800 text-xs">Format breakdown:</p>
-                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 font-mono text-center space-y-2">
+                <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-center space-y-2">
                   <div className="text-base font-bold text-emerald-700 tracking-wider">
                     {employeePrefix || "EKH"}-{currentYear}-0001
                   </div>

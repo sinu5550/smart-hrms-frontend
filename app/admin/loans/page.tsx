@@ -113,7 +113,7 @@ export default function AdminLoansManagementPage() {
       </div>
 
       {/* Filter / Search Bar */}
-      <div className="flex flex-col sm:flex-row gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row gap-3 bg-white p-3 rounded-lg border border-slate-200 shadow-xs">
         <div className="relative flex-1">
           <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
           <input
@@ -142,13 +142,13 @@ export default function AdminLoansManagementPage() {
       </div>
 
       {/* Loan Records */}
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-xs">
         {/* Mobile View: Cards */}
         <div className="sm:hidden divide-y divide-slate-100">
           {isLoading ? (
             <div className="p-3 space-y-3">
               {[1, 2, 3].map((n) => (
-                <div key={n} className="p-4 space-y-3 rounded-xl border border-slate-100 bg-white">
+                <div key={n} className="p-4 space-y-3 rounded-lg border border-slate-100 bg-white">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <div className="w-9 h-9 rounded-full bg-slate-200/80 animate-pulse shrink-0" />

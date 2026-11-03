@@ -520,7 +520,7 @@ export default function CoreHrSettingsHubPage() {
 
             {/* Simulated PVC Card Front */}
             <div
-              className="w-64 h-96 rounded-xl shadow-2xl p-4 flex flex-col items-center justify-between text-white relative overflow-hidden"
+              className="w-64 h-96 rounded-lg shadow-2xl p-4 flex flex-col items-center justify-between text-white relative overflow-hidden"
               style={{ background: `linear-gradient(135deg, ${idStudioConfig.primaryColor}, ${idStudioConfig.accentColor})` }}
             >
               {/* Header */}

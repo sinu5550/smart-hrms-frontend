@@ -177,7 +177,7 @@ export default function PublicEmployeeRegistrationPage() {
   if (error || !org) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-xl p-8 border border-slate-200 text-center space-y-4 shadow-sm">
+        <div className="max-w-md w-full bg-white rounded-lg p-8 border border-slate-200 text-center space-y-4 shadow-sm">
           <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
             <AlertCircle className="w-6 h-6" />
           </div>
@@ -203,7 +203,7 @@ export default function PublicEmployeeRegistrationPage() {
               Thank you, <b>{fullName}</b>! Your profile and onboarding information have been securely delivered to <b>{org.name}</b>.
             </p>
           </div>
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-left space-y-2 text-xs text-slate-600">
+          <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-left space-y-2 text-xs text-slate-600">
             <p className="flex items-center gap-2 font-medium text-slate-800">
               <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
               <span>Next Steps:</span>
@@ -286,17 +286,17 @@ export default function PublicEmployeeRegistrationPage() {
                   <img
                     src={avatarPreview}
                     alt="Preview"
-                    className="w-20 h-20 rounded-xl object-cover border-2 border-emerald-500 shadow-sm"
+                    className="w-20 h-20 rounded-lg object-cover border-2 border-emerald-500 shadow-sm"
                   />
                 ) : (
-                  <div className="w-20 h-20 rounded-xl bg-slate-100 border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400">
+                  <div className="w-20 h-20 rounded-lg bg-slate-100 border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400">
                     <Camera className="w-6 h-6" />
                     <span className="text-[10px] mt-1 font-medium">Add Photo</span>
                   </div>
                 )}
                 <label
                   htmlFor="avatar-file-input"
-                  className="absolute inset-0 cursor-pointer rounded-xl flex items-center justify-center bg-black/40 text-white opacity-0 group-hover:opacity-100 transition"
+                  className="absolute inset-0 cursor-pointer rounded-lg flex items-center justify-center bg-black/40 text-white opacity-0 group-hover:opacity-100 transition"
                 >
                   <Upload className="w-4 h-4" />
                 </label>

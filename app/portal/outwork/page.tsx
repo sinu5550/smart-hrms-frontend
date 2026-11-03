@@ -133,7 +133,7 @@ export default function OutworkSubmissionPage() {
       )}
 
       {/* Submission Form */}
-      <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
+      <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs">
         <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-3 flex items-center gap-1.5">
           <Navigation className="w-4 h-4 text-emerald-700" />
           New Outwork Request
@@ -217,7 +217,7 @@ export default function OutworkSubmissionPage() {
       </div>
 
       {/* History Log */}
-      <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-3">
+      <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-3">
         <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
           <Clock className="w-4 h-4 text-slate-500" />
           Outwork History & Approvals

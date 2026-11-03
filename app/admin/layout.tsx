@@ -194,7 +194,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="p-3 border-b border-slate-100 relative shrink-0" ref={workspaceMenuRef}>
             <button
               onClick={() => setIsWorkspaceMenuOpen(!isWorkspaceMenuOpen)}
-              className={`w-full flex items-center justify-between p-2 rounded-xl border border-slate-200/80 hover:bg-slate-50 transition text-left ${
+              className={`w-full flex items-center justify-between p-2 rounded-lg border border-slate-200/80 hover:bg-slate-50 transition text-left ${
                 isWorkspaceMenuOpen ? "bg-slate-50 ring-2 ring-emerald-500/20" : ""
               }`}
             >
@@ -226,7 +226,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
             {/* Switch Workspace Dropdown */}
             {isWorkspaceMenuOpen && (
-              <div className="absolute left-3 right-3 top-16 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-150">
+              <div className="absolute left-3 right-3 top-16 bg-white border border-slate-200 rounded-lg shadow-xl z-50 p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-150">
                 <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   Switch Workspace
                 </div>
@@ -272,7 +272,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition active:scale-[0.99] ${
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold transition active:scale-[0.99] ${
                     isActive
                       ? "bg-emerald-600 text-white shadow-xs"
                       : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
@@ -290,7 +290,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <button
                   type="button"
                   onClick={() => setIsAttendanceOpen(!isAttendanceOpen)}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition ${
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-semibold transition ${
                     isAttendanceActive
                       ? "bg-emerald-600 text-white shadow-xs"
                       : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
@@ -343,7 +343,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition active:scale-[0.99] ${
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold transition active:scale-[0.99] ${
                     isActive
                       ? "bg-emerald-600 text-white shadow-xs"
                       : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
@@ -361,7 +361,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <button
                   type="button"
                   onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition ${
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-semibold transition ${
                     isSettingsActive
                       ? "bg-slate-100 text-slate-900 font-bold"
                       : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
@@ -410,7 +410,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* User Footer Profile */}
         <div className="p-3 border-t border-slate-100 shrink-0 bg-white">
-          <div className="flex items-center justify-between p-1.5 rounded-xl bg-slate-50 border border-slate-200/60">
+          <div className="flex items-center justify-between p-1.5 rounded-lg bg-slate-50 border border-slate-200/60">
             <Link
               href="/portal/profile"
               title="View & Edit My Profile"
@@ -449,7 +449,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {/* Mobile Hamburger Drawer Trigger */}
             <button
               onClick={() => setIsMobileMenuOpen(true)}
-              className="md:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition active:scale-95"
+              className="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition active:scale-95"
               aria-label="Open navigation menu"
             >
               <div className="space-y-1 w-4">

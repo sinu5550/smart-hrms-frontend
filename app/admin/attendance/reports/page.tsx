@@ -468,7 +468,7 @@ export default function AttendanceReportsPage() {
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => queryClient.invalidateQueries({ queryKey: ["attendance", "summary-report"] })}
-            className="p-2.5 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-700 transition shadow-xs"
+            className="p-2.5 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg text-slate-700 transition shadow-xs"
             title="Refresh logs"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin text-emerald-700" : ""}`} />
@@ -478,7 +478,7 @@ export default function AttendanceReportsPage() {
           <button
             onClick={handlePrint}
             disabled={filteredRows.length === 0}
-            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white text-xs font-bold transition shadow-xs active:scale-95"
+            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-lg bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white text-xs font-bold transition shadow-xs active:scale-95"
             title="Export / Print PDF (Landscape)"
           >
             <Printer className="w-4 h-4" />
@@ -489,7 +489,7 @@ export default function AttendanceReportsPage() {
           <button
             onClick={exportToExcel}
             disabled={filteredRows.length === 0}
-            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold transition shadow-xs active:scale-95"
+            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold transition shadow-xs active:scale-95"
             title="Export Excel Worksheet"
           >
             <FileSpreadsheet className="w-4 h-4" />
@@ -500,7 +500,7 @@ export default function AttendanceReportsPage() {
           <button
             onClick={exportToCSV}
             disabled={filteredRows.length === 0}
-            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold transition shadow-xs active:scale-95"
+            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold transition shadow-xs active:scale-95"
             title="Export Comma-Separated Values"
           >
             <FileDown className="w-4 h-4" />
@@ -511,7 +511,7 @@ export default function AttendanceReportsPage() {
           <button
             onClick={exportToWord}
             disabled={filteredRows.length === 0}
-            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold transition shadow-xs active:scale-95"
+            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold transition shadow-xs active:scale-95"
             title="Export Microsoft Word Document"
           >
             <Download className="w-4 h-4" />
@@ -521,10 +521,10 @@ export default function AttendanceReportsPage() {
       </div>
 
       {/* Filter and Period Selection Bar - Hidden on Print */}
-      <div className="print:hidden bg-white border border-slate-200 rounded-xl p-4 shadow-xs space-y-4">
+      <div className="print:hidden bg-white border border-slate-200 rounded-lg p-4 shadow-xs space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
           {/* Preset Buttons */}
-          <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
+          <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-lg">
             <button
               onClick={() => setPeriodType("DAY")}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
@@ -631,7 +631,7 @@ export default function AttendanceReportsPage() {
       </div>
 
       {/* Printable Report Canvas & Landscape Container */}
-      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-6 print:border-none print:shadow-none print:p-0">
+      <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-xs space-y-6 print:border-none print:shadow-none print:p-0">
         {/* Organization Header */}
         <div className="text-center space-y-1.5 border-b border-slate-200 pb-5">
           {isLoadingOrg ? (
@@ -678,7 +678,7 @@ export default function AttendanceReportsPage() {
 
         {/* Error / Loading / Data rendering */}
         {error ? (
-          <div className="p-8 text-center text-xs text-rose-700 bg-rose-50/50 flex flex-col items-center justify-center gap-2 rounded-xl">
+          <div className="p-8 text-center text-xs text-rose-700 bg-rose-50/50 flex flex-col items-center justify-center gap-2 rounded-lg">
             <span className="font-semibold text-rose-800">Connection Error</span>
             <span>{parseApiError(error)}</span>
           </div>

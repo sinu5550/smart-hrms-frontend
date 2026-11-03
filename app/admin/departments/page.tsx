@@ -526,7 +526,7 @@ export default function DepartmentsPage() {
                 if (deptRequests.length === 0) return null;
 
                 return (
-                  <div className="p-3 bg-purple-50/50 border border-purple-200 rounded-xl space-y-2">
+                  <div className="p-3 bg-purple-50/50 border border-purple-200 rounded-lg space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-purple-600 animate-pulse" />

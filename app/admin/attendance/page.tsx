@@ -220,7 +220,7 @@ export default function AdminAttendancePage() {
 
           <button
             onClick={() => queryClient.invalidateQueries({ queryKey: QUERY_KEYS.attendance.list(queryArg) })}
-            className="p-2.5 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-700 transition shadow-xs"
+            className="p-2.5 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg text-slate-700 transition shadow-xs"
             title="Refresh logs"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin text-emerald-700" : ""}`} />

@@ -83,9 +83,9 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4 bg-[#f4f7fb] text-slate-800">
-      <div className="w-full max-w-md bg-white border border-slate-200 rounded-xl p-8 shadow-sm space-y-6">
+      <div className="w-full max-w-md bg-white border border-slate-200 rounded-lg p-8 shadow-sm space-y-6">
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center justify-center mx-auto text-emerald-700 shadow-xs">
+          <div className="w-12 h-12 bg-emerald-50 border border-emerald-100 rounded-lg flex items-center justify-center mx-auto text-emerald-700 shadow-xs">
             <Shield className="w-6 h-6" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">HRMS Portal Sign In</h1>

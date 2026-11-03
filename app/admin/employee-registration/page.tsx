@@ -82,7 +82,7 @@ export default function EmployeeRegistrationAdminPage() {
       </div>
 
       {/* Shareable Link Banner Card */}
-      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 text-white rounded-xl p-5 shadow-sm border border-slate-700 space-y-4">
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 text-white rounded-lg p-5 shadow-sm border border-slate-700 space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1 max-w-xl">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[11px] font-semibold border border-emerald-500/30">
@@ -133,7 +133,7 @@ export default function EmployeeRegistrationAdminPage() {
 
       {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+        <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs">
           <div className="flex items-center justify-between text-xs text-slate-500 font-semibold">
             <span>Pending Review</span>
             <Clock className="w-4 h-4 text-amber-500" />
@@ -141,7 +141,7 @@ export default function EmployeeRegistrationAdminPage() {
           <p className="text-2xl font-bold text-slate-800 mt-1">{pendingCount}</p>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+        <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs">
           <div className="flex items-center justify-between text-xs text-slate-500 font-semibold">
             <span>Enlisted as Employees</span>
             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
@@ -149,7 +149,7 @@ export default function EmployeeRegistrationAdminPage() {
           <p className="text-2xl font-bold text-slate-800 mt-1">{enlistedCount}</p>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+        <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs">
           <div className="flex items-center justify-between text-xs text-slate-500 font-semibold">
             <span>Rejected / Archived</span>
             <XCircle className="w-4 h-4 text-rose-500" />
@@ -159,7 +159,7 @@ export default function EmployeeRegistrationAdminPage() {
       </div>
 
       {/* Submissions Section */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
         <div className="p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
           <div>
             <h3 className="text-sm font-bold text-slate-800">Submitted Registration Applications</h3>

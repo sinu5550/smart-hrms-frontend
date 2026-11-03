@@ -103,7 +103,7 @@ export default function LifecycleAndRecruitmentHubPage() {
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {jobs.map((job) => (
-              <div key={job.id} className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs space-y-3">
+              <div key={job.id} className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs space-y-3">
                 <div className="flex items-start justify-between">
                   <div>
                     <h3 className="text-xs font-bold text-slate-900">{job.title}</h3>
@@ -129,7 +129,7 @@ export default function LifecycleAndRecruitmentHubPage() {
       {/* ================= TAB 2: LETTER STUDIO ================= */}
       {activeTab === "LETTERS" && (
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-          <div className="md:col-span-4 bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-3.5">
+          <div className="md:col-span-4 bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-3.5">
             <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
               <FileBadge className="w-4 h-4 text-emerald-700" />
               Letter Configuration
@@ -188,7 +188,7 @@ export default function LifecycleAndRecruitmentHubPage() {
             </button>
           </div>
 
-          <div className="md:col-span-8 bg-white border border-slate-200 rounded-xl p-8 shadow-xs print:border-none print:shadow-none space-y-5 font-serif text-slate-800 leading-relaxed text-sm">
+          <div className="md:col-span-8 bg-white border border-slate-200 rounded-lg p-8 shadow-xs print:border-none print:shadow-none space-y-5 font-serif text-slate-800 leading-relaxed text-sm">
             <div className="border-b border-slate-200 pb-4 flex justify-between items-start">
               <div>
                 <h1 className="text-xl font-bold uppercase tracking-wider text-slate-900 font-sans">
@@ -230,7 +230,7 @@ export default function LifecycleAndRecruitmentHubPage() {
 
       {/* ================= TAB 3: DISCIPLINARY ================= */}
       {activeTab === "DISCIPLINE" && (
-        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4">
+        <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
               <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
@@ -264,7 +264,7 @@ export default function LifecycleAndRecruitmentHubPage() {
 
       {/* ================= TAB 4: TRAINING ================= */}
       {activeTab === "TRAINING" && (
-        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4">
+        <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
               <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
@@ -298,7 +298,7 @@ export default function LifecycleAndRecruitmentHubPage() {
 
       {/* ================= TAB 5: KPI ================= */}
       {activeTab === "KPI" && (
-        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4">
+        <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
               <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">

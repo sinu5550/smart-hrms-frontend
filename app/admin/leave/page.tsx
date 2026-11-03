@@ -148,7 +148,7 @@ export default function AdminLeaveManagementPage() {
       </div>
 
       {/* Filter / Search Bar */}
-      <div className="flex flex-col sm:flex-row gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row gap-3 bg-white p-3 rounded-lg border border-slate-200 shadow-xs">
         <div className="relative flex-1">
           <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
           <input
@@ -177,7 +177,7 @@ export default function AdminLeaveManagementPage() {
       </div>
 
       {/* Records Listing */}
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-xs">
         {/* Mobile View: Cards */}
         <div className="sm:hidden divide-y divide-slate-100">
           {isLoading ? (

@@ -220,7 +220,7 @@ export default function MobileAttendancePortal() {
           {isOwner && (
             <Link
               href="/admin/attendance"
-              className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs flex items-center justify-center gap-1.5 active:scale-95"
+              className="w-full py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs flex items-center justify-center gap-1.5 active:scale-95"
             >
               <span>Monitor Employee Attendance</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -228,7 +228,7 @@ export default function MobileAttendancePortal() {
           )}
           <Link
             href="/portal/profile"
-            className="w-full py-2.5 px-4 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold transition flex items-center justify-center"
+            className="w-full py-2.5 px-4 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold transition flex items-center justify-center"
           >
             View My Profile
           </Link>
@@ -266,7 +266,7 @@ export default function MobileAttendancePortal() {
 
       {/* Roster Employee Shift & Off-Day Banner */}
       {statusData?.rosterDetails?.isRosterEmployee && (
-        <section className="w-full mb-4 bg-gradient-to-r from-purple-50 to-indigo-50/60 border border-purple-200/90 rounded-2xl p-4 shadow-xs">
+        <section className="w-full mb-4 bg-gradient-to-r from-purple-50 to-indigo-50/60 border border-purple-200/90 rounded-lg p-4 shadow-xs">
           <div className="flex items-center justify-between mb-2.5">
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-purple-600 animate-pulse" />
@@ -278,7 +278,7 @@ export default function MobileAttendancePortal() {
           </div>
 
           <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="bg-white/90 border border-purple-100 rounded-xl p-2.5 flex flex-col justify-between">
+            <div className="bg-white/90 border border-purple-100 rounded-lg p-2.5 flex flex-col justify-between">
               <div className="flex items-center gap-1 text-[11px] text-slate-500 mb-1">
                 <Clock className="w-3.5 h-3.5 text-purple-600" />
                 <span className="font-semibold text-slate-700">Assigned Shift</span>
@@ -289,7 +289,7 @@ export default function MobileAttendancePortal() {
               </p>
             </div>
 
-            <div className="bg-white/90 border border-purple-100 rounded-xl p-2.5 flex flex-col justify-between">
+            <div className="bg-white/90 border border-purple-100 rounded-lg p-2.5 flex flex-col justify-between">
               <div className="flex items-center gap-1 text-[11px] text-slate-500 mb-1">
                 <CalendarDays className="w-3.5 h-3.5 text-purple-600" />
                 <span className="font-semibold text-slate-700">Designated Off-Days</span>
@@ -370,18 +370,18 @@ export default function MobileAttendancePortal() {
             <p className="text-xs text-slate-800 mt-1">Attendance logs committed.</p>
           </div>
           <div className="grid grid-cols-2 gap-3 pt-4 border-t border-slate-200">
-            <div className="bg-white p-3 rounded-xl border border-slate-200/80">
+            <div className="bg-white p-3 rounded-lg border border-slate-200/80">
               <p className="text-[10px] uppercase font-semibold text-slate-800">Total Work</p>
               <p className="text-lg font-bold text-slate-800 mt-1">
                 {Math.floor((activeRecord?.totalWorkMinutes || 0) / 60)}h {(activeRecord?.totalWorkMinutes || 0) % 60}m
               </p>
             </div>
-            <div className="bg-white p-3 rounded-xl border border-slate-200/80">
+            <div className="bg-white p-3 rounded-lg border border-slate-200/80">
               <p className="text-[10px] uppercase font-semibold text-slate-800">Total Breaks</p>
               <p className="text-lg font-bold text-slate-800 mt-1">{activeRecord?.totalBreakMinutes || 0}m</p>
             </div>
             {(activeRecord?.overtimeMinutes || 0) > 0 && (
-              <div className="bg-indigo-50/80 p-3 rounded-xl border border-indigo-200 col-span-2 text-center">
+              <div className="bg-indigo-50/80 p-3 rounded-lg border border-indigo-200 col-span-2 text-center">
                 <p className="text-[10px] uppercase font-bold text-indigo-700 tracking-wider">Overtime Approved</p>
                 <p className="text-xl font-black text-indigo-800 mt-0.5">
                   +{Math.floor(activeRecord!.overtimeMinutes! / 60)}h {activeRecord!.overtimeMinutes! % 60}m
@@ -425,7 +425,7 @@ export default function MobileAttendancePortal() {
                   <button
                     onClick={executeEndBreak}
                     disabled={isSubmitting}
-                    className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-sm active:scale-[0.99] flex items-center justify-center gap-2"
+                    className="w-full py-3 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-sm active:scale-[0.99] flex items-center justify-center gap-2"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     <span>{isSubmitting ? "Resuming..." : "End Break & Resume Work"}</span>
@@ -453,13 +453,13 @@ export default function MobileAttendancePortal() {
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() => setActiveModal("SELECT_BREAK")}
-                className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 hover:bg-amber-100/80 text-xs font-semibold transition"
+                className="flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 hover:bg-amber-100/80 text-xs font-semibold transition"
               >
                 <Coffee className="w-4 h-4 text-amber-600" /> Take a Break
               </button>
               <button
                 onClick={promptCheckOutQr}
-                className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 hover:bg-rose-100/80 text-xs font-semibold transition"
+                className="flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 hover:bg-rose-100/80 text-xs font-semibold transition"
               >
                 <LogOut className="w-4 h-4 text-rose-600" /> Clock Out
               </button>
@@ -512,7 +512,7 @@ export default function MobileAttendancePortal() {
                 <button
                   key={type}
                   onClick={() => setSelectedBreakType(type)}
-                  className={`w-full flex items-center justify-between p-3 rounded-xl border text-xs font-medium transition ${
+                  className={`w-full flex items-center justify-between p-3 rounded-lg border text-xs font-medium transition ${
                     selectedBreakType === type
                       ? "border-amber-500 bg-amber-50 text-amber-800 font-semibold"
                       : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
@@ -561,7 +561,7 @@ export default function MobileAttendancePortal() {
             <p className="text-[11px] text-slate-500 text-center">
               Please point your camera at the official Office QR code sign before leaving.
             </p>
-            <div className="rounded-xl overflow-hidden border border-slate-200">
+            <div className="rounded-lg overflow-hidden border border-slate-200">
               <QRCameraScanner
                 onScanSuccess={handleQrDetected}
                 isPaused={false}
@@ -627,7 +627,7 @@ export default function MobileAttendancePortal() {
             </div>
             <button
               onClick={() => setActiveModal("NONE")}
-              className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-xs font-semibold text-white transition active:scale-[0.99]"
+              className="w-full py-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-xs font-semibold text-white transition active:scale-[0.99]"
             >
               Acknowledged
             </button>
@@ -638,7 +638,7 @@ export default function MobileAttendancePortal() {
       {/* MODAL: APPLY FOR ROSTER SHIFT CHANGE */}
       {isShiftModalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-md p-5 shadow-2xl space-y-4">
+          <div className="bg-white border border-slate-200 rounded-lg w-full max-w-md p-5 shadow-2xl space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center">
@@ -658,7 +658,7 @@ export default function MobileAttendancePortal() {
             </div>
 
             {shiftSuccessMsg && (
-              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-medium">
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-800 font-medium">
                 {shiftSuccessMsg}
               </div>
             )}
@@ -710,7 +710,7 @@ export default function MobileAttendancePortal() {
               <button
                 type="button"
                 onClick={() => setIsShiftModalOpen(false)}
-                className="flex-1 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                className="flex-1 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50"
               >
                 Cancel
               </button>
@@ -734,7 +734,7 @@ export default function MobileAttendancePortal() {
                     alert(parseApiError(err));
                   }
                 }}
-                className="flex-1 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 disabled:opacity-50 text-xs font-bold text-white shadow-xs active:scale-95 transition"
+                className="flex-1 py-2 rounded-lg bg-purple-700 hover:bg-purple-800 disabled:opacity-50 text-xs font-bold text-white shadow-xs active:scale-95 transition"
               >
                 {createShiftRequestMutation.isPending ? "Submitting..." : "Submit Application"}
               </button>

@@ -159,7 +159,7 @@ export default function ShiftsPage() {
       </div>
 
       {/* Global Overtime Policy Summary Card */}
-      <div className="p-3.5 bg-white border border-slate-200/90 rounded-xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="p-3.5 bg-white border border-slate-200/90 rounded-lg shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
             <Timer className="w-5 h-5" />

@@ -76,7 +76,7 @@ export default function MisReportsAndCompliancePage() {
       </div>
 
       {/* Filter and Category Tabs */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs space-y-4">
+      <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs space-y-4">
         <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 pb-3">
           {[
             { id: "MONTHLY_ATTENDANCE", label: "Muster Roll Register" },
@@ -123,7 +123,7 @@ export default function MisReportsAndCompliancePage() {
       </div>
 
       {/* Report Data Table */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden print:border-none print:shadow-none">
+      <div className="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden print:border-none print:shadow-none">
         <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
           <div>
             <h2 className="text-xs font-bold uppercase tracking-wider text-slate-800">
