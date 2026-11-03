@@ -6,7 +6,10 @@ import {
 } from "@/services/attendance.service";
 import { parseApiError } from "@/services/api";
 import { useMyTodayAttendance, useAttendanceActions } from "@/hooks";
+import { useShifts } from "@/hooks/useShifts";
+import { useRosterShiftRequests, useCreateRosterShiftRequest } from "@/hooks/useDepartments";
 import { QRCameraScanner } from "@/components/attendance/QRCameraScanner";
+import { Select } from "@/components/ui/select";
 import { getCurrentGpsPosition } from "@/lib/geofence";
 import { useAuth } from "@/components/auth/AuthProvider";
 import Link from "next/link";
@@ -51,6 +54,20 @@ export default function MobileAttendancePortal() {
 
   const [liveWorkSeconds, setLiveWorkSeconds] = useState<number>(0);
   const [liveBreakSeconds, setLiveBreakSeconds] = useState<number>(0);
+
+  // Roster Shift Change Application state
+  const { data: availableShifts = [] } = useShifts();
+  const { data: myShiftRequests = [] } = useRosterShiftRequests();
+  const createShiftRequestMutation = useCreateRosterShiftRequest();
+  const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
+  const [targetShiftId, setTargetShiftId] = useState("");
+  const [shiftRequestDate, setShiftRequestDate] = useState(() => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split("T")[0];
+  });
+  const [shiftRequestReason, setShiftRequestReason] = useState("");
+  const [shiftSuccessMsg, setShiftSuccessMsg] = useState<string | null>(null);
 
   const activeRecord = statusData?.attendance;
   const currentState = activeRecord?.currentState;
@@ -293,6 +310,53 @@ export default function MobileAttendancePortal() {
               )}
             </div>
           </div>
+
+          {/* Action to Request Shift Change for Next Day */}
+          <div className="mt-3 pt-3 border-t border-purple-200/70 flex items-center justify-between">
+            <span className="text-[11px] text-purple-950 font-medium">Need to change your shift timing?</span>
+            <button
+              onClick={() => {
+                setTargetShiftId("");
+                setShiftSuccessMsg(null);
+                setIsShiftModalOpen(true);
+              }}
+              className="px-2.5 py-1 rounded-lg bg-purple-700 hover:bg-purple-800 text-white text-[11px] font-bold shadow-xs active:scale-95 transition flex items-center gap-1 cursor-pointer"
+            >
+              <Clock className="w-3 h-3" />
+              <span>Apply for Shift Change</span>
+            </button>
+          </div>
+
+          {/* Recent Pending/Approved Request Status Indicator */}
+          {myShiftRequests.length > 0 && (
+            <div className="mt-2.5 space-y-1.5">
+              {myShiftRequests.slice(0, 2).map((req) => (
+                <div
+                  key={req.id}
+                  className="px-2.5 py-1.5 rounded-lg bg-white/80 border border-purple-100 flex items-center justify-between text-[11px]"
+                >
+                  <div className="truncate mr-2">
+                    <span className="font-semibold text-slate-800">
+                      {new Date(req.effectiveDate).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}:
+                    </span>{" "}
+                    <span className="text-purple-700 font-medium">{req.targetShift?.shiftName}</span>{" "}
+                    <span className="text-slate-500 font-mono">({req.targetShift?.startTime} - {req.targetShift?.endTime})</span>
+                  </div>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-black shrink-0 ${
+                      req.status === "APPROVED"
+                        ? "bg-emerald-100 text-emerald-800"
+                        : req.status === "REJECTED"
+                        ? "bg-rose-100 text-rose-800"
+                        : "bg-amber-100 text-amber-800 animate-pulse"
+                    }`}
+                  >
+                    {req.status === "APPROVED" ? "Approved & Applied" : req.status === "REJECTED" ? "Rejected" : "Pending Dept Head"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       )}
 
@@ -567,6 +631,114 @@ export default function MobileAttendancePortal() {
             >
               Acknowledged
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: APPLY FOR ROSTER SHIFT CHANGE */}
+      {isShiftModalOpen && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-md p-5 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center">
+                  <Clock className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Roster Shift Change Request</h3>
+                  <p className="text-[11px] text-slate-500">Apply to change duty timing for tomorrow / upcoming day</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsShiftModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 font-bold text-base"
+              >
+                &times;
+              </button>
+            </div>
+
+            {shiftSuccessMsg && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-medium">
+                {shiftSuccessMsg}
+              </div>
+            )}
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block text-slate-700 font-semibold mb-1">Effective Date</label>
+                <input
+                  type="date"
+                  value={shiftRequestDate}
+                  min={new Date().toISOString().split("T")[0]}
+                  onChange={(e) => setShiftRequestDate(e.target.value)}
+                  className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-slate-800 text-xs focus:outline-none focus:ring-1 focus:ring-purple-600"
+                />
+                <p className="text-[10px] text-slate-400 mt-0.5">Select when you want this new shift to take effect.</p>
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-semibold mb-1">Target Shift Schedule *</label>
+                <Select
+                  value={targetShiftId}
+                  onValueChange={setTargetShiftId}
+                  options={availableShifts.map((s) => ({
+                    value: s.id,
+                    label: `${s.shiftName} (${s.startTime} - ${s.endTime})`,
+                  }))}
+                  placeholder="Select desired shift"
+                  triggerClassName="h-9 text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-semibold mb-1">Reason (Optional)</label>
+                <textarea
+                  value={shiftRequestReason}
+                  onChange={(e) => setShiftRequestReason(e.target.value)}
+                  placeholder="Reason for changing shift (e.g. medical, transport, personal requirement)..."
+                  rows={2}
+                  className="w-full p-2.5 rounded-lg border border-slate-200 bg-white text-slate-800 text-xs focus:outline-none focus:ring-1 focus:ring-purple-600"
+                />
+              </div>
+
+              <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-[11px] text-amber-800 leading-tight">
+                Notice: This application will be submitted directly to your Department Head. Once approved by the Department Head, your shift will be updated automatically.
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setIsShiftModalOpen(false)}
+                className="flex-1 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={!targetShiftId || createShiftRequestMutation.isPending}
+                onClick={async () => {
+                  if (!targetShiftId) return;
+                  try {
+                    await createShiftRequestMutation.mutateAsync({
+                      targetShiftId,
+                      effectiveDate: shiftRequestDate,
+                      reason: shiftRequestReason,
+                    });
+                    setShiftSuccessMsg("Application submitted to Department Head successfully.");
+                    setTimeout(() => {
+                      setIsShiftModalOpen(false);
+                      setShiftSuccessMsg(null);
+                    }, 1500);
+                  } catch (err) {
+                    alert(parseApiError(err));
+                  }
+                }}
+                className="flex-1 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 disabled:opacity-50 text-xs font-bold text-white shadow-xs active:scale-95 transition"
+              >
+                {createShiftRequestMutation.isPending ? "Submitting..." : "Submit Application"}
+              </button>
+            </div>
           </div>
         </div>
       )}

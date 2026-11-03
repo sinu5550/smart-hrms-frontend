@@ -11,6 +11,10 @@ import {
   useUpdateEmployeeShift,
   useShifts,
 } from "@/hooks";
+import {
+  useRosterShiftRequests,
+  useActionRosterShiftRequest,
+} from "@/hooks/useDepartments";
 import { useOrganization } from "@/hooks/useOrganization";
 import { parseApiError } from "@/services/api";
 import { Department } from "@/services/department.service";
@@ -47,6 +51,8 @@ export default function DepartmentsPage() {
   const deleteDepartmentMutation = useDeleteDepartment();
   const updateRosterOffDaysMutation = useUpdateEmployeeRosterOffDays();
   const updateEmployeeShiftMutation = useUpdateEmployeeShift();
+  const { data: rosterShiftRequests = [] } = useRosterShiftRequests();
+  const actionShiftRequestMutation = useActionRosterShiftRequest();
 
   // Optimistic UI state maps
   const [optimisticOffDays, setOptimisticOffDays] = useState<Record<string, string[]>>({});
@@ -509,6 +515,106 @@ export default function DepartmentsPage() {
                   </div>
                 </div>
               )}
+
+              {/* Department Shift Change Requests Review Section */}
+              {isDeptRosterEnabled && (() => {
+                const deptRequests = rosterShiftRequests.filter(
+                  (r) => r.user?.departmentId === selectedDept.id || r.user?.department?.id === selectedDept.id
+                );
+                const pendingRequests = deptRequests.filter((r) => r.status === "PENDING");
+
+                if (deptRequests.length === 0) return null;
+
+                return (
+                  <div className="p-3 bg-purple-50/50 border border-purple-200 rounded-xl space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-purple-600 animate-pulse" />
+                        <h4 className="text-xs font-bold text-purple-900">
+                          Roster Shift Change Requests ({pendingRequests.length} Pending)
+                        </h4>
+                      </div>
+                      <span className="text-[10px] text-purple-700 font-medium">Department Head Review</span>
+                    </div>
+
+                    <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                      {deptRequests.map((req) => (
+                        <div
+                          key={req.id}
+                          className="bg-white border border-purple-100 rounded-lg p-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs text-xs"
+                        >
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-bold text-slate-900">{req.user?.fullName}</span>
+                              <span className="text-[10px] text-slate-400 font-mono">({req.user?.employeeId})</span>
+                              <span
+                                className={`px-1.5 py-0.2 rounded-full text-[9px] font-black uppercase ${
+                                  req.status === "APPROVED"
+                                    ? "bg-emerald-100 text-emerald-800"
+                                    : req.status === "REJECTED"
+                                    ? "bg-rose-100 text-rose-800"
+                                    : "bg-amber-100 text-amber-800"
+                                }`}
+                              >
+                                {req.status}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-slate-600">
+                              Target Shift: <span className="font-semibold text-purple-800">{req.targetShift?.shiftName}</span>{" "}
+                              <span className="font-mono text-slate-500">({req.targetShift?.startTime} - {req.targetShift?.endTime})</span>
+                              {" "}• For Date: <span className="font-bold text-slate-800">{new Date(req.effectiveDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
+                            </p>
+                            {req.reason && (
+                              <p className="text-[10px] text-slate-500 italic">"{req.reason}"</p>
+                            )}
+                          </div>
+
+                          {req.status === "PENDING" && (
+                            <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
+                              <button
+                                disabled={actionShiftRequestMutation.isPending}
+                                onClick={async () => {
+                                  try {
+                                    await actionShiftRequestMutation.mutateAsync({
+                                      id: req.id,
+                                      action: "APPROVED",
+                                    });
+                                    setSuccessMsg(`Approved shift change for ${req.user?.fullName}. Shift updated.`);
+                                  } catch (err) {
+                                    alert(parseApiError(err));
+                                  }
+                                }}
+                                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold rounded-md text-[11px] shadow-xs active:scale-95 transition"
+                              >
+                                Accept
+                              </button>
+                              <button
+                                disabled={actionShiftRequestMutation.isPending}
+                                onClick={async () => {
+                                  const reason = prompt("Optional rejection reason:") || "";
+                                  try {
+                                    await actionShiftRequestMutation.mutateAsync({
+                                      id: req.id,
+                                      action: "REJECTED",
+                                      actionNote: reason,
+                                    });
+                                    setSuccessMsg(`Rejected shift request for ${req.user?.fullName}.`);
+                                  } catch (err) {
+                                    alert(parseApiError(err));
+                                  }
+                                }}
+                                className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold rounded-md text-[11px] active:scale-95 transition"
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Department Employees List */}
               <div className="space-y-3">

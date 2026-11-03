@@ -86,3 +86,39 @@ export function useUpdateEmployeeShift() {
     },
   });
 }
+
+export function useRosterShiftRequests(status?: string) {
+  return useQuery({
+    queryKey: ["roster-shift-requests", status || "ALL"],
+    queryFn: () => DepartmentService.getRosterShiftRequests(status),
+  });
+}
+
+export function useCreateRosterShiftRequest() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: { targetShiftId: string; effectiveDate?: string; reason?: string }) =>
+      DepartmentService.createRosterShiftRequest(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["roster-shift-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["attendance", "today-status"] });
+    },
+  });
+}
+
+export function useActionRosterShiftRequest() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, action, actionNote }: { id: string; action: "APPROVED" | "REJECTED"; actionNote?: string }) =>
+      DepartmentService.actionRosterShiftRequest(id, action, actionNote),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["roster-shift-requests"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.departments.all });
+      queryClient.invalidateQueries({ queryKey: ["department"] });
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
+      queryClient.invalidateQueries({ queryKey: ["attendance", "today-status"] });
+    },
+  });
+}

@@ -44,6 +44,43 @@ export interface UpdateDepartmentPayload {
   headUserId?: string | null;
 }
 
+export interface RosterShiftRequestItem {
+  id: string;
+  organizationId: string;
+  userId: string;
+  targetShiftId: string;
+  effectiveDate: string;
+  reason?: string | null;
+  status: "PENDING" | "APPROVED" | "REJECTED";
+  actionedById?: string | null;
+  actionedAt?: string | null;
+  actionNote?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  user: {
+    id: string;
+    fullName: string;
+    employeeId: string;
+    email: string;
+    avatarUrl?: string | null;
+    departmentId?: string | null;
+    department?: { id: string; name: string; headUserId?: string | null } | null;
+    shift?: { id: string; shiftName: string; startTime: string; endTime: string } | null;
+  };
+  targetShift: {
+    id: string;
+    shiftName: string;
+    startTime: string;
+    endTime: string;
+  };
+}
+
+export interface CreateRosterShiftRequestPayload {
+  targetShiftId: string;
+  effectiveDate?: string;
+  reason?: string;
+}
+
 export const DepartmentService = {
   getAll: async (): Promise<Department[]> => {
     const { data } = await apiClient.get<Department[]>("/departments");
@@ -81,6 +118,26 @@ export const DepartmentService = {
     const { data } = await apiClient.patch(`/departments/${departmentId}/employee-shift`, {
       employeeUserId,
       shiftId,
+    });
+    return data;
+  },
+
+  getRosterShiftRequests: async (status?: string): Promise<RosterShiftRequestItem[]> => {
+    const { data } = await apiClient.get<RosterShiftRequestItem[]>("/departments/roster-shift-requests", {
+      params: status ? { status } : undefined,
+    });
+    return data;
+  },
+
+  createRosterShiftRequest: async (payload: CreateRosterShiftRequestPayload): Promise<RosterShiftRequestItem> => {
+    const { data } = await apiClient.post<RosterShiftRequestItem>("/departments/roster-shift-requests", payload);
+    return data;
+  },
+
+  actionRosterShiftRequest: async (id: string, action: "APPROVED" | "REJECTED", actionNote?: string): Promise<any> => {
+    const { data } = await apiClient.patch(`/departments/roster-shift-requests/${id}/action`, {
+      action,
+      actionNote,
     });
     return data;
   },
