@@ -18,6 +18,16 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLocalHost, setIsLocalHost] = useState(false);
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const host = window.location.hostname;
+      if (host === "localhost" || host === "127.0.0.1" || host.startsWith("192.168.")) {
+        setIsLocalHost(true);
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,15 +125,17 @@ export default function LoginPage() {
         </form>
 
         <div className="pt-4 border-t border-slate-100 text-center space-y-3">
-          <a
-            href="/downloads/SmartHRM-Biometric-Agent.zip"
-            download="SmartHRM-Biometric-Agent.zip"
-            className="hidden md:inline-flex w-full items-center justify-center gap-2 px-3 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-lg transition shadow-sm"
-            title="Download complete standalone biometric cloud bridge agent (Zero Node.js setup needed)"
-          >
-            <Download className="w-4 h-4 text-emerald-400" />
-            <span>Download SmartHRM Biometric Gateway (Standalone)</span>
-          </a>
+          {isLocalHost && (
+            <a
+              href="/downloads/SmartHRM-Biometric-Agent.zip"
+              download="SmartHRM-Biometric-Agent.zip"
+              className="hidden md:inline-flex w-full items-center justify-center gap-2 px-3 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-lg transition shadow-sm"
+              title="Download complete standalone biometric cloud bridge agent (Zero Node.js setup needed)"
+            >
+              <Download className="w-4 h-4 text-emerald-400" />
+              <span>Download SmartHRM Biometric Gateway (Standalone)</span>
+            </a>
+          )}
 
           <div>
             <p className="text-[11px] text-slate-500">
