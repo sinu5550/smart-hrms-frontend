@@ -76,4 +76,12 @@ export const DepartmentService = {
     });
     return data;
   },
+
+  updateEmployeeShift: async (departmentId: string, employeeUserId: string, shiftId: string | null): Promise<any> => {
+    const { data } = await apiClient.patch(`/departments/${departmentId}/employee-shift`, {
+      employeeUserId,
+      shiftId,
+    });
+    return data;
+  },
 };

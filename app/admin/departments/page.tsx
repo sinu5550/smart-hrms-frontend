@@ -8,6 +8,8 @@ import {
   useUpdateDepartment,
   useDeleteDepartment,
   useUpdateEmployeeRosterOffDays,
+  useUpdateEmployeeShift,
+  useShifts,
 } from "@/hooks";
 import { useOrganization } from "@/hooks/useOrganization";
 import { parseApiError } from "@/services/api";
@@ -39,10 +41,16 @@ export default function DepartmentsPage() {
   const { user } = useAuth();
   const { data: allDepartments = [], isLoading } = useDepartments();
   const { data: organization } = useOrganization();
+  const { data: availableShifts = [] } = useShifts();
   const createDepartmentMutation = useCreateDepartment();
   const updateDepartmentMutation = useUpdateDepartment();
   const deleteDepartmentMutation = useDeleteDepartment();
   const updateRosterOffDaysMutation = useUpdateEmployeeRosterOffDays();
+  const updateEmployeeShiftMutation = useUpdateEmployeeShift();
+
+  // Optimistic UI state maps
+  const [optimisticOffDays, setOptimisticOffDays] = useState<Record<string, string[]>>({});
+  const [optimisticShifts, setOptimisticShifts] = useState<Record<string, string | null>>({});
 
   // If logged-in user is a Department Head with EMPLOYEE role, only show the department(s) they manage
   const isDeptHeadOnly = Boolean(
@@ -143,11 +151,15 @@ export default function DepartmentsPage() {
     }
   };
 
-  // Toggle Roster Off-Day for an Employee
+  // Toggle Roster Off-Day for an Employee with Instant Optimistic UI
   const handleToggleOffDay = async (employeeUserId: string, currentOffDays: string[] = [], day: string) => {
     if (!selectedDeptId) return;
-    const exists = currentOffDays.includes(day);
-    const updated = exists ? currentOffDays.filter((d) => d !== day) : [...currentOffDays, day];
+    const effectiveDays = optimisticOffDays[employeeUserId] ?? currentOffDays;
+    const exists = effectiveDays.includes(day);
+    const updated = exists ? effectiveDays.filter((d) => d !== day) : [...effectiveDays, day];
+
+    // 1. Instant local optimistic update (no button lag!)
+    setOptimisticOffDays((prev) => ({ ...prev, [employeeUserId]: updated }));
 
     try {
       await updateRosterOffDaysMutation.mutateAsync({
@@ -156,6 +168,29 @@ export default function DepartmentsPage() {
         rosterOffDays: updated,
       });
     } catch (err) {
+      // Revert optimistic update on error
+      setOptimisticOffDays((prev) => ({ ...prev, [employeeUserId]: currentOffDays }));
+      alert(parseApiError(err));
+    }
+  };
+
+  // Change Shift for an Employee with Instant Optimistic UI
+  const handleAssignEmployeeShift = async (employeeUserId: string, currentShiftId: string | null, newShiftId: string) => {
+    if (!selectedDeptId) return;
+    const finalShiftId = newShiftId === "DEFAULT" ? null : newShiftId;
+
+    // 1. Instant local optimistic update
+    setOptimisticShifts((prev) => ({ ...prev, [employeeUserId]: finalShiftId }));
+
+    try {
+      await updateEmployeeShiftMutation.mutateAsync({
+        departmentId: selectedDeptId,
+        employeeUserId,
+        shiftId: finalShiftId,
+      });
+    } catch (err) {
+      // Revert optimistic update on error
+      setOptimisticShifts((prev) => ({ ...prev, [employeeUserId]: currentShiftId }));
       alert(parseApiError(err));
     }
   };
@@ -488,7 +523,16 @@ export default function DepartmentsPage() {
                         <tbody className="divide-y divide-slate-100">
                           {selectedDept.users.map((emp) => {
                             const isHead = selectedDept.headUserId === emp.id;
-                            const empOffDays = Array.isArray(emp.rosterOffDays) ? emp.rosterOffDays : [];
+                            const empOffDays = optimisticOffDays[emp.id] ?? (Array.isArray(emp.rosterOffDays) ? emp.rosterOffDays : []);
+                            const currentShiftId = optimisticShifts[emp.id] !== undefined ? optimisticShifts[emp.id] : emp.shift?.id || null;
+
+                            const shiftOptions = [
+                              { label: "Default Organization Shift", value: "DEFAULT" },
+                              ...availableShifts.map((s) => ({
+                                label: `${s.shiftName} (${s.startTime} - ${s.endTime})`,
+                                value: s.id,
+                              })),
+                            ];
 
                             return (
                               <tr key={emp.id} className="hover:bg-slate-50/70 transition">
@@ -526,14 +570,22 @@ export default function DepartmentsPage() {
                                   {emp.designation?.name || "—"}
                                 </td>
 
-                                <td className="py-3 px-4 text-slate-600 whitespace-nowrap">
-                                  {emp.shift ? (
-                                    <span>
+                                <td className="py-3 px-4 min-w-[200px]">
+                                  {isDeptRosterEnabled ? (
+                                    <Select
+                                      value={currentShiftId || "DEFAULT"}
+                                      options={shiftOptions}
+                                      onValueChange={(val) => handleAssignEmployeeShift(emp.id, emp.shift?.id || null, val)}
+                                      className="w-full text-xs"
+                                      placeholder="Select shift"
+                                    />
+                                  ) : emp.shift ? (
+                                    <span className="text-slate-700">
                                       {emp.shift.shiftName}{" "}
                                       <span className="text-[10px] text-slate-400">({emp.shift.startTime} - {emp.shift.endTime})</span>
                                     </span>
                                   ) : (
-                                    "—"
+                                    <span className="text-slate-400">Default Shift</span>
                                   )}
                                 </td>
 
@@ -547,10 +599,9 @@ export default function DepartmentsPage() {
                                           <button
                                             key={day}
                                             onClick={() => handleToggleOffDay(emp.id, empOffDays, day)}
-                                            disabled={updateRosterOffDaysMutation.isPending}
-                                            className={`px-2 py-0.5 rounded text-[10px] font-bold transition border ${
+                                            className={`px-2 py-0.5 rounded text-[10px] font-bold transition cursor-pointer border ${
                                               isSelected
-                                                ? "bg-purple-600 text-white border-purple-600 shadow-xs"
+                                                ? "bg-purple-600 text-white border-purple-600 shadow-xs scale-105"
                                                 : "bg-white text-slate-500 hover:bg-slate-100 border-slate-200"
                                             }`}
                                             title={`Toggle ${day} off-duty for ${emp.fullName}`}

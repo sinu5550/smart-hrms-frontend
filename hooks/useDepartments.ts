@@ -69,3 +69,17 @@ export function useUpdateEmployeeRosterOffDays() {
     },
   });
 }
+
+export function useUpdateEmployeeShift() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ departmentId, employeeUserId, shiftId }: { departmentId: string; employeeUserId: string; shiftId: string | null }) =>
+      DepartmentService.updateEmployeeShift(departmentId, employeeUserId, shiftId),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["department", variables.departmentId] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.departments.all });
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
+    },
+  });
+}
