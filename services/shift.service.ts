@@ -56,4 +56,9 @@ export const ShiftService = {
   delete: async (id: string): Promise<void> => {
     await apiClient.delete(`/shifts/${id}`);
   },
+
+  setBulkOvertimeThreshold: async (overtimeThresholdMins: number): Promise<{ success: boolean; message: string }> => {
+    const { data } = await apiClient.post("/shifts/bulk-overtime-threshold", { overtimeThresholdMins });
+    return data;
+  },
 };

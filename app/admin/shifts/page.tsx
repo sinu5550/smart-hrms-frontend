@@ -2,14 +2,16 @@
 
 import React, { useState } from "react";
 import { useShifts, useCreateShift, useUpdateShiftMutation, useDeleteShift } from "@/hooks";
+import { useQueryClient } from "@tanstack/react-query";
 import { parseApiError } from "@/services/api";
-import { Shift, CreateShiftPayload } from "@/services/shift.service";
-import { Clock, Plus, Edit2, Trash2, CheckCircle2, AlertCircle, Users, Check } from "lucide-react";
+import { Shift, CreateShiftPayload, ShiftService } from "@/services/shift.service";
+import { Clock, Plus, Edit2, Trash2, CheckCircle2, AlertCircle, Users, Check, Timer } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function ShiftsPage() {
+  const queryClient = useQueryClient();
   const { data: shifts = [], isLoading } = useShifts();
   const createShiftMutation = useCreateShift();
   const updateShiftMutation = useUpdateShiftMutation();
@@ -18,6 +20,12 @@ export default function ShiftsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingShift, setEditingShift] = useState<Shift | null>(null);
 
+  // Overtime Rule Modal State
+  const [isOtModalOpen, setIsOtModalOpen] = useState(false);
+  const [globalOtBuffer, setGlobalOtBuffer] = useState<number>(30);
+  const [isSavingOt, setIsSavingOt] = useState(false);
+  const [otError, setOtError] = useState<string | null>(null);
+
   const [shiftName, setShiftName] = useState("");
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("18:00");
@@ -25,6 +33,30 @@ export default function ShiftsPage() {
   const [isDefault, setIsDefault] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  const openOtModal = () => {
+    // Read current threshold from default or first shift
+    const defaultOt = shifts.find((s) => s.isDefault)?.overtimeThresholdMins ?? shifts[0]?.overtimeThresholdMins ?? 30;
+    setGlobalOtBuffer(defaultOt);
+    setOtError(null);
+    setIsOtModalOpen(true);
+  };
+
+  const handleSaveGlobalOt = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingOt(true);
+    setOtError(null);
+    try {
+      const res = await ShiftService.setBulkOvertimeThreshold(Number(globalOtBuffer));
+      await queryClient.invalidateQueries({ queryKey: ["shifts"] });
+      setSuccessMsg(res.message || "Overtime rule updated across all shifts successfully!");
+      setIsOtModalOpen(false);
+    } catch (err: any) {
+      setOtError(parseApiError(err) || "Failed to update overtime threshold.");
+    } finally {
+      setIsSavingOt(false);
+    }
+  };
 
   const openCreateModal = () => {
     setEditingShift(null);
@@ -105,9 +137,22 @@ export default function ShiftsPage() {
             Configure work timings, grace periods, day/evening shifts, and part-time hours for employees. Total Shifts: <span className="font-bold text-slate-800">{shifts.length}</span>
           </p>
         </div>
-        <Button onClick={openCreateModal} className="h-9 rounded-lg px-4 text-xs font-semibold">
-          <Plus className="w-4 h-4" /> Create New Shift
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            type="button"
+            onClick={openOtModal}
+            variant="outline"
+            className="h-9 rounded-lg px-3.5 text-xs font-semibold border-emerald-300 text-emerald-800 bg-emerald-50/60 hover:bg-emerald-100/70 hover:text-emerald-900 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Configure global overtime threshold buffer for all shifts"
+          >
+            <Timer className="w-4 h-4 text-emerald-700" />
+            <span>Overtime Rules</span>
+          </Button>
+
+          <Button onClick={openCreateModal} className="h-9 rounded-lg px-4 text-xs font-semibold">
+            <Plus className="w-4 h-4" /> Create New Shift
+          </Button>
+        </div>
       </div>
 
       {successMsg && (
@@ -276,6 +321,64 @@ export default function ShiftsPage() {
               </Button>
               <Button type="submit" disabled={isSaving} className="h-10 flex-1 rounded-lg">
                 {isSaving ? "Saving..." : editingShift ? "Save Changes" : "Create Shift"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Global Overtime Rules Modal */}
+      <Dialog open={isOtModalOpen} onOpenChange={setIsOtModalOpen}>
+        <DialogContent className="max-w-md p-6 rounded-lg bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <Timer className="w-5 h-5 text-emerald-700" />
+              <span>Company Overtime Policy</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          {otError && (
+            <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg flex items-center gap-2 text-xs text-rose-700 font-medium">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{otError}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSaveGlobalOt} className="space-y-4 mt-2">
+            <div className="p-3.5 bg-emerald-50/60 border border-emerald-200 rounded-lg space-y-1">
+              <p className="text-xs font-bold text-emerald-950">How Overtime is Calculated:</p>
+              <ul className="text-[11px] text-emerald-800 space-y-1 list-disc list-inside">
+                <li>Employee must fulfill their required shift duty hours first.</li>
+                <li>Overtime begins once the threshold buffer is passed.</li>
+                <li>This setting automatically updates across all company shifts!</li>
+              </ul>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-slate-800">
+                Overtime Threshold Buffer (Minutes) *
+              </label>
+              <Input
+                type="number"
+                min={0}
+                max={300}
+                value={globalOtBuffer}
+                onChange={(e) => setGlobalOtBuffer(Number(e.target.value))}
+                className="mt-1 h-10 rounded-lg font-mono"
+                placeholder="30"
+                required
+              />
+              <p className="text-[10px] text-slate-500 mt-1">
+                E.g. Set <strong>30</strong> minutes. Extra work beyond shift duty hours will only count as overtime if it exceeds 30 minutes.
+              </p>
+            </div>
+
+            <div className="pt-2 flex gap-2">
+              <Button type="button" variant="outline" onClick={() => setIsOtModalOpen(false)} className="h-10 flex-1 rounded-lg">
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSavingOt} className="h-10 flex-1 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white">
+                {isSavingOt ? "Applying..." : "Apply to All Shifts"}
               </Button>
             </div>
           </form>
