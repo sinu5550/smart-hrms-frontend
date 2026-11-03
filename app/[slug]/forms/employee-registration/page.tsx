@@ -78,6 +78,10 @@ export default function PublicEmployeeRegistrationPage() {
     e.preventDefault();
     setFormError(null);
 
+    if (!avatarFile) {
+      setFormError("Profile Photo is required. Please upload a clear passport-size photo.");
+      return;
+    }
     if (!fullName.trim()) {
       setFormError("Full Name is required.");
       return;
@@ -278,7 +282,7 @@ export default function PublicEmployeeRegistrationPage() {
           {/* Profile Photo Upload Section */}
           <div className="space-y-2 border-b border-slate-100 pb-6">
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-              Profile Photo (Required for Biometrics & ID)
+              Profile Photo <span className="text-rose-500">*</span> (Required for Biometrics & ID)
             </label>
             <div className="flex items-center gap-5">
               <div className="relative group shrink-0">
