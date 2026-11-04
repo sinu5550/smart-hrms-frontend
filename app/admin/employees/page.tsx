@@ -9,6 +9,7 @@ import { EmployeeEditModal } from "@/components/admin/EmployeeEditModal";
 import { DeleteEmployeeConfirmModal } from "@/components/admin/DeleteEmployeeConfirmModal";
 import { BulkImportModal } from "@/components/admin/BulkImportModal";
 import { BulkDeleteEmployeesModal } from "@/components/admin/BulkDeleteEmployeesModal";
+import Link from "next/link";
 import {
   UserPlus,
   Search,
@@ -21,6 +22,7 @@ import {
   MinusSquare,
   Fingerprint,
   ScanFace,
+  Eye,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -391,8 +393,11 @@ export default function EmployeesDirectoryPage() {
                         />
                       </td>
                       <td className="py-3 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-white border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center text-xs font-bold text-slate-800">
+                        <Link
+                          href={`/admin/employees/${emp.id}`}
+                          className="flex items-center gap-3 group"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-white border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center text-xs font-bold text-slate-800 group-hover:border-emerald-500 transition">
                             {emp.avatarUrl ? (
                               <Image src={emp.avatarUrl} alt="" width={32} height={32} unoptimized className="w-full h-full object-cover" />
                             ) : (
@@ -400,10 +405,12 @@ export default function EmployeesDirectoryPage() {
                             )}
                           </div>
                           <div>
-                            <p className="font-semibold text-slate-800">{emp.fullName}</p>
+                            <p className="font-semibold text-slate-800 group-hover:text-emerald-700 transition flex items-center gap-1">
+                              {emp.fullName}
+                            </p>
                             <p className="text-[10px] text-slate-500">{emp.phone}</p>
                           </div>
-                        </div>
+                        </Link>
                       </td>
                       <td className="py-3 px-4">
                         <span className="font-mono px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-800 font-medium">
@@ -480,6 +487,13 @@ export default function EmployeesDirectoryPage() {
                       </td>
                       <td className="py-3 px-4 text-right">
                         <div className="flex items-center justify-end gap-1">
+                          <Link
+                            href={`/admin/employees/${emp.id}`}
+                            className="p-1.5 text-slate-500 hover:text-emerald-700 rounded-lg hover:bg-emerald-50 transition"
+                            title="View Employee Profile"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </Link>
                           <button
                             onClick={() => setTargetEditEmployee(emp)}
                             className="p-1.5 text-slate-500 hover:text-emerald-700 rounded-lg hover:bg-emerald-50 transition"

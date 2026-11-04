@@ -28,6 +28,9 @@ const editEmployeeSchema = z.object({
   shiftId: z.string().optional(),
   customRoleId: z.string().optional(),
   bloodGroup: z.string().optional(),
+  dateOfBirth: z.string().optional(),
+  gender: z.string().optional(),
+  nidOrPassport: z.string().optional(),
   presentAddress: z.string().optional(),
   permanentAddress: z.string().optional(),
   emergencyContactName: z.string().optional(),
@@ -65,6 +68,7 @@ export const EmployeeEditModal: React.FC<Props> = ({ employee, isOpen, onClose, 
     setValue,
     setError,
     clearErrors,
+    watch,
     formState: { errors },
     reset,
   } = useForm<EditFormData>({
@@ -82,6 +86,9 @@ export const EmployeeEditModal: React.FC<Props> = ({ employee, isOpen, onClose, 
         shiftId: employee.shiftId || "",
         customRoleId: employee.customRoleId || "",
         bloodGroup: employee.bloodGroup || "",
+        dateOfBirth: (employee as any).dateOfBirth ? String((employee as any).dateOfBirth).slice(0, 10) : "",
+        gender: (employee as any).gender || "",
+        nidOrPassport: (employee as any).nidOrPassport || "",
         presentAddress: (employee as any).presentAddress || "",
         permanentAddress: (employee as any).permanentAddress || "",
         emergencyContactName: (employee as any).emergencyContactName || "",
@@ -345,18 +352,45 @@ export const EmployeeEditModal: React.FC<Props> = ({ employee, isOpen, onClose, 
                 </div>
               </div>
 
-              <div>
-                <label className="text-[11px] font-semibold text-slate-800">Blood Group</label>
-                <Select
-                  value={bloodGroupValue || undefined}
-                  onValueChange={(value) => {
-                    setBloodGroupValue(value);
-                    setValue("bloodGroup", value);
-                  }}
-                  triggerClassName="mt-1 h-10 rounded-lg"
-                  placeholder="Select blood group"
-                  options={["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((bg) => ({ value: bg, label: bg }))}
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-800">Date of Birth</label>
+                  <Input type="date" {...register("dateOfBirth")} className="mt-1 h-10 rounded-lg text-xs" />
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-800">Gender</label>
+                  <Select
+                    value={watch("gender") || undefined}
+                    onValueChange={(val) => setValue("gender", val)}
+                    triggerClassName="mt-1 h-10 rounded-lg"
+                    placeholder="Select gender"
+                    options={[
+                      { value: "Male", label: "Male" },
+                      { value: "Female", label: "Female" },
+                      { value: "Other", label: "Other" },
+                    ]}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-800">Blood Group</label>
+                  <Select
+                    value={bloodGroupValue || undefined}
+                    onValueChange={(value) => {
+                      setBloodGroupValue(value);
+                      setValue("bloodGroup", value);
+                    }}
+                    triggerClassName="mt-1 h-10 rounded-lg"
+                    placeholder="Select blood group"
+                    options={["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((bg) => ({ value: bg, label: bg }))}
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-800">NID / Passport No</label>
+                  <Input {...register("nidOrPassport")} placeholder="e.g. 1990123456789" className="mt-1 h-10 rounded-lg text-xs" />
+                </div>
               </div>
 
               <div className="space-y-3">

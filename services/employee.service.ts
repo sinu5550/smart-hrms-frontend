@@ -21,10 +21,54 @@ export interface Employee {
   shift?: { id: string; shiftName: string; startTime: string; endTime: string } | null;
   customRole?: { id: string; name: string; permissions: string[] } | null;
   joiningDate: string;
+  resignationDate?: string | null;
+  gender?: string | null;
+  dateOfBirth?: string | null;
+  presentAddress?: string | null;
+  permanentAddress?: string | null;
+  emergencyContactName?: string | null;
+  emergencyContactPhone?: string | null;
+  emergencyContactRelation?: string | null;
+  nidOrPassport?: string | null;
   avatarUrl?: string | null;
   attendanceExempt?: boolean;
   permissions?: string[];
   isOwner?: boolean;
+}
+
+export interface DashboardStats {
+  totalActive: number;
+  outworkToday: Array<{
+    id: string;
+    userId: string;
+    fullName: string;
+    employeeId: string;
+    avatarUrl?: string | null;
+    department: string;
+    destination: string;
+    purpose: string;
+  }>;
+  onLeaveToday: Array<{
+    id: string;
+    userId: string;
+    fullName: string;
+    employeeId: string;
+    avatarUrl?: string | null;
+    department: string;
+    leaveType: string;
+    startDate: string;
+    endDate: string;
+  }>;
+  birthdays: Array<{
+    id: string;
+    fullName: string;
+    employeeId: string;
+    avatarUrl?: string | null;
+    department: string;
+    day: number;
+    displayDate: string;
+  }>;
+  currentMonthName: string;
 }
 
 export interface CreateEmployeePayload {
@@ -45,12 +89,27 @@ export interface CreateEmployeePayload {
   emergencyContactName?: string;
   emergencyContactPhone?: string;
   emergencyContactRelation?: string;
+  nidOrPassport?: string;
+  dateOfBirth?: string;
+  gender?: string;
   permissions?: string[];
+  passwordHash?: string;
+  avatarUrl?: string;
 }
 
 export const EmployeeService = {
   getAll: async (params?: Record<string, any>): Promise<Employee[]> => {
     const { data } = await apiClient.get<Employee[]>("/employees", { params });
+    return data;
+  },
+
+  getById: async (id: string): Promise<Employee> => {
+    const { data } = await apiClient.get<Employee>(`/employees/${id}`);
+    return data;
+  },
+
+  getDashboardStats: async (): Promise<DashboardStats> => {
+    const { data } = await apiClient.get<DashboardStats>("/employees/dashboard-stats");
     return data;
   },
 

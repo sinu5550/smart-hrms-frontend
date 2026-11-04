@@ -48,6 +48,9 @@ const createEmployeeSchema = (expectedPrefix: string) => {
     shiftId: z.string().optional(),
     customRoleId: z.string().optional(),
     bloodGroup: z.string().optional(),
+    dateOfBirth: z.string().optional(),
+    gender: z.string().optional(),
+    nidOrPassport: z.string().optional(),
     presentAddress: z.string().optional(),
     permanentAddress: z.string().optional(),
     emergencyContactName: z.string().optional(),
@@ -175,6 +178,16 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
     if (applicant.bloodGroup) {
       setValue("bloodGroup", applicant.bloodGroup);
       setBloodGroupValue(applicant.bloodGroup);
+    }
+    if (applicant.dateOfBirth) {
+      const formattedDob = applicant.dateOfBirth.slice(0, 10);
+      setValue("dateOfBirth", formattedDob);
+    }
+    if (applicant.gender) {
+      setValue("gender", applicant.gender);
+    }
+    if (applicant.nidOrPassport) {
+      setValue("nidOrPassport", applicant.nidOrPassport);
     }
     if (applicant.presentAddress) {
       setValue("presentAddress", applicant.presentAddress);
@@ -665,9 +678,44 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
                 </div>
               </div>
 
-              <div>
-                <label className="text-[11px] font-semibold text-slate-800">Blood Group</label>
-                <Select value={bloodGroupValue || undefined} onValueChange={(value) => { setBloodGroupValue(value); setValue("bloodGroup", value); }} triggerClassName="mt-1 h-10 rounded-lg" placeholder="Select blood group" options={["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((bg) => ({value:bg,label:bg}))}/>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-800">Date of Birth</label>
+                  <Input
+                    type="date"
+                    {...register("dateOfBirth")}
+                    className="mt-1 h-10 rounded-lg text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-800">Gender</label>
+                  <Select
+                    value={watch("gender") || undefined}
+                    onValueChange={(val) => setValue("gender", val)}
+                    triggerClassName="mt-1 h-10 rounded-lg"
+                    placeholder="Select gender"
+                    options={[
+                      { value: "Male", label: "Male" },
+                      { value: "Female", label: "Female" },
+                      { value: "Other", label: "Other" },
+                    ]}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-800">Blood Group</label>
+                  <Select value={bloodGroupValue || undefined} onValueChange={(value) => { setBloodGroupValue(value); setValue("bloodGroup", value); }} triggerClassName="mt-1 h-10 rounded-lg" placeholder="Select blood group" options={["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((bg) => ({value:bg,label:bg}))}/>
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-800">NID / Passport No</label>
+                  <Input
+                    {...register("nidOrPassport")}
+                    placeholder="e.g. 1990123456789"
+                    className="mt-1 h-10 rounded-lg text-xs"
+                  />
+                </div>
               </div>
 
               <div className="space-y-3">

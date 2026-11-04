@@ -16,6 +16,22 @@ export function useEmployees(query?: {
   });
 }
 
+export function useEmployee(id: string) {
+  return useQuery({
+    queryKey: QUERY_KEYS.employees.detail(id),
+    queryFn: () => EmployeeService.getById(id),
+    enabled: Boolean(id),
+  });
+}
+
+export function useDashboardStats() {
+  return useQuery({
+    queryKey: ["employees", "dashboard-stats"],
+    queryFn: () => EmployeeService.getDashboardStats(),
+    refetchInterval: 30000,
+  });
+}
+
 export function useNextEmployeeId() {
   return useQuery({
     queryKey: QUERY_KEYS.employees.nextId,
