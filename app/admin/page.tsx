@@ -176,45 +176,18 @@ export default function AdminOverviewPage() {
   ];
 
   return (
-    <div className="w-full space-y-6">
-      {/* Top Banner */}
-      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 p-6 md:p-8 text-white shadow-sm">
-        <div className="relative z-10 max-w-2xl">
-          <p className="text-xs uppercase tracking-[.2em] text-emerald-300 font-semibold">People Operations</p>
-          <h1 className="mt-2 text-2xl md:text-3xl font-bold tracking-tight">Good work starts with a clear view.</h1>
-          <p className="mt-2 text-xs leading-5 text-slate-300">
-            Monitor real-time office attendance, field visits, on-leave employees, and upcoming team milestones.
-          </p>
-          <div className="mt-5 flex flex-wrap gap-2.5">
-            <Link
-              href="/admin/employees"
-              className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 px-3.5 py-2 text-xs font-semibold text-white transition shadow-sm"
-            >
-              <UserRoundPlus className="h-3.5 w-3.5" /> Add Employee
-            </Link>
-            <Link
-              href="/admin/attendance"
-              className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-3.5 py-2 text-xs font-semibold text-white hover:bg-white/10 transition"
-            >
-              Live Attendance Monitor <ArrowUpRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-        </div>
-        <div className="absolute -right-8 -bottom-24 h-72 w-72 rounded-full border-[36px] border-white/5 pointer-events-none" />
-        <div className="absolute right-28 -bottom-36 h-72 w-72 rounded-full border-[36px] border-white/5 pointer-events-none" />
-      </section>
-
+    <div className="w-full space-y-5">
       {/* KPI Summary Cards Section */}
       <section className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
         {employeesLoading || attendanceLoading ? (
           [1, 2, 3, 4, 5].map((n) => (
-            <article key={n} className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs space-y-2.5">
+            <article key={n} className="rounded-lg border border-slate-200/90 bg-white p-4 shadow-xs space-y-2.5">
               <div className="flex items-start justify-between">
                 <div className="space-y-1.5">
                   <div className="h-3 w-20 bg-slate-200/70 rounded animate-pulse" />
                   <div className="h-6 w-12 bg-slate-200/80 rounded animate-pulse" />
                 </div>
-                <div className="h-8 w-8 bg-slate-200/70 rounded-xl animate-pulse" />
+                <div className="h-8 w-8 bg-slate-200/70 rounded-lg animate-pulse" />
               </div>
               <div className="h-2.5 w-24 bg-slate-200/50 rounded animate-pulse" />
             </article>
@@ -224,14 +197,14 @@ export default function AdminOverviewPage() {
             <Link
               key={title}
               href={href}
-              className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs hover:border-emerald-500 hover:shadow-sm transition group flex flex-col justify-between"
+              className="rounded-lg border border-slate-200/90 bg-white p-4 shadow-xs hover:border-emerald-500 hover:shadow-sm transition group flex flex-col justify-between"
             >
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-[11px] font-semibold text-slate-500 group-hover:text-emerald-700 transition">{title}</p>
                   <p className="mt-1 text-2xl font-black tracking-tight text-slate-900">{value}</p>
                 </div>
-                <span className={`rounded-xl p-2 border ${tone} transition group-hover:scale-105`}>
+                <span className={`rounded-lg p-2 border ${tone} transition group-hover:scale-105`}>
                   <Icon className="h-4 w-4" />
                 </span>
               </div>
@@ -244,7 +217,7 @@ export default function AdminOverviewPage() {
       {/* Row 1: 3-Column Visual Cards Matching Requested Design */}
       <section className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {/* Card 1: Attendance Overview (Today & Department-wise Breakdown) */}
-        <article className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs flex flex-col justify-between">
+        <article className="rounded-lg border border-slate-200/90 bg-white p-5 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
               <span>Attendance Overview</span>
@@ -361,7 +334,7 @@ export default function AdminOverviewPage() {
         </article>
 
         {/* Card 2: Out of Work (Today) / On Leave (Today) */}
-        <article className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs flex flex-col justify-between">
+        <article className="rounded-lg border border-slate-200/90 bg-white p-5 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
               <span>Out of Work</span>
@@ -437,7 +410,7 @@ export default function AdminOverviewPage() {
         </article>
 
         {/* Card 3: Employee Birthdays (Current Month) */}
-        <article className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs flex flex-col justify-between">
+        <article className="rounded-lg border border-slate-200/90 bg-white p-5 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
               <Cake className="w-4 h-4 text-emerald-600" />
@@ -497,7 +470,7 @@ export default function AdminOverviewPage() {
       {/* Row 2: Today at a glance + Upcoming Events & Activities + Quick Actions (All 3 in One Row) */}
       <section className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {/* Card 1: Live Attendance Today at a Glance */}
-        <article className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs flex flex-col justify-between">
+        <article className="rounded-lg border border-slate-200/90 bg-white p-5 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
               <h2 className="text-sm font-bold text-slate-900">Today at a glance</h2>
@@ -591,7 +564,7 @@ export default function AdminOverviewPage() {
         </article>
 
         {/* Card 2: Upcoming Events & Activities (Static for now as specified) */}
-        <article className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs flex flex-col justify-between">
+        <article className="rounded-lg border border-slate-200/90 bg-white p-5 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
               <CalendarDays className="w-4 h-4 text-emerald-600" />
@@ -611,7 +584,7 @@ export default function AdminOverviewPage() {
               return (
                 <div
                   key={event.id}
-                  className="flex items-center justify-between p-2 rounded-xl border border-slate-100 hover:border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition"
+                  className="flex items-center justify-between p-2 rounded-lg border border-slate-100 hover:border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${event.tone}`}>
@@ -638,7 +611,7 @@ export default function AdminOverviewPage() {
         </article>
 
         {/* Card 3: Quick Actions Card */}
-        <article className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs flex flex-col justify-between">
+        <article className="rounded-lg border border-slate-200/90 bg-white p-5 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
               <Zap className="w-4 h-4 text-emerald-600" />
@@ -649,7 +622,7 @@ export default function AdminOverviewPage() {
           <div className="mt-4 grid grid-cols-2 gap-2.5 flex-1 content-center">
             <Link
               href="/admin/employees"
-              className="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-200/80 hover:border-emerald-500 hover:bg-emerald-50/40 transition group text-center"
+              className="flex flex-col items-center justify-center p-3 rounded-lg border border-slate-200/80 hover:border-emerald-500 hover:bg-emerald-50/40 transition group text-center"
             >
               <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 group-hover:scale-105 transition">
                 <UserRoundPlus className="w-4 h-4" />
@@ -661,7 +634,7 @@ export default function AdminOverviewPage() {
 
             <Link
               href="/admin/attendance"
-              className="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-200/80 hover:border-emerald-500 hover:bg-emerald-50/40 transition group text-center"
+              className="flex flex-col items-center justify-center p-3 rounded-lg border border-slate-200/80 hover:border-emerald-500 hover:bg-emerald-50/40 transition group text-center"
             >
               <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700 group-hover:scale-105 transition">
                 <Clock3 className="w-4 h-4" />
@@ -673,7 +646,7 @@ export default function AdminOverviewPage() {
 
             <Link
               href="/admin/outwork"
-              className="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-200/80 hover:border-emerald-500 hover:bg-emerald-50/40 transition group text-center"
+              className="flex flex-col items-center justify-center p-3 rounded-lg border border-slate-200/80 hover:border-emerald-500 hover:bg-emerald-50/40 transition group text-center"
             >
               <div className="w-8 h-8 rounded-lg bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-700 group-hover:scale-105 transition">
                 <Briefcase className="w-4 h-4" />
@@ -685,7 +658,7 @@ export default function AdminOverviewPage() {
 
             <Link
               href="/admin/leave"
-              className="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-200/80 hover:border-emerald-500 hover:bg-emerald-50/40 transition group text-center"
+              className="flex flex-col items-center justify-center p-3 rounded-lg border border-slate-200/80 hover:border-emerald-500 hover:bg-emerald-50/40 transition group text-center"
             >
               <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 group-hover:scale-105 transition">
                 <Palmtree className="w-4 h-4" />
