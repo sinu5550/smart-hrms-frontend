@@ -51,7 +51,7 @@ export default function EmployeesDirectoryPage() {
       }));
     }
     return [
-      { value: "ACTIVE", label: "ACTIVE", color: "emerald" },
+      { value: "ACTIVE", label: "PERMANENT", color: "emerald" },
       { value: "ON_PROBATION", label: "ON PROBATION", color: "amber" },
       { value: "RESIGNED", label: "RESIGNED", color: "slate" },
       { value: "TERMINATED", label: "TERMINATED", color: "rose" },
@@ -317,7 +317,7 @@ export default function EmployeesDirectoryPage() {
                     <div className="shrink-0">
                       {emp.email.toLowerCase() === ownerEmail ? (
                         <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                          ACTIVE
+                          PERMANENT
                         </span>
                       ) : (
                         <Select
@@ -487,7 +487,7 @@ export default function EmployeesDirectoryPage() {
                         {emp.email.toLowerCase() === ownerEmail ? (
                           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-bold bg-amber-100 border border-amber-300 text-amber-900" title="Organization Owner status is permanent">
                             <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
-                            OWNER (ACTIVE)
+                            OWNER (PERMANENT)
                           </span>
                         ) : (
                           <Select
