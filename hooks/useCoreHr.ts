@@ -104,3 +104,46 @@ export function useSaveIdCardTemplate() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: QUERY_KEYS.coreHr.idTemplates }),
   });
 }
+
+// Employment Status Configurations
+export function useEmploymentStatuses() {
+  return useQuery({
+    queryKey: QUERY_KEYS.coreHr.employmentStatuses,
+    queryFn: () => coreHrService.getEmploymentStatuses(),
+  });
+}
+
+export function useCreateEmploymentStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: { name: string; color?: string; countInAttendance?: boolean }) =>
+      coreHrService.createEmploymentStatus(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.coreHr.employmentStatuses });
+      queryClient.invalidateQueries({ queryKey: ["employees", "dashboard-stats"] });
+    },
+  });
+}
+
+export function useUpdateEmploymentStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: { name?: string; color?: string; countInAttendance?: boolean } }) =>
+      coreHrService.updateEmploymentStatus(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.coreHr.employmentStatuses });
+      queryClient.invalidateQueries({ queryKey: ["employees", "dashboard-stats"] });
+    },
+  });
+}
+
+export function useDeleteEmploymentStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => coreHrService.deleteEmploymentStatus(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.coreHr.employmentStatuses });
+      queryClient.invalidateQueries({ queryKey: ["employees", "dashboard-stats"] });
+    },
+  });
+}

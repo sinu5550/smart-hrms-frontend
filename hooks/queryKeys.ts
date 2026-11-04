@@ -38,6 +38,7 @@ export const QUERY_KEYS = {
     grades: ["coreHr", "grades"] as const,
     gazettes: ["coreHr", "gazettes"] as const,
     idTemplates: ["coreHr", "idTemplates"] as const,
+    employmentStatuses: ["coreHr", "employmentStatuses"] as const,
   },
   settings: {
     shift: ["settings", "shift"] as const,

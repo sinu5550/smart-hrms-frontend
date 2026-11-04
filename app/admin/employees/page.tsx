@@ -28,7 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { useEmployees, useChangeEmployeeStatus, useOrganization, useDepartments } from "@/hooks";
+import { useEmployees, useChangeEmployeeStatus, useOrganization, useDepartments, useEmploymentStatuses } from "@/hooks";
 import { deviceService } from "@/services/device.service";
 
 export default function EmployeesDirectoryPage() {
@@ -38,7 +38,26 @@ export default function EmployeesDirectoryPage() {
 
   const { data: employees = [], isLoading } = useEmployees();
   const { data: departments = [] } = useDepartments();
+  const { data: configuredStatuses = [] } = useEmploymentStatuses();
   const changeStatusMutation = useChangeEmployeeStatus();
+
+  // Combine default and user-configured statuses for dynamic dropdown options
+  const statusOptions = React.useMemo(() => {
+    if (configuredStatuses.length > 0) {
+      return configuredStatuses.map((s) => ({
+        value: s.code,
+        label: s.name,
+        color: s.color,
+      }));
+    }
+    return [
+      { value: "ACTIVE", label: "ACTIVE", color: "emerald" },
+      { value: "ON_PROBATION", label: "ON PROBATION", color: "amber" },
+      { value: "RESIGNED", label: "RESIGNED", color: "slate" },
+      { value: "TERMINATED", label: "TERMINATED", color: "rose" },
+      { value: "SUSPENDED", label: "SUSPENDED", color: "rose" },
+    ];
+  }, [configuredStatuses]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -303,7 +322,7 @@ export default function EmployeesDirectoryPage() {
                       ) : (
                         <Select
                           value={emp.status}
-                          onValueChange={(value) => handleStatusToggle(emp, value as EmploymentStatus)}
+                          onValueChange={(value) => handleStatusToggle(emp, value as any)}
                           triggerClassName={`h-7 w-28 text-[10px] font-bold rounded-md border ${
                             emp.status === "ACTIVE"
                               ? "bg-emerald-50 border-emerald-300 text-emerald-800"
@@ -311,7 +330,7 @@ export default function EmployeesDirectoryPage() {
                               ? "bg-amber-50 border-amber-300 text-amber-800"
                               : "bg-rose-50 border-rose-300 text-rose-800"
                           }`}
-                          options={[{value:"ACTIVE",label:"ACTIVE"},{value:"ON_PROBATION",label:"PROBATION"},{value:"RESIGNED",label:"RESIGNED"},{value:"TERMINATED",label:"TERMINATED"}]}
+                          options={statusOptions}
                         />
                       )}
                     </div>
@@ -473,15 +492,17 @@ export default function EmployeesDirectoryPage() {
                         ) : (
                           <Select
                             value={emp.status}
-                            onValueChange={(value) => handleStatusToggle(emp, value as EmploymentStatus)}
-                            triggerClassName={`h-8 w-36 text-[11px] font-bold rounded-lg border transition ${
+                            onValueChange={(value) => handleStatusToggle(emp, value as any)}
+                            triggerClassName={`h-8 w-40 text-[11px] font-bold rounded-lg border transition ${
                               emp.status === "ACTIVE"
                                 ? "bg-emerald-50 border-emerald-300 text-emerald-800 hover:bg-emerald-100"
                                 : emp.status === "ON_PROBATION"
                                 ? "bg-amber-50 border-amber-300 text-amber-800 hover:bg-amber-100"
+                                : emp.status === "RESIGNED"
+                                ? "bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200"
                                 : "bg-rose-50 border-rose-300 text-rose-800 hover:bg-rose-100"
                             }`}
-                            options={[{value:"ACTIVE",label:"ACTIVE"},{value:"ON_PROBATION",label:"ON PROBATION"},{value:"RESIGNED",label:"RESIGNED"},{value:"TERMINATED",label:"TERMINATED"}]}
+                            options={statusOptions}
                           />
                         )}
                       </td>

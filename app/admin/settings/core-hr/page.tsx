@@ -14,6 +14,10 @@ import {
   useCreateJobGrade,
   useCreateGazetteRule,
   useSaveIdCardTemplate,
+  useEmploymentStatuses,
+  useCreateEmploymentStatus,
+  useUpdateEmploymentStatus,
+  useDeleteEmploymentStatus,
 } from "@/hooks";
 import { parseApiError } from "@/services/api";
 import { formatDate } from "@/lib/utils";
@@ -37,7 +41,15 @@ import {
 } from "lucide-react";
 
 export default function CoreHrSettingsHubPage() {
-  const [activeTab, setActiveTab] = useState<"BRANCHES" | "HOLIDAYS" | "GRADES" | "GAZETTE" | "ID_STUDIO">("BRANCHES");
+  const [activeTab, setActiveTab] = useState<"BRANCHES" | "HOLIDAYS" | "GRADES" | "GAZETTE" | "ID_STUDIO" | "STATUSES">("STATUSES");
+
+  // Employment Statuses
+  const { data: employmentStatuses = [], isLoading: isLoadingStatuses } = useEmploymentStatuses();
+  const createStatusMutation = useCreateEmploymentStatus();
+  const updateStatusMutation = useUpdateEmploymentStatus();
+  const deleteStatusMutation = useDeleteEmploymentStatus();
+  const [statusModal, setStatusModal] = useState(false);
+  const [statusForm, setStatusForm] = useState({ name: "", color: "emerald", countInAttendance: true });
 
   // Branches
   const { data: branches = [], isLoading: isLoadingBranches } = useBranches();
@@ -170,6 +182,7 @@ export default function CoreHrSettingsHubPage() {
       {/* Tabs */}
       <div className="flex overflow-x-auto p-1 bg-slate-100 border border-slate-200 rounded-lg gap-1">
         {[
+          { tab: "STATUSES", label: "Employment Statuses", icon: CheckCircle2 },
           { tab: "BRANCHES", label: "Multi-Branches", icon: Building2 },
           { tab: "HOLIDAYS", label: "Holiday Calendar", icon: Calendar },
           { tab: "GRADES", label: "Job Grades", icon: Layers },
@@ -208,6 +221,141 @@ export default function CoreHrSettingsHubPage() {
         >
           <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
           <span>{notification.text}</span>
+        </div>
+      )}
+
+      {/* ================= TAB 0: EMPLOYMENT STATUSES ================= */}
+      {activeTab === "STATUSES" && (
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 className="text-sm font-bold text-slate-800">
+                Employment Status Configuration ({employmentStatuses.length})
+              </h2>
+              <p className="text-[11px] text-slate-500">
+                Create and manage custom employment statuses (e.g. Active, Probation, Contractual). Toggle whether employees with this status count toward the daily attendance calculation overview.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                setStatusForm({ name: "", color: "emerald", countInAttendance: true });
+                setStatusModal(true);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg shadow-sm transition shrink-0"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Create Status</span>
+            </button>
+          </div>
+
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-bold">
+                  <th className="py-3 px-4">Status Name</th>
+                  <th className="py-3 px-4">System Code</th>
+                  <th className="py-3 px-4">Badge Preview</th>
+                  <th className="py-3 px-4">Count In Attendance?</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {isLoadingStatuses ? (
+                  <tr>
+                    <td colSpan={5} className="py-8 text-center text-slate-400">Loading statuses...</td>
+                  </tr>
+                ) : employmentStatuses.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-8 text-center text-slate-400">No custom statuses configured.</td>
+                  </tr>
+                ) : (
+                  employmentStatuses.map((st) => (
+                    <tr key={st.id} className="hover:bg-slate-50/60 transition">
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-slate-800">{st.name}</span>
+                          {st.isDefault && (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                              Default
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="font-mono text-[11px] text-slate-500">{st.code}</span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span
+                          className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                            st.color === "emerald"
+                              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                              : st.color === "amber"
+                              ? "bg-amber-50 text-amber-800 border-amber-200"
+                              : st.color === "rose"
+                              ? "bg-rose-50 text-rose-800 border-rose-200"
+                              : st.color === "blue"
+                              ? "bg-blue-50 text-blue-800 border-blue-200"
+                              : st.color === "purple"
+                              ? "bg-purple-50 text-purple-800 border-purple-200"
+                              : "bg-slate-100 text-slate-700 border-slate-200"
+                          }`}
+                        >
+                          {st.name}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <label className="inline-flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={st.countInAttendance}
+                            onChange={async (e) => {
+                              try {
+                                await updateStatusMutation.mutateAsync({
+                                  id: st.id,
+                                  payload: { countInAttendance: e.target.checked },
+                                });
+                                setNotification({
+                                  type: "success",
+                                  text: `Updated attendance inclusion for ${st.name}!`,
+                                });
+                              } catch (err: any) {
+                                alert(parseApiError(err));
+                              }
+                            }}
+                            className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 h-4 w-4 cursor-pointer"
+                          />
+                          <span className={`text-[11px] font-semibold ${st.countInAttendance ? "text-emerald-700" : "text-slate-400"}`}>
+                            {st.countInAttendance ? "Included in overview" : "Excluded from count"}
+                          </span>
+                        </label>
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        {!st.isDefault && st.code !== "ACTIVE" ? (
+                          <button
+                            onClick={async () => {
+                              if (!confirm(`Are you sure you want to delete "${st.name}"?`)) return;
+                              try {
+                                await deleteStatusMutation.mutateAsync(st.id);
+                                setNotification({ type: "success", text: `Deleted status ${st.name}` });
+                              } catch (err: any) {
+                                alert(parseApiError(err));
+                              }
+                            }}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition hover:bg-rose-50"
+                            title="Delete status"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-slate-400 italic">System Core</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -728,6 +876,91 @@ export default function CoreHrSettingsHubPage() {
                   className="px-4 py-1.5 bg-emerald-700 text-white text-xs font-bold rounded-lg"
                 >
                   Save Grade
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Status Modal */}
+      {statusModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl border border-slate-200 max-w-sm w-full p-5 space-y-4 shadow-2xl">
+            <h3 className="text-sm font-bold text-slate-900">Create Employment Status</h3>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!statusForm.name.trim()) return;
+                try {
+                  await createStatusMutation.mutateAsync(statusForm);
+                  setStatusModal(false);
+                  setNotification({ type: "success", text: `Status "${statusForm.name}" created successfully!` });
+                } catch (err: any) {
+                  alert(parseApiError(err));
+                }
+              }}
+              className="space-y-3"
+            >
+              <div>
+                <label className="text-[11px] font-semibold text-slate-700">Status Display Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Intern, Contractual, Notice Period"
+                  value={statusForm.name}
+                  onChange={(e) => setStatusForm({ ...statusForm, name: e.target.value })}
+                  className="w-full mt-1 px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-emerald-600"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-semibold text-slate-700">Badge Color</label>
+                <select
+                  value={statusForm.color}
+                  onChange={(e) => setStatusForm({ ...statusForm, color: e.target.value })}
+                  className="w-full mt-1 px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-emerald-600"
+                >
+                  <option value="emerald">Emerald (Green)</option>
+                  <option value="amber">Amber (Yellow/Orange)</option>
+                  <option value="rose">Rose (Red)</option>
+                  <option value="blue">Blue</option>
+                  <option value="purple">Purple</option>
+                  <option value="slate">Slate (Gray)</option>
+                </select>
+              </div>
+
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={statusForm.countInAttendance}
+                    onChange={(e) => setStatusForm({ ...statusForm, countInAttendance: e.target.checked })}
+                    className="mt-0.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 h-4 w-4 cursor-pointer"
+                  />
+                  <div>
+                    <p className="text-xs font-bold text-slate-800">Count in Attendance Overview</p>
+                    <p className="text-[10px] text-slate-500">
+                      If checked, employees with this status will be included in the total staff count for today&apos;s attendance calculation.
+                    </p>
+                  </div>
+                </label>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setStatusModal(false)}
+                  className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded-lg transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={createStatusMutation.isPending}
+                  className="px-4 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg transition shadow-xs disabled:opacity-50"
+                >
+                  {createStatusMutation.isPending ? "Creating..." : "Save Status"}
                 </button>
               </div>
             </form>

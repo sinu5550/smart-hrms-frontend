@@ -58,6 +58,16 @@ export interface IdCardTemplate {
   isDefault: boolean;
 }
 
+export interface EmploymentStatusConfig {
+  id: string;
+  name: string;
+  code: string;
+  color: string;
+  countInAttendance: boolean;
+  isDefault: boolean;
+  createdAt: string;
+}
+
 export const coreHrService = {
   // Branches
   async getBranches(): Promise<Branch[]> {
@@ -114,6 +124,24 @@ export const coreHrService = {
   },
   async saveIdCardTemplate(payload: Partial<IdCardTemplate>): Promise<IdCardTemplate> {
     const { data } = await apiClient.post<IdCardTemplate>("/core-hr/id-card-templates", payload);
+    return data;
+  },
+
+  // Employment Status Configurations
+  async getEmploymentStatuses(): Promise<EmploymentStatusConfig[]> {
+    const { data } = await apiClient.get<EmploymentStatusConfig[]>("/core-hr/employment-statuses");
+    return data;
+  },
+  async createEmploymentStatus(payload: { name: string; color?: string; countInAttendance?: boolean }): Promise<EmploymentStatusConfig> {
+    const { data } = await apiClient.post<EmploymentStatusConfig>("/core-hr/employment-statuses", payload);
+    return data;
+  },
+  async updateEmploymentStatus(id: string, payload: { name?: string; color?: string; countInAttendance?: boolean }): Promise<EmploymentStatusConfig> {
+    const { data } = await apiClient.patch<EmploymentStatusConfig>(`/core-hr/employment-statuses/${id}`, payload);
+    return data;
+  },
+  async deleteEmploymentStatus(id: string): Promise<{ message: string }> {
+    const { data } = await apiClient.delete<{ message: string }>(`/core-hr/employment-statuses/${id}`);
     return data;
   },
 };
