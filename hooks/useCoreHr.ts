@@ -6,6 +6,7 @@ import {
   JobGrade,
   GazetteRule,
   IdCardTemplate,
+  EmploymentStatusConfig,
 } from "@/services/core-hr.service";
 import { QUERY_KEYS } from "./queryKeys";
 
@@ -130,7 +131,25 @@ export function useUpdateEmploymentStatus() {
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: { name?: string; color?: string; countInAttendance?: boolean } }) =>
       coreHrService.updateEmploymentStatus(id, payload),
-    onSuccess: () => {
+    onMutate: async ({ id, payload }) => {
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.coreHr.employmentStatuses });
+      await queryClient.cancelQueries({ queryKey: ["employees", "dashboard-stats"] });
+
+      const prevStatuses = queryClient.getQueryData<EmploymentStatusConfig[]>(QUERY_KEYS.coreHr.employmentStatuses);
+
+      queryClient.setQueryData<EmploymentStatusConfig[]>(QUERY_KEYS.coreHr.employmentStatuses, (old) => {
+        if (!old) return old;
+        return old.map((st) => (st.id === id ? { ...st, ...payload } : st));
+      });
+
+      return { prevStatuses };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.prevStatuses) {
+        queryClient.setQueryData(QUERY_KEYS.coreHr.employmentStatuses, context.prevStatuses);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.coreHr.employmentStatuses });
       queryClient.invalidateQueries({ queryKey: ["employees", "dashboard-stats"] });
     },

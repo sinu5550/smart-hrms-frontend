@@ -71,8 +71,41 @@ export function useChangeEmployeeStatus() {
   return useMutation({
     mutationFn: ({ id, status }: { id: string; status: EmploymentStatus }) =>
       EmployeeService.changeStatus(id, status),
-    onSuccess: () => {
+    onMutate: async ({ id, status }) => {
+      // Cancel outgoing queries
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.employees.all });
+      await queryClient.cancelQueries({ queryKey: ["employees", "dashboard-stats"] });
+
+      // Snapshot previous data across queries
+      const previousQueries = queryClient.getQueriesData<Employee[]>({ queryKey: ["employees", "list"] });
+      const previousStats = queryClient.getQueryData<any>(["employees", "dashboard-stats"]);
+
+      // Optimistically update all matching employee lists
+      queryClient.setQueriesData<Employee[]>(
+        { queryKey: ["employees", "list"] },
+        (old) => {
+          if (!old) return old;
+          return old.map((emp) => (emp.id === id ? { ...emp, status } : emp));
+        }
+      );
+
+      return { previousQueries, previousStats };
+    },
+    onError: (_err, _vars, context) => {
+      // Rollback on failure
+      if (context?.previousQueries) {
+        context.previousQueries.forEach(([queryKey, oldData]) => {
+          queryClient.setQueryData(queryKey, oldData);
+        });
+      }
+      if (context?.previousStats) {
+        queryClient.setQueryData(["employees", "dashboard-stats"], context.previousStats);
+      }
+    },
+    onSettled: () => {
+      // Ensure backend sync is completed without UI delay
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.employees.all });
+      queryClient.invalidateQueries({ queryKey: ["employees", "dashboard-stats"] });
     },
   });
 }
