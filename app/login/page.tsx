@@ -18,6 +18,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isLocalHost, setIsLocalHost] = useState(false);
 
   React.useEffect(() => {
@@ -28,6 +29,29 @@ export default function LoginPage() {
       }
     }
   }, []);
+
+  // If already authenticated and not expired, redirect to appropriate portal immediately
+  React.useEffect(() => {
+    try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+      if (token) {
+        const rawProfile = localStorage.getItem("user_profile");
+        if (rawProfile) {
+          const profile = JSON.parse(rawProfile);
+          if (profile?.role && ADMIN_ROLES.includes(profile.role)) {
+            router.replace("/admin");
+            return;
+          }
+        }
+        router.replace("/portal/attendance");
+        return;
+      }
+    } catch {
+      // In case of parsing error, stay on login form
+    } finally {
+      setIsCheckingAuth(false);
+    }
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,6 +79,14 @@ export default function LoginPage() {
       setIsSubmitting(false);
     }
   };
+
+  if (isCheckingAuth) {
+    return (
+      <main className="min-h-screen grid place-items-center bg-[#f4f7fb] text-slate-600 px-4">
+        <div className="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4 bg-[#f4f7fb] text-slate-800">

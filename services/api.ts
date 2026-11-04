@@ -99,14 +99,19 @@ apiClient.interceptors.response.use(
           processQueue(null, data.accessToken);
           return apiClient(originalRequest);
         }
-      } catch (refreshErr) {
+      } catch (refreshErr: any) {
         processQueue(refreshErr, null);
+        // Only force logout if the server explicitly rejected the refresh token (401 / 403)
+        // If it's a temporary network failure or server boot delay, preserve the session!
         if (typeof window !== "undefined") {
-          localStorage.removeItem("access_token");
-          localStorage.removeItem("refresh_token");
-          localStorage.removeItem("user_profile");
-          localStorage.removeItem("last_active_at");
-          window.location.href = "/login";
+          const status = refreshErr?.response?.status;
+          if (status === 401 || status === 403) {
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("refresh_token");
+            localStorage.removeItem("user_profile");
+            localStorage.removeItem("last_active_at");
+            window.location.href = "/login";
+          }
         }
         return Promise.reject(refreshErr);
       } finally {
