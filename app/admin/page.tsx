@@ -1,10 +1,11 @@
 'use client';
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useEmployees, useAttendanceByDate } from "@/hooks";
+import { useEmployees, useAttendanceByDate, useDepartments } from "@/hooks";
 import { useDashboardStats } from "@/hooks/useEmployees";
+import { EmployeeBirthdaysModal } from "@/components/admin/EmployeeBirthdaysModal";
 import {
   CalendarDays,
   Users,
@@ -26,6 +27,8 @@ import {
   Palmtree,
   ArrowRight,
   Eye,
+  Building2,
+  TrendingUp,
 } from "lucide-react";
 
 export default function AdminOverviewPage() {
@@ -33,6 +36,10 @@ export default function AdminOverviewPage() {
   const { data: employees = [], isLoading: employeesLoading } = useEmployees();
   const { data: attendance = [], isLoading: attendanceLoading } = useAttendanceByDate(today);
   const { data: dashboardStats, isLoading: statsLoading } = useDashboardStats();
+  const { data: departments = [], isLoading: departmentsLoading } = useDepartments();
+
+  const [isBirthdayModalOpen, setIsBirthdayModalOpen] = useState(false);
+  const [selectedDeptFilter, setSelectedDeptFilter] = useState<string>("ALL");
 
   const active = employees.filter((person) => person.status === "ACTIVE").length;
   const late = (attendance as any[]).filter((record) => record.status === "LATE").length;
@@ -57,6 +64,84 @@ export default function AdminOverviewPage() {
   const attendanceRate = totalEmployeesCount > 0 ? ((presentCount / totalEmployeesCount) * 100).toFixed(1) : "0";
   const absentRate = totalEmployeesCount > 0 ? ((absentCount / totalEmployeesCount) * 100).toFixed(1) : "0";
   const onLeaveRate = totalEmployeesCount > 0 ? ((onLeaveCount / totalEmployeesCount) * 100).toFixed(1) : "0";
+
+  // Department-wise Attendance breakdown calculation
+  const deptAttendanceList = React.useMemo(() => {
+    // Collect unique department IDs from employees
+    const map = new Map<string, { id: string; name: string; total: number; present: number }>();
+
+    // Seed from departments list
+    departments.forEach((d) => {
+      map.set(d.id, { id: d.id, name: d.name, total: 0, present: 0 });
+    });
+
+    // Populate total counts from active employees
+    employees.forEach((emp) => {
+      const deptId = emp.department?.id || emp.departmentId || "unassigned";
+      const deptName = emp.department?.name || "General";
+      if (!map.has(deptId)) {
+        map.set(deptId, { id: deptId, name: deptName, total: 0, present: 0 });
+      }
+      const entry = map.get(deptId)!;
+      entry.total += 1;
+    });
+
+    // Populate present counts from attendance
+    attendance.forEach((att: any) => {
+      const deptId = att.user?.department?.id || "unassigned";
+      if (map.has(deptId)) {
+        map.get(deptId)!.present += 1;
+      }
+    });
+
+    return Array.from(map.values())
+      .filter((d) => d.total > 0)
+      .sort((a, b) => b.total - a.total);
+  }, [departments, employees, attendance]);
+
+  // Top KPI Metric Cards (Active, In-Office, Out of Work, Late, On Leave)
+  const kpiCards = [
+    {
+      title: "Total Employees",
+      value: employeesLoading ? "..." : employees.length,
+      hint: `${totalEmployeesCount} active personnel count`,
+      icon: Users,
+      tone: "text-blue-600 bg-blue-50 border-blue-200",
+      href: "/admin/employees",
+    },
+    {
+      title: "Currently in Office",
+      value: attendanceLoading ? "..." : working,
+      hint: `${presentCount} present today (${Math.max(0, presentCount - working)} checked out)`,
+      icon: Clock3,
+      tone: "text-emerald-700 bg-emerald-50 border-emerald-200",
+      href: "/admin/attendance",
+    },
+    {
+      title: "Out of Work",
+      value: statsLoading ? "..." : outworkToday.length,
+      hint: "Approved field visits & off-site duties",
+      icon: Briefcase,
+      tone: "text-purple-600 bg-purple-50 border-purple-200",
+      href: "/admin/outwork",
+    },
+    {
+      title: "Late Arrivals",
+      value: attendanceLoading ? "..." : late,
+      hint: "Logged after shift threshold",
+      icon: CalendarDays,
+      tone: "text-rose-600 bg-rose-50 border-rose-200",
+      href: "/admin/attendance",
+    },
+    {
+      title: "On Leave Today",
+      value: statsLoading ? "..." : onLeaveCount,
+      hint: "Covered by approved leave request",
+      icon: Palmtree,
+      tone: "text-amber-600 bg-amber-50 border-amber-200",
+      href: "/admin/leave",
+    },
+  ];
 
   // Static Upcoming Events & Activities as requested
   const staticEvents = [
@@ -119,20 +204,60 @@ export default function AdminOverviewPage() {
         <div className="absolute right-28 -bottom-36 h-72 w-72 rounded-full border-[36px] border-white/5 pointer-events-none" />
       </section>
 
+      {/* KPI Summary Cards Section */}
+      <section className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+        {employeesLoading || attendanceLoading ? (
+          [1, 2, 3, 4, 5].map((n) => (
+            <article key={n} className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs space-y-2.5">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1.5">
+                  <div className="h-3 w-20 bg-slate-200/70 rounded animate-pulse" />
+                  <div className="h-6 w-12 bg-slate-200/80 rounded animate-pulse" />
+                </div>
+                <div className="h-8 w-8 bg-slate-200/70 rounded-xl animate-pulse" />
+              </div>
+              <div className="h-2.5 w-24 bg-slate-200/50 rounded animate-pulse" />
+            </article>
+          ))
+        ) : (
+          kpiCards.map(({ title, value, hint, icon: Icon, tone, href }) => (
+            <Link
+              key={title}
+              href={href}
+              className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs hover:border-emerald-500 hover:shadow-sm transition group flex flex-col justify-between"
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-[11px] font-semibold text-slate-500 group-hover:text-emerald-700 transition">{title}</p>
+                  <p className="mt-1 text-2xl font-black tracking-tight text-slate-900">{value}</p>
+                </div>
+                <span className={`rounded-xl p-2 border ${tone} transition group-hover:scale-105`}>
+                  <Icon className="h-4 w-4" />
+                </span>
+              </div>
+              <p className="mt-2 text-[10px] font-medium text-slate-400 line-clamp-1">{hint}</p>
+            </Link>
+          ))
+        )}
+      </section>
+
       {/* Row 1: 3-Column Visual Cards Matching Requested Design */}
       <section className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        {/* Card 1: Attendance Overview (Today) */}
+        {/* Card 1: Attendance Overview (Today & Department-wise Breakdown) */}
         <article className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
               <span>Attendance Overview</span>
               <span className="text-[11px] font-normal text-slate-400">(Today)</span>
             </h2>
+            <Link href="/admin/attendance" className="text-xs font-semibold text-emerald-700 hover:underline inline-flex items-center gap-0.5">
+              Live Monitor <ArrowRight className="w-3 h-3" />
+            </Link>
           </div>
 
-          <div className="mt-4 flex items-center gap-5">
+          <div className="mt-3 flex items-center gap-4">
             {/* Circular Progress Ring */}
-            <div className="relative w-28 h-28 shrink-0 flex items-center justify-center">
+            <div className="relative w-24 h-24 shrink-0 flex items-center justify-center">
               <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
                 {/* Background Track */}
                 <circle cx="50" cy="50" r="40" stroke="#f1f5f9" strokeWidth="10" fill="transparent" />
@@ -149,46 +274,85 @@ export default function AdminOverviewPage() {
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <span className="text-lg font-black text-slate-900 tracking-tight">{attendanceRate}%</span>
-                <span className="text-[9px] font-semibold text-slate-400 leading-tight">Attendance Rate</span>
+                <span className="text-base font-black text-slate-900 tracking-tight">{attendanceRate}%</span>
+                <span className="text-[8px] font-semibold text-slate-400 leading-tight">Rate</span>
               </div>
             </div>
 
             {/* Metrics Legend */}
-            <div className="flex-1 space-y-2 text-xs">
+            <div className="flex-1 space-y-1.5 text-xs">
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-2 text-slate-600 font-medium">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
+                <span className="flex items-center gap-1.5 text-slate-600 font-medium text-[11px]">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
                   Present
                 </span>
-                <span className="font-bold text-slate-800">
-                  {presentCount} <span className="font-normal text-[11px] text-slate-400">({attendanceRate}%)</span>
+                <span className="font-bold text-slate-800 text-[11px]">
+                  {presentCount} <span className="font-normal text-[10px] text-slate-400">({attendanceRate}%)</span>
                 </span>
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-2 text-slate-600 font-medium">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0" />
+                <span className="flex items-center gap-1.5 text-slate-600 font-medium text-[11px]">
+                  <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
                   Absent
                 </span>
-                <span className="font-bold text-slate-800">
-                  {absentCount} <span className="font-normal text-[11px] text-slate-400">({absentRate}%)</span>
+                <span className="font-bold text-slate-800 text-[11px]">
+                  {absentCount} <span className="font-normal text-[10px] text-slate-400">({absentRate}%)</span>
                 </span>
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-2 text-slate-600 font-medium">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0" />
+                <span className="flex items-center gap-1.5 text-slate-600 font-medium text-[11px]">
+                  <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
                   On Leave
                 </span>
-                <span className="font-bold text-slate-800">
-                  {onLeaveCount} <span className="font-normal text-[11px] text-slate-400">({onLeaveRate}%)</span>
+                <span className="font-bold text-slate-800 text-[11px]">
+                  {onLeaveCount} <span className="font-normal text-[10px] text-slate-400">({onLeaveRate}%)</span>
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+          {/* Department-wise Attendance breakdown list */}
+          <div className="mt-3 pt-2.5 border-t border-slate-100 flex-1 flex flex-col">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                <Building2 className="w-3 h-3 text-slate-400" />
+                Department Breakdown
+              </span>
+              <span className="text-[10px] text-slate-400 font-mono">Present / Enlisted</span>
+            </div>
+
+            <div className="space-y-1.5 max-h-28 overflow-y-auto pr-1">
+              {deptAttendanceList.length > 0 ? (
+                deptAttendanceList.map((dept) => {
+                  const pct = dept.total > 0 ? Math.round((dept.present / dept.total) * 100) : 0;
+                  return (
+                    <div key={dept.id} className="space-y-0.5">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="font-medium text-slate-700 truncate max-w-[130px]">{dept.name}</span>
+                        <span className="text-[10px] font-mono font-bold text-slate-800">
+                          {dept.present}/{dept.total} <span className="text-slate-400 font-normal">({pct}%)</span>
+                        </span>
+                      </div>
+                      <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-300 ${
+                            pct >= 80 ? "bg-emerald-500" : pct >= 50 ? "bg-amber-400" : "bg-rose-400"
+                          }`}
+                          style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="text-[10px] text-slate-400 text-center py-2">No departments assigned yet.</p>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
             <span>Total Enlisted: {totalEmployeesCount} personnel</span>
             <Link href="/admin/attendance" className="font-semibold text-emerald-700 hover:underline">
               View Log &rarr;
@@ -280,9 +444,12 @@ export default function AdminOverviewPage() {
               <span>Employee Birthdays</span>
               <span className="text-[11px] font-normal text-slate-400">({currentMonthName})</span>
             </h2>
-            <Link href="/admin/employees" className="text-xs font-semibold text-emerald-700 hover:underline inline-flex items-center gap-0.5">
+            <button
+              onClick={() => setIsBirthdayModalOpen(true)}
+              className="text-xs font-semibold text-emerald-700 hover:underline inline-flex items-center gap-0.5"
+            >
               View All <ArrowRight className="w-3 h-3" />
-            </Link>
+            </button>
           </div>
 
           <div className="mt-3 divide-y divide-slate-100 flex-1 max-h-56 overflow-y-auto pr-1">
@@ -540,6 +707,14 @@ export default function AdminOverviewPage() {
           </div>
         </article>
       </section>
+
+      {/* Birthday Modal for full list with search */}
+      <EmployeeBirthdaysModal
+        isOpen={isBirthdayModalOpen}
+        onClose={() => setIsBirthdayModalOpen(false)}
+        birthdays={birthdays}
+        currentMonthName={currentMonthName}
+      />
     </div>
   );
 }
