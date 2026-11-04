@@ -46,7 +46,11 @@ export default function AdminOverviewPage() {
   const currentMonthName = dashboardStats?.currentMonthName || "November";
 
   // Attendance metrics calculation
-  const totalEmployeesCount = active || employees.length || 1;
+  // Uses dynamic count of eligible employees configured with "count_in_attendance = true"
+  const totalEmployeesCount =
+    typeof dashboardStats?.totalActive === "number"
+      ? dashboardStats.totalActive
+      : employees.length || 1;
   const presentCount = attendance.length;
   const onLeaveCount = onLeaveToday.length;
   const absentCount = Math.max(0, totalEmployeesCount - (presentCount + onLeaveCount));
