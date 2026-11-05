@@ -296,7 +296,7 @@ export default function AdminOverviewPage() {
               <span className="text-[10px] text-slate-400 font-mono">Present / Enlisted</span>
             </div>
 
-            <div className="space-y-1.5 max-h-28 overflow-y-auto pr-1">
+            <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
               {deptAttendanceList.length > 0 ? (
                 deptAttendanceList.map((dept) => {
                   const pct = dept.total > 0 ? Math.round((dept.present / dept.total) * 100) : 0;
