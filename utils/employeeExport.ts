@@ -11,6 +11,32 @@ interface StatusOption {
   label: string;
 }
 
+const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/**
+ * Format any date value into requested standard format: "26 Aug, 2003"
+ * Safely parses YYYY-MM-DD or ISO strings without timezone day-shift.
+ */
+export function formatDisplayDate(val?: string | Date | null): string {
+  if (!val) return "N/A";
+  const str = String(val).trim();
+  if (!str) return "N/A";
+
+  const parts = str.slice(0, 10).split("-");
+  if (parts.length === 3) {
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10) - 1;
+    const d = parseInt(parts[2], 10);
+    if (!isNaN(y) && !isNaN(m) && !isNaN(d) && MONTH_NAMES[m]) {
+      return `${d} ${MONTH_NAMES[m]}, ${y}`;
+    }
+  }
+
+  const dt = new Date(val);
+  if (isNaN(dt.getTime())) return str;
+  return `${dt.getDate()} ${MONTH_NAMES[dt.getMonth()]}, ${dt.getFullYear()}`;
+}
+
 export async function exportEmployeesData(
   employees: Employee[],
   format: ExportFormat,
@@ -47,6 +73,7 @@ export async function exportEmployeesData(
 
   const timestamp = new Date().toISOString().slice(0, 10);
   const fileName = `Employee_Directory_${timestamp}`;
+  const exportDateFormatted = formatDisplayDate(new Date());
 
   // Build comprehensive data mapping for each employee
   const fullData = employees.map((emp, index) => {
@@ -63,8 +90,8 @@ export async function exportEmployeesData(
       "Phone Number": emp.phone || "N/A",
       "Blood Group": emp.bloodGroup || "N/A",
       "Gender": emp.gender || "N/A",
-      "Date of Birth": emp.dateOfBirth ? String(emp.dateOfBirth).slice(0, 10) : "N/A",
-      "Joining Date": emp.joiningDate ? String(emp.joiningDate).slice(0, 10) : "N/A",
+      "Date of Birth": formatDisplayDate(emp.dateOfBirth),
+      "Joining Date": formatDisplayDate(emp.joiningDate),
       "NID / Passport": emp.nidOrPassport || "N/A",
       "Present Address": emp.presentAddress || "N/A",
       "Permanent Address": emp.permanentAddress || "N/A",
@@ -178,7 +205,7 @@ export async function exportEmployeesData(
 
     doc.setFontSize(10);
     doc.setTextColor(100, 116, 139);
-    doc.text(`Generated on: ${new Date().toLocaleString()} | Total Personnel: ${employees.length}`, 40, 58);
+    doc.text(`Generated on: ${exportDateFormatted} | Total Personnel: ${employees.length}`, 40, 58);
 
     const headers = [
       "SL",
@@ -204,7 +231,7 @@ export async function exportEmployeesData(
       emp.phone || "N/A",
       emp.email || "N/A",
       emp.bloodGroup || "N/A",
-      emp.joiningDate ? String(emp.joiningDate).slice(0, 10) : "N/A",
+      formatDisplayDate(emp.joiningDate),
       emp.emergencyContactPhone ? `${emp.emergencyContactName || ""} (${emp.emergencyContactPhone})` : "N/A"
     ]);
 
@@ -239,7 +266,7 @@ export async function exportEmployeesData(
       </head>
       <body>
         <h2>${orgName} - Employee Directory Records</h2>
-        <div class="meta">Export Date: ${new Date().toLocaleDateString()} | Total Employees: ${employees.length}</div>
+        <div class="meta">Export Date: ${exportDateFormatted} | Total Employees: ${employees.length}</div>
         <table>
           <thead>
             <tr>
