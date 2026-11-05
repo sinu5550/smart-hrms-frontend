@@ -290,7 +290,10 @@ export default function EmployeesDirectoryPage() {
           value={statusFilter}
           onValueChange={setStatusFilter}
           triggerClassName="h-8 text-[12px]"
-          options={[{value:"ALL",label:"All Statuses"},{value:"ACTIVE",label:"ACTIVE"},{value:"ON_PROBATION",label:"ON PROBATION"},{value:"RESIGNED",label:"RESIGNED"},{value:"TERMINATED",label:"TERMINATED"}]}
+          options={[
+            { value: "ALL", label: "All Statuses" },
+            ...statusOptions.map((s) => ({ value: s.value, label: s.label })),
+          ]}
         />
 
         <Select
