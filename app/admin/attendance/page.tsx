@@ -103,7 +103,12 @@ export default function AdminAttendancePage() {
     setIsPulling(true);
     setSyncFeedback(null);
     try {
-      const res = await deviceService.syncAllDevices();
+      const isCustomRange = dateRange.startDate && dateRange.endDate;
+      const res = await deviceService.syncAllDevices(
+        isCustomRange
+          ? { startDate: dateRange.startDate, endDate: dateRange.endDate, quick: false }
+          : { quick: true }
+      );
       await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.attendance.list(queryArg) });
       setSyncFeedback(res.message || "Attendance synced successfully!");
       setTimeout(() => setSyncFeedback(null), 4000);

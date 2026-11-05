@@ -133,8 +133,8 @@ export const deviceService = {
     return data;
   },
 
-  async syncAllDevices(): Promise<{ success: boolean; message: string }> {
-    const { data } = await apiClient.post("/devices/sync-all");
+  async syncAllDevices(options?: { startDate?: string; endDate?: string; quick?: boolean }): Promise<{ success: boolean; message: string }> {
+    const { data } = await apiClient.post("/devices/sync-all", options || {});
     return data;
   },
 
