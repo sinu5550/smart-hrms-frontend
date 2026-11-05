@@ -23,6 +23,10 @@ import {
   Fingerprint,
   ScanFace,
   Eye,
+  Download,
+  FileSpreadsheet,
+  FileText,
+  ChevronDown,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -30,6 +34,7 @@ import { Select } from "@/components/ui/select";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useEmployees, useChangeEmployeeStatus, useOrganization, useDepartments, useEmploymentStatuses } from "@/hooks";
 import { deviceService } from "@/services/device.service";
+import { exportEmployeesData, ExportFormat } from "@/utils/employeeExport";
 
 export default function EmployeesDirectoryPage() {
   const { user: currentUser } = useAuth();
@@ -70,6 +75,19 @@ export default function EmployeesDirectoryPage() {
   const [targetEditEmployee, setTargetEditEmployee] = useState<Employee | null>(null);
   const [targetDeleteEmployee, setTargetDeleteEmployee] = useState<Employee | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
+  const exportMenuRef = React.useRef<HTMLDivElement>(null);
+
+  // Close export dropdown when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as Node)) {
+        setIsExportMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Smart Page-Triggered Biometric Status Reconciliation:
   // Runs once on page mount to ensure all employee face/fingerprint badges reflect real-time terminal hardware
@@ -147,6 +165,88 @@ export default function EmployeesDirectoryPage() {
               <Trash2 className="w-4 h-4" /> Bulk Delete ({selectedIds.length})
             </Button>
           )}
+          {/* Download / Export Employee Info Dropdown */}
+          <div className="relative" ref={exportMenuRef}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsExportMenuOpen((prev) => !prev)}
+              className="h-9 rounded-lg px-3.5 text-xs font-semibold flex items-center gap-1.5 border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs"
+              title="Download full detailed employee information for filtered results"
+            >
+              <Download className="w-4 h-4 text-emerald-700" />
+              <span>Download Info ({filteredEmployees.length})</span>
+              <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isExportMenuOpen ? "rotate-180" : ""}`} />
+            </Button>
+
+            {isExportMenuOpen && (
+              <div className="absolute right-0 mt-1.5 w-52 bg-white rounded-lg shadow-xl border border-slate-200 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100">
+                <div className="px-3 py-1.5 border-b border-slate-100 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                  Select Format ({filteredEmployees.length} rows)
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsExportMenuOpen(false);
+                    exportEmployeesData(filteredEmployees, "excel", orgData?.name || "Enterprise HRMS");
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition text-left"
+                >
+                  <FileSpreadsheet className="w-4 h-4 text-emerald-700 shrink-0" />
+                  <div className="flex flex-col">
+                    <span className="font-semibold">Excel Workbook (.xlsx)</span>
+                    <span className="text-[10px] text-slate-400">Complete detailed sheet</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsExportMenuOpen(false);
+                    exportEmployeesData(filteredEmployees, "csv", orgData?.name || "Enterprise HRMS");
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition text-left"
+                >
+                  <FileText className="w-4 h-4 text-teal-600 shrink-0" />
+                  <div className="flex flex-col">
+                    <span className="font-semibold">CSV File (.csv)</span>
+                    <span className="text-[10px] text-slate-400">Spreadsheet & ERP import</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsExportMenuOpen(false);
+                    exportEmployeesData(filteredEmployees, "pdf", orgData?.name || "Enterprise HRMS");
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition text-left"
+                >
+                  <FileText className="w-4 h-4 text-rose-600 shrink-0" />
+                  <div className="flex flex-col">
+                    <span className="font-semibold">PDF Document (.pdf)</span>
+                    <span className="text-[10px] text-slate-400">Printable landscape report</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsExportMenuOpen(false);
+                    exportEmployeesData(filteredEmployees, "docs", orgData?.name || "Enterprise HRMS");
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition text-left"
+                >
+                  <FileText className="w-4 h-4 text-blue-600 shrink-0" />
+                  <div className="flex flex-col">
+                    <span className="font-semibold">Word Document (.doc)</span>
+                    <span className="text-[10px] text-slate-400">Editable formatted table</span>
+                  </div>
+                </button>
+              </div>
+            )}
+          </div>
+
           <Button
             onClick={() => setIsBulkModalOpen(true)}
             variant="outline"
