@@ -188,14 +188,14 @@ export default function EmployeesDirectoryPage() {
                   type="button"
                   onClick={() => {
                     setIsExportMenuOpen(false);
-                    exportEmployeesData(filteredEmployees, "excel", orgData?.name || "Enterprise HRMS");
+                    exportEmployeesData(filteredEmployees, "excel", orgData?.name || "Enterprise HRMS", statusOptions);
                   }}
                   className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition text-left"
                 >
                   <FileSpreadsheet className="w-4 h-4 text-emerald-700 shrink-0" />
                   <div className="flex flex-col">
                     <span className="font-semibold">Excel Workbook (.xlsx)</span>
-                    <span className="text-[10px] text-slate-400">Complete detailed sheet</span>
+                    <span className="text-[10px] text-slate-400">Complete detailed sheet (Frozen header)</span>
                   </div>
                 </button>
 
@@ -203,7 +203,7 @@ export default function EmployeesDirectoryPage() {
                   type="button"
                   onClick={() => {
                     setIsExportMenuOpen(false);
-                    exportEmployeesData(filteredEmployees, "csv", orgData?.name || "Enterprise HRMS");
+                    exportEmployeesData(filteredEmployees, "csv", orgData?.name || "Enterprise HRMS", statusOptions);
                   }}
                   className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition text-left"
                 >
@@ -218,7 +218,7 @@ export default function EmployeesDirectoryPage() {
                   type="button"
                   onClick={() => {
                     setIsExportMenuOpen(false);
-                    exportEmployeesData(filteredEmployees, "pdf", orgData?.name || "Enterprise HRMS");
+                    exportEmployeesData(filteredEmployees, "pdf", orgData?.name || "Enterprise HRMS", statusOptions);
                   }}
                   className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition text-left"
                 >
@@ -233,7 +233,7 @@ export default function EmployeesDirectoryPage() {
                   type="button"
                   onClick={() => {
                     setIsExportMenuOpen(false);
-                    exportEmployeesData(filteredEmployees, "docs", orgData?.name || "Enterprise HRMS");
+                    exportEmployeesData(filteredEmployees, "docs", orgData?.name || "Enterprise HRMS", statusOptions);
                   }}
                   className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition text-left"
                 >

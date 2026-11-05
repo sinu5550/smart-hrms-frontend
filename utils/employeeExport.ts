@@ -1,15 +1,49 @@
 import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Employee } from "@/services/employee.service";
 
 export type ExportFormat = "excel" | "csv" | "pdf" | "docs";
 
-export function exportEmployeesData(employees: Employee[], format: ExportFormat, orgName: string = "Enterprise HRMS") {
+interface StatusOption {
+  value: string;
+  label: string;
+}
+
+export async function exportEmployeesData(
+  employees: Employee[],
+  format: ExportFormat,
+  orgName: string = "Enterprise HRMS",
+  statusOptions: StatusOption[] = []
+) {
   if (!employees || employees.length === 0) {
     alert("No employee data available to export with current filters.");
     return;
   }
+
+  // Create human-friendly lookup map for status labels (e.g. ACTIVE -> PERMANENT, ON_PROBATION -> ON PROBATION)
+  const statusLabelMap: Record<string, string> = {
+    ACTIVE: "PERMANENT",
+    ON_PROBATION: "ON PROBATION",
+    RESIGNED: "RESIGNED",
+    TERMINATED: "TERMINATED",
+    SUSPENDED: "SUSPENDED",
+    INTERN: "INTERN",
+  };
+
+  statusOptions.forEach((opt) => {
+    if (opt.value && opt.label) {
+      statusLabelMap[opt.value] = opt.label;
+    }
+  });
+
+  const getStatusLabel = (statusCode?: string | null) => {
+    if (!statusCode) return "N/A";
+    if (statusLabelMap[statusCode]) return statusLabelMap[statusCode];
+    // fallback: replace underscores with spaces and capitalize
+    return statusCode.replace(/_/g, " ");
+  };
 
   const timestamp = new Date().toISOString().slice(0, 10);
   const fileName = `Employee_Directory_${timestamp}`;
@@ -21,7 +55,7 @@ export function exportEmployeesData(employees: Employee[], format: ExportFormat,
       "Employee ID": emp.employeeId || "",
       "Full Name": emp.fullName || "",
       "Role": emp.role || "",
-      "Employment Status": emp.status || "",
+      "Employment Status": getStatusLabel(emp.status),
       "Department": emp.department?.name || "N/A",
       "Designation": emp.designation?.name || "N/A",
       "Shift": emp.shift ? `${emp.shift.shiftName} (${emp.shift.startTime} - ${emp.shift.endTime})` : "N/A",
@@ -42,20 +76,93 @@ export function exportEmployeesData(employees: Employee[], format: ExportFormat,
   });
 
   if (format === "excel") {
-    const ws = XLSX.utils.json_to_sheet(fullData);
-    // Auto-fit column widths
-    const colWidths = Object.keys(fullData[0] || {}).map((key) => {
-      const maxLen = Math.max(
-        key.length,
-        ...fullData.map((row) => String((row as any)[key] || "").length)
-      );
-      return { wch: Math.min(Math.max(maxLen + 2, 10), 40) };
-    });
-    ws["!cols"] = colWidths;
+    // Generate styled Excel with Navy Blue Frozen Header using ExcelJS
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = "SmartHRM Enterprise";
+    workbook.created = new Date();
 
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Employees");
-    XLSX.writeFile(wb, `${fileName}.xlsx`);
+    const worksheet = workbook.addWorksheet("Employees", {
+      views: [{ state: "frozen", ySplit: 1 }], // Freeze header row
+    });
+
+    const headers = Object.keys(fullData[0]);
+
+    worksheet.columns = headers.map((header) => {
+      const maxLen = Math.max(
+        header.length,
+        ...fullData.map((row) => String((row as any)[header] || "").length)
+      );
+      return {
+        header,
+        key: header,
+        width: Math.min(Math.max(maxLen + 3, 12), 40),
+      };
+    });
+
+    // Style Header Row (Navy Blue background, bold white text, centered, height)
+    const headerRow = worksheet.getRow(1);
+    headerRow.height = 28;
+    headerRow.eachCell((cell) => {
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FF0F2744" }, // Rich Deep Navy Blue
+      };
+      cell.font = {
+        name: "Segoe UI",
+        size: 10,
+        bold: true,
+        color: { argb: "FFFFFFFF" }, // White text
+      };
+      cell.alignment = {
+        vertical: "middle",
+        horizontal: "center",
+      };
+      cell.border = {
+        top: { style: "thin", color: { argb: "FF1E3A5F" } },
+        bottom: { style: "medium", color: { argb: "FF0A1B30" } },
+        left: { style: "thin", color: { argb: "FF1E3A5F" } },
+        right: { style: "thin", color: { argb: "FF1E3A5F" } },
+      };
+    });
+
+    // Add Data Rows with clean alternating styling
+    fullData.forEach((row, idx) => {
+      const dataRow = worksheet.addRow(row);
+      dataRow.height = 22;
+      const isEven = idx % 2 === 0;
+
+      dataRow.eachCell((cell, colNumber) => {
+        cell.font = {
+          name: "Segoe UI",
+          size: 9.5,
+          color: { argb: "FF1E293B" },
+        };
+        cell.alignment = {
+          vertical: "middle",
+          horizontal: colNumber === 1 ? "center" : "left",
+        };
+        cell.border = {
+          top: { style: "thin", color: { argb: "FFE2E8F0" } },
+          bottom: { style: "thin", color: { argb: "FFE2E8F0" } },
+          left: { style: "thin", color: { argb: "FFE2E8F0" } },
+          right: { style: "thin", color: { argb: "FFE2E8F0" } },
+        };
+        if (!isEven) {
+          cell.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FFF8FAFC" }, // Soft subtle alternating zebra color
+          };
+        }
+      });
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    downloadBlob(blob, `${fileName}.xlsx`);
   } else if (format === "csv") {
     const ws = XLSX.utils.json_to_sheet(fullData);
     const csvContent = XLSX.utils.sheet_to_csv(ws);
@@ -93,7 +200,7 @@ export function exportEmployeesData(employees: Employee[], format: ExportFormat,
       emp.fullName || "",
       emp.department?.name || "N/A",
       emp.designation?.name || "N/A",
-      emp.status || "",
+      getStatusLabel(emp.status),
       emp.phone || "N/A",
       emp.email || "N/A",
       emp.bloodGroup || "N/A",
@@ -106,14 +213,14 @@ export function exportEmployeesData(employees: Employee[], format: ExportFormat,
       body: rows,
       startY: 72,
       styles: { fontSize: 8, cellPadding: 4, textColor: [51, 65, 85] },
-      headStyles: { fillColor: [4, 120, 87], textColor: [255, 255, 255], fontStyle: "bold" },
+      headStyles: { fillColor: [15, 39, 68], textColor: [255, 255, 255], fontStyle: "bold" }, // Navy Blue Header
       alternateRowStyles: { fillColor: [248, 250, 252] },
       margin: { left: 30, right: 30 },
     });
 
     doc.save(`${fileName}.pdf`);
   } else if (format === "docs") {
-    // Generate clean Microsoft Word compatible HTML Document (.doc)
+    // Generate clean Microsoft Word compatible HTML Document (.doc) with Navy Blue Header
     const headers = Object.keys(fullData[0] || {});
     let htmlContent = `
       <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
@@ -122,10 +229,10 @@ export function exportEmployeesData(employees: Employee[], format: ExportFormat,
         <title>${orgName} - Employee Directory</title>
         <style>
           body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; color: #333333; }
-          h2 { color: #047857; margin-bottom: 4px; }
+          h2 { color: #0f2744; margin-bottom: 4px; }
           .meta { font-size: 9.5pt; color: #666666; margin-bottom: 16px; }
           table { border-collapse: collapse; width: 100%; margin-top: 10px; }
-          th { background-color: #047857; color: #ffffff; border: 1px solid #047857; padding: 6px 8px; text-align: left; font-size: 9pt; }
+          th { background-color: #0f2744; color: #ffffff; border: 1px solid #0f2744; padding: 6px 8px; text-align: left; font-size: 9pt; }
           td { border: 1px solid #e2e8f0; padding: 5px 8px; font-size: 8.5pt; }
           tr:nth-child(even) { background-color: #f8fafc; }
         </style>
