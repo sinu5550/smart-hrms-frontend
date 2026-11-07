@@ -41,6 +41,16 @@ export interface DashboardStats {
   totalActive: number;
   statusBreakdown?: Array<{ name: string; count: number }>;
   statusSummary?: string;
+  dayOffToday?: Array<{
+    id: string;
+    userId: string;
+    fullName: string;
+    employeeId: string;
+    avatarUrl?: string | null;
+    department: string;
+    offDayType: string;
+    dayName: string;
+  }>;
   outworkToday: Array<{
     id: string;
     userId: string;

@@ -3,11 +3,12 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useEmployees, useAttendanceByDate, useDepartments } from "@/hooks";
+import { useEmployees, useAttendanceByDate, useDepartments, useOrganization } from "@/hooks";
 import { useDashboardStats } from "@/hooks/useEmployees";
 import { EmployeeBirthdaysModal } from "@/components/admin/EmployeeBirthdaysModal";
 import {
   CalendarDays,
+  CalendarOff,
   Users,
   Clock3,
   ArrowUpRight,
@@ -37,6 +38,7 @@ export default function AdminOverviewPage() {
   const { data: attendance = [], isLoading: attendanceLoading } = useAttendanceByDate(today);
   const { data: dashboardStats, isLoading: statsLoading } = useDashboardStats();
   const { data: departments = [], isLoading: departmentsLoading } = useDepartments();
+  const { data: organization } = useOrganization();
 
   const [isBirthdayModalOpen, setIsBirthdayModalOpen] = useState(false);
   const [selectedDeptFilter, setSelectedDeptFilter] = useState<string>("ALL");
@@ -51,6 +53,40 @@ export default function AdminOverviewPage() {
   const onLeaveToday = dashboardStats?.onLeaveToday || [];
   const birthdays = dashboardStats?.birthdays || [];
   const currentMonthName = dashboardStats?.currentMonthName || "November";
+
+  // Day Off employees today
+  const dayOffToday = React.useMemo(() => {
+    if (dashboardStats?.dayOffToday && Array.isArray(dashboardStats.dayOffToday)) {
+      return dashboardStats.dayOffToday;
+    }
+    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const todayDayName = dayNames[new Date().getDay()];
+    const orgWeekendDays = Array.isArray((organization as any)?.weekendDays) && (organization as any).weekendDays.length > 0
+      ? (organization as any).weekendDays
+      : ["Friday"];
+    const rosterDeptIds = Array.isArray((organization as any)?.rosterDepartmentIds)
+      ? (organization as any).rosterDepartmentIds
+      : [];
+    const orgHasRoster = Boolean((organization as any)?.hasRosterDuty);
+
+    return employees
+      .filter((emp) => {
+        if (emp.isDeleted || emp.status === "RESIGNED" || emp.status === "TERMINATED" || emp.status === "SUSPENDED" || emp.attendanceExempt) return false;
+        const isRosterEmp = Boolean(orgHasRoster && emp.departmentId && rosterDeptIds.includes(emp.departmentId));
+        const empRosterOffDays = Array.isArray((emp as any).rosterOffDays) ? (emp as any).rosterOffDays : [];
+        return isRosterEmp ? empRosterOffDays.includes(todayDayName) : orgWeekendDays.includes(todayDayName);
+      })
+      .map((emp) => ({
+        id: emp.id,
+        userId: emp.id,
+        fullName: emp.fullName,
+        employeeId: emp.employeeId,
+        avatarUrl: emp.avatarUrl || null,
+        department: emp.department?.name || "General",
+        offDayType: "Weekly Off",
+        dayName: todayDayName,
+      }));
+  }, [dashboardStats?.dayOffToday, employees, organization]);
 
   // Attendance metrics calculation
   // Uses dynamic count of eligible employees configured with "count_in_attendance = true"
@@ -351,78 +387,56 @@ export default function AdminOverviewPage() {
           </div>
         </article>
 
-        {/* Card 2: Out of Work (Today) / On Leave (Today) */}
+        {/* Card 2: Day OFF Employees Today */}
         <article className="rounded-lg border border-slate-200/90 bg-white p-5 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <span>Out of Work</span>
+              <CalendarOff className="w-4 h-4 text-emerald-600" />
+              <span>Day OFF Employees</span>
               <span className="text-[11px] font-normal text-slate-400">(Today)</span>
             </h2>
-            <Link href="/admin/outwork" className="text-xs font-semibold text-emerald-700 hover:underline inline-flex items-center gap-0.5">
-              View All <ArrowRight className="w-3 h-3" />
+            <Link href="/admin/shifts" className="text-xs font-semibold text-emerald-700 hover:underline inline-flex items-center gap-0.5">
+              View Shifts <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
 
           <div className="mt-3 divide-y divide-slate-100 flex-1 max-h-56 overflow-y-auto pr-1">
-            {outworkToday.length > 0 ? (
-              outworkToday.map((item) => (
-                <div key={item.id} className="py-2.5 flex items-center justify-between">
+            {dayOffToday.length > 0 ? (
+              dayOffToday.map((person: any) => (
+                <div key={person.id} className="py-2.5 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center text-xs font-bold text-slate-700">
-                      {item.avatarUrl ? (
-                        <Image src={item.avatarUrl} alt="" width={32} height={32} unoptimized className="w-full h-full object-cover" />
+                      {person.avatarUrl ? (
+                        <Image src={person.avatarUrl} alt="" width={32} height={32} unoptimized className="w-full h-full object-cover" />
                       ) : (
-                        item.fullName.charAt(0)
+                        person.fullName.charAt(0)
                       )}
                     </div>
                     <div>
-                      <Link href={`/admin/employees/${item.userId}`} className="text-xs font-bold text-slate-800 hover:text-emerald-700 transition">
-                        {item.fullName}
+                      <Link href={`/admin/employees/${person.userId || person.id}`} className="text-xs font-bold text-slate-800 hover:text-emerald-700 transition">
+                        {person.fullName}
                       </Link>
-                      <p className="text-[10px] text-slate-500">{item.department}</p>
-                    </div>
-                  </div>
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200 shrink-0">
-                    Out of Work
-                  </span>
-                </div>
-              ))
-            ) : onLeaveToday.length > 0 ? (
-              onLeaveToday.map((item) => (
-                <div key={item.id} className="py-2.5 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center text-xs font-bold text-slate-700">
-                      {item.avatarUrl ? (
-                        <Image src={item.avatarUrl} alt="" width={32} height={32} unoptimized className="w-full h-full object-cover" />
-                      ) : (
-                        item.fullName.charAt(0)
-                      )}
-                    </div>
-                    <div>
-                      <Link href={`/admin/employees/${item.userId}`} className="text-xs font-bold text-slate-800 hover:text-emerald-700 transition">
-                        {item.fullName}
-                      </Link>
-                      <p className="text-[10px] text-slate-500">{item.department}</p>
+                      <p className="text-[10px] text-slate-500">{person.department}</p>
                     </div>
                   </div>
                   <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
-                    On Leave ({item.leaveType})
+                    {person.offDayType || "Day Off"}
                   </span>
                 </div>
               ))
             ) : (
               <div className="py-6 text-center space-y-1">
                 <CheckCircle2 className="w-6 h-6 text-emerald-500 mx-auto" />
-                <p className="text-xs font-semibold text-slate-600">All personnel stationed in-office</p>
-                <p className="text-[11px] text-slate-400">No active out-of-work or field visit requests for today.</p>
+                <p className="text-xs font-semibold text-slate-600">No scheduled day off today</p>
+                <p className="text-[11px] text-slate-400">All personnel are scheduled for regular work hours today.</p>
               </div>
             )}
           </div>
 
           <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-            <span>Approved Field Visits: {outworkToday.length}</span>
-            <Link href="/admin/leave" className="font-semibold text-emerald-700 hover:underline">
-              Leave ({onLeaveToday.length}) &rarr;
+            <span>Total Day Off: <strong className="text-slate-700">{dayOffToday.length}</strong></span>
+            <Link href="/admin/shifts" className="font-semibold text-emerald-700 hover:underline">
+              Roster & Off-Days &rarr;
             </Link>
           </div>
         </article>
