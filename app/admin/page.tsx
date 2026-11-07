@@ -75,8 +75,9 @@ export default function AdminOverviewPage() {
       map.set(d.id, { id: d.id, name: d.name, total: 0, present: 0 });
     });
 
-    // Populate total counts from active employees
+    // Populate total counts from active attendance-eligible employees
     employees.forEach((emp) => {
+      if (emp.isDeleted || emp.status === "RESIGNED" || emp.status === "TERMINATED" || emp.status === "SUSPENDED" || emp.attendanceExempt) return;
       const deptId = emp.department?.id || emp.departmentId || "unassigned";
       const deptName = emp.department?.name || "General";
       if (!map.has(deptId)) {
@@ -99,12 +100,29 @@ export default function AdminOverviewPage() {
       .sort((a, b) => b.total - a.total);
   }, [departments, employees, attendance]);
 
+  // Status breakdown summary for attendance-eligible employees
+  const statusSummaryText = React.useMemo(() => {
+    if (dashboardStats?.statusSummary) {
+      return dashboardStats.statusSummary;
+    }
+    const map = new Map<string, number>();
+    employees.forEach((emp) => {
+      if (emp.isDeleted || emp.status === "RESIGNED" || emp.status === "TERMINATED" || emp.status === "SUSPENDED" || emp.attendanceExempt) return;
+      const rawCode = emp.status || "ACTIVE";
+      const rawName = rawCode === "ACTIVE" ? "Permanent" : rawCode.replace(/_/g, " ");
+      const formatted = rawName.toLowerCase().split(" ").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+      map.set(formatted, (map.get(formatted) || 0) + 1);
+    });
+    const summary = Array.from(map.entries()).map(([name, count]) => `${name}: ${count}`).join(", ");
+    return summary || `${totalEmployeesCount} active personnel count`;
+  }, [dashboardStats?.statusSummary, employees, totalEmployeesCount]);
+
   // Top KPI Metric Cards (Active, In-Office, Out of Work, Late, On Leave)
   const kpiCards = [
     {
       title: "Total Employees",
-      value: employeesLoading ? "..." : employees.length,
-      hint: `${totalEmployeesCount} active personnel count`,
+      value: statsLoading && employeesLoading ? "..." : totalEmployeesCount,
+      hint: statusSummaryText,
       icon: Users,
       tone: "text-blue-600 bg-blue-50 border-blue-200",
       href: "/admin/employees",
@@ -208,7 +226,7 @@ export default function AdminOverviewPage() {
                   <Icon className="h-4 w-4" />
                 </span>
               </div>
-              <p className="mt-2 text-[10px] font-medium text-slate-400 line-clamp-1">{hint}</p>
+              <p className="mt-2 text-[10px] font-medium text-slate-500 line-clamp-2" title={hint}>{hint}</p>
             </Link>
           ))
         )}

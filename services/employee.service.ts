@@ -32,12 +32,15 @@ export interface Employee {
   nidOrPassport?: string | null;
   avatarUrl?: string | null;
   attendanceExempt?: boolean;
+  isDeleted?: boolean;
   permissions?: string[];
   isOwner?: boolean;
 }
 
 export interface DashboardStats {
   totalActive: number;
+  statusBreakdown?: Array<{ name: string; count: number }>;
+  statusSummary?: string;
   outworkToday: Array<{
     id: string;
     userId: string;

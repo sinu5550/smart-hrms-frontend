@@ -9,6 +9,7 @@ import {
   Check,
   CalendarDays,
   CalendarRange,
+  X,
 } from "lucide-react";
 
 export type DateRangePreset = "TODAY" | "YESTERDAY" | "THIS_WEEK" | "LAST_7_DAYS" | "THIS_MONTH" | "CUSTOM";
@@ -284,36 +285,65 @@ export const PremiumDateRangePicker: React.FC<PremiumDateRangePickerProps> = ({
         </div>
       </button>
 
-      {/* Popover Dropdown (Right-aligned so it never overflows off screen) */}
+      {/* Popover Dropdown (Mobile Centered Modal / Desktop Right-aligned Dropdown) */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 z-50 flex flex-col md:flex-row bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-          {/* Quick Presets Sidebar */}
-          <div className="w-full md:w-44 p-3 bg-slate-50/70 border-b md:border-b-0 md:border-r border-slate-200 flex md:flex-col gap-1 overflow-x-auto no-scrollbar">
-            <div className="hidden md:flex items-center gap-1.5 px-2 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-              <Clock className="w-3.5 h-3.5 text-slate-400" />
-              <span>Presets</span>
-            </div>
-            {presetsList.map((p) => {
-              const active = value.preset === p.id;
-              return (
-                <button
-                  key={p.id}
-                  onClick={() => handleSelectPreset(p.id)}
-                  className={`flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg shrink-0 transition text-left ${
-                    active
-                      ? "bg-emerald-700 text-white shadow-xs"
-                      : "text-slate-700 hover:bg-slate-200/60"
-                  }`}
-                >
-                  <span>{p.label}</span>
-                  {active && <Check className="w-3.5 h-3.5" />}
-                </button>
-              );
-            })}
-          </div>
+        <>
+          {/* Mobile backdrop overlay */}
+          <div
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 md:hidden animate-in fade-in duration-150"
+            onClick={() => {
+              setIsOpen(false);
+              setRangeStart(null);
+            }}
+          />
 
-          {/* Calendar Picker Panel */}
-          <div className="p-4 w-[310px] bg-white">
+          <div className="fixed inset-x-3 top-1/2 -translate-y-1/2 md:translate-y-0 md:static md:absolute md:right-0 md:top-full md:inset-auto mt-0 md:mt-2 z-50 flex flex-col md:flex-row bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden max-h-[92vh] md:max-h-none overflow-y-auto md:overflow-visible max-w-[340px] sm:max-w-[360px] md:max-w-none mx-auto animate-in fade-in zoom-in-95 duration-150">
+            {/* Mobile Header Bar */}
+            <div className="flex md:hidden items-center justify-between px-3.5 py-2.5 bg-slate-50 border-b border-slate-200">
+              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <CalendarIcon className="w-3.5 h-3.5 text-emerald-700" />
+                Select Date or Range
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOpen(false);
+                  setRangeStart(null);
+                }}
+                className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 rounded-lg transition"
+                title="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Quick Presets Sidebar */}
+            <div className="w-full md:w-44 p-2.5 md:p-3 bg-slate-50/70 border-b md:border-b-0 md:border-r border-slate-200 flex md:flex-col gap-1 overflow-x-auto no-scrollbar">
+              <div className="hidden md:flex items-center gap-1.5 px-2 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <Clock className="w-3.5 h-3.5 text-slate-400" />
+                <span>Presets</span>
+              </div>
+              {presetsList.map((p) => {
+                const active = value.preset === p.id;
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => handleSelectPreset(p.id)}
+                    className={`flex items-center justify-between px-3 py-1.5 md:py-2 text-xs font-semibold rounded-lg shrink-0 transition text-left ${
+                      active
+                        ? "bg-emerald-700 text-white shadow-xs"
+                        : "text-slate-700 hover:bg-slate-200/60"
+                    }`}
+                  >
+                    <span>{p.label}</span>
+                    {active && <Check className="w-3.5 h-3.5 hidden md:block" />}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Calendar Picker Panel */}
+            <div className="p-3.5 md:p-4 w-full md:w-[310px] bg-white">
             {/* Mode Switcher: Single Date vs Date Range */}
             <div className="flex bg-slate-100 p-1 rounded-xl mb-3 text-xs font-semibold">
               <button
@@ -457,7 +487,8 @@ export const PremiumDateRangePicker: React.FC<PremiumDateRangePickerProps> = ({
             </div>
           </div>
         </div>
-      )}
+      </>
+    )}
     </div>
   );
 };
