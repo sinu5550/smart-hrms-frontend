@@ -10,8 +10,8 @@ export function useAttendanceByDate(query: string | { date?: string; startDate?:
     queryKey: QUERY_KEYS.attendance.list(queryParam),
     queryFn: () => AttendanceService.getByDate(query),
     enabled: typeof query === "string" ? Boolean(query) : Boolean(query?.date || query?.startDate),
-    refetchInterval: 5000, // Real-time attendance live monitor: poll fresh logs every 5 seconds
-    refetchIntervalInBackground: false,
+    refetchInterval: 10000, // Live attendance monitor: gentle 10s poll without UI slowdown
+    refetchIntervalInBackground: false, // Never poll when admin minimizes or switches tab
   });
 }
 
@@ -33,7 +33,14 @@ export function useMyTodayAttendance() {
     enabled: Boolean(user?.id),
     staleTime: 0,
     refetchOnMount: "always",
-    refetchInterval: 5000, // Live poll punch status every 5 seconds without requiring manual refresh
+    refetchInterval: (query) => {
+      // If user has already checked out for the day, stop polling completely to save battery and network!
+      if (query.state.data?.checkedOut || query.state.data?.attendance?.currentState === "CHECKED_OUT") {
+        return false;
+      }
+      return 10000; // Lightweight 10-second poll while active on duty
+    },
+    refetchIntervalInBackground: false, // Freeze polling when app/tab is in the background
   });
 }
 
