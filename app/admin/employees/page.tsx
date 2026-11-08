@@ -73,6 +73,15 @@ export default function EmployeesDirectoryPage() {
     ];
   }, [configuredStatuses]);
 
+  // Determine which employment statuses have "count_in_attendance = true" (tick-marked in Core HR)
+  const attendanceEligibleCodes = React.useMemo(() => {
+    if (configuredStatuses.length > 0) {
+      const eligible = configuredStatuses.filter((s) => s.countInAttendance).map((s) => s.code);
+      if (eligible.length > 0) return eligible;
+    }
+    return ["ACTIVE", "ON_PROBATION", "INTERN"];
+  }, [configuredStatuses]);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [departmentFilter, setDepartmentFilter] = useState<string>("ALL");
@@ -113,7 +122,13 @@ export default function EmployeesDirectoryPage() {
       (emp.email || "").toLowerCase().includes(q) ||
       (emp.phone || "").toLowerCase().includes(q);
 
-    const matchesStatus = statusFilter === "ALL" || emp.status === statusFilter;
+    // Initial / Default view: Only tick-marked statuses are shown (count_in_attendance === true).
+    // When the user specifically selects a status filter (e.g. TERMINATED or RESIGNED), then and only then show employees of that status!
+    const matchesStatus =
+      statusFilter === "ALL"
+        ? attendanceEligibleCodes.includes(emp.status)
+        : emp.status === statusFilter;
+
     const matchesDepartment = departmentFilter === "ALL" || emp.departmentId === departmentFilter;
     const matchesBlood = bloodGroupFilter === "ALL" || emp.bloodGroup === bloodGroupFilter;
     const isOwner = Boolean(ownerEmail && emp.email?.toLowerCase() === ownerEmail);
@@ -157,7 +172,18 @@ export default function EmployeesDirectoryPage() {
         <div>
           <h1 className="text-xl font-bold text-slate-800 tracking-tight">Employee Directory</h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Total Personnel Count: {employees.length}
+            {statusFilter === "ALL" ? (
+              <>
+                Active Personnel: <span className="font-semibold text-slate-700">{filteredEmployees.length}</span>
+                {employees.length !== filteredEmployees.length && (
+                  <span className="text-slate-400 ml-1">({employees.length} total enrolled)</span>
+                )}
+              </>
+            ) : (
+              <>
+                Filtered Count: <span className="font-semibold text-slate-700">{filteredEmployees.length}</span> employees
+              </>
+            )}
             {selectedIds.length > 0 && (
               <span className="ml-2 font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
                 {selectedIds.length} selected
@@ -300,7 +326,7 @@ export default function EmployeesDirectoryPage() {
           onValueChange={setStatusFilter}
           triggerClassName="h-8 text-[12px]"
           options={[
-            { value: "ALL", label: "All Statuses" },
+            { value: "ALL", label: "All Active Personnel (Default)" },
             ...statusOptions.map((s) => ({ value: s.value, label: s.label })),
           ]}
         />

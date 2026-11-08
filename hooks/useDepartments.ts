@@ -65,10 +65,33 @@ export function useUpdateEmployeeRosterOffDays() {
   return useMutation({
     mutationFn: ({ departmentId, employeeUserId, rosterOffDays }: { departmentId: string; employeeUserId: string; rosterOffDays: string[] }) =>
       DepartmentService.updateEmployeeRosterOffDays(departmentId, employeeUserId, rosterOffDays),
-    onSuccess: (_data, variables) => {
+    onMutate: async ({ departmentId, employeeUserId, rosterOffDays }) => {
+      await queryClient.cancelQueries({ queryKey: ["department", departmentId] });
+
+      const prevDepartment = queryClient.getQueryData<any>(["department", departmentId]);
+
+      queryClient.setQueryData(["department", departmentId], (old: any) => {
+        if (!old || !Array.isArray(old.users)) return old;
+        return {
+          ...old,
+          users: old.users.map((u: any) =>
+            u.id === employeeUserId ? { ...u, rosterOffDays } : u
+          ),
+        };
+      });
+
+      return { prevDepartment };
+    },
+    onError: (_err, variables, context) => {
+      if (context?.prevDepartment) {
+        queryClient.setQueryData(["department", variables.departmentId], context.prevDepartment);
+      }
+    },
+    onSettled: (_data, _error, variables) => {
       queryClient.invalidateQueries({ queryKey: ["department", variables.departmentId] });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.departments.all });
       queryClient.invalidateQueries({ queryKey: ["attendance", "summary-report"] });
+      queryClient.invalidateQueries({ queryKey: ["employees", "dashboard-stats"] });
     },
   });
 }
@@ -79,7 +102,29 @@ export function useUpdateEmployeeShift() {
   return useMutation({
     mutationFn: ({ departmentId, employeeUserId, shiftId }: { departmentId: string; employeeUserId: string; shiftId: string | null }) =>
       DepartmentService.updateEmployeeShift(departmentId, employeeUserId, shiftId),
-    onSuccess: (_data, variables) => {
+    onMutate: async ({ departmentId, employeeUserId, shiftId }) => {
+      await queryClient.cancelQueries({ queryKey: ["department", departmentId] });
+
+      const prevDepartment = queryClient.getQueryData<any>(["department", departmentId]);
+
+      queryClient.setQueryData(["department", departmentId], (old: any) => {
+        if (!old || !Array.isArray(old.users)) return old;
+        return {
+          ...old,
+          users: old.users.map((u: any) =>
+            u.id === employeeUserId ? { ...u, shiftId, shift: shiftId ? { id: shiftId } : null } : u
+          ),
+        };
+      });
+
+      return { prevDepartment };
+    },
+    onError: (_err, variables, context) => {
+      if (context?.prevDepartment) {
+        queryClient.setQueryData(["department", variables.departmentId], context.prevDepartment);
+      }
+    },
+    onSettled: (_data, _error, variables) => {
       queryClient.invalidateQueries({ queryKey: ["department", variables.departmentId] });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.departments.all });
       queryClient.invalidateQueries({ queryKey: ["employees"] });

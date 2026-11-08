@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useEmployees, useAttendanceByDate, useDepartments, useOrganization } from "@/hooks";
+import { useEmployees, useAttendanceByDate, useDepartments, useOrganization, useEmploymentStatuses } from "@/hooks";
 import { useDashboardStats } from "@/hooks/useEmployees";
 import { EmployeeBirthdaysModal } from "@/components/admin/EmployeeBirthdaysModal";
 import {
@@ -39,13 +39,44 @@ export default function AdminOverviewPage() {
   const { data: dashboardStats, isLoading: statsLoading } = useDashboardStats();
   const { data: departments = [], isLoading: departmentsLoading } = useDepartments();
   const { data: organization } = useOrganization();
+  const { data: configuredStatuses = [] } = useEmploymentStatuses();
 
   const [isBirthdayModalOpen, setIsBirthdayModalOpen] = useState(false);
   const [selectedDeptFilter, setSelectedDeptFilter] = useState<string>("ALL");
 
-  const active = employees.filter((person) => person.status === "ACTIVE").length;
-  const late = (attendance as any[]).filter((record) => record.status === "LATE").length;
-  const working = (attendance as any[]).filter(
+  // Determine which employment statuses have "count_in_attendance = true" (tick-marked in Core HR)
+  const attendanceEligibleCodes = React.useMemo(() => {
+    if (configuredStatuses.length > 0) {
+      const eligible = configuredStatuses.filter((s) => s.countInAttendance).map((s) => s.code);
+      if (eligible.length > 0) return eligible;
+    }
+    return ["ACTIVE", "ON_PROBATION", "INTERN"];
+  }, [configuredStatuses]);
+
+  // Strictly filter only employees whose status is tick-marked in Core HR
+  const attendanceEligibleEmployees = React.useMemo(() => {
+    return employees.filter(
+      (emp) =>
+        !emp.isDeleted &&
+        !emp.attendanceExempt &&
+        attendanceEligibleCodes.includes(emp.status)
+    );
+  }, [employees, attendanceEligibleCodes]);
+
+  // Filter attendance records to only count/show eligible tick-marked employees
+  const eligibleAttendance = React.useMemo(() => {
+    return (attendance as any[]).filter((record) => {
+      const userStatus =
+        record.user?.status ||
+        employees.find((e) => e.id === record.user?.id || e.id === record.userId)?.status;
+      if (!userStatus) return true;
+      return attendanceEligibleCodes.includes(userStatus);
+    });
+  }, [attendance, employees, attendanceEligibleCodes]);
+
+  const active = attendanceEligibleEmployees.length;
+  const late = eligibleAttendance.filter((record) => record.status === "LATE").length;
+  const working = eligibleAttendance.filter(
     (record) => record.currentState === "CHECKED_IN" || record.currentState === "ON_BREAK"
   ).length;
 
@@ -54,7 +85,7 @@ export default function AdminOverviewPage() {
   const birthdays = dashboardStats?.birthdays || [];
   const currentMonthName = dashboardStats?.currentMonthName || "November";
 
-  // Day Off employees today
+  // Day Off employees today (strictly attendance-eligible tick-marked employees)
   const dayOffToday = React.useMemo(() => {
     if (dashboardStats?.dayOffToday && Array.isArray(dashboardStats.dayOffToday)) {
       return dashboardStats.dayOffToday;
@@ -69,9 +100,8 @@ export default function AdminOverviewPage() {
       : [];
     const orgHasRoster = Boolean((organization as any)?.hasRosterDuty);
 
-    return employees
+    return attendanceEligibleEmployees
       .filter((emp) => {
-        if (emp.isDeleted || emp.status === "RESIGNED" || emp.status === "TERMINATED" || emp.status === "SUSPENDED" || emp.attendanceExempt) return false;
         const isRosterEmp = Boolean(orgHasRoster && emp.departmentId && rosterDeptIds.includes(emp.departmentId));
         const empRosterOffDays = Array.isArray((emp as any).rosterOffDays) ? (emp as any).rosterOffDays : [];
         return isRosterEmp ? empRosterOffDays.includes(todayDayName) : orgWeekendDays.includes(todayDayName);
@@ -86,22 +116,22 @@ export default function AdminOverviewPage() {
         offDayType: "Weekly Off",
         dayName: todayDayName,
       }));
-  }, [dashboardStats?.dayOffToday, employees, organization]);
+  }, [dashboardStats?.dayOffToday, attendanceEligibleEmployees, organization]);
 
   // Attendance metrics calculation
-  // Uses dynamic count of eligible employees configured with "count_in_attendance = true"
+  // Strictly reflects tick-marked active personnel count
   const totalEmployeesCount =
     typeof dashboardStats?.totalActive === "number"
       ? dashboardStats.totalActive
-      : employees.length || 1;
-  const presentCount = attendance.length;
+      : attendanceEligibleEmployees.length;
+  const presentCount = eligibleAttendance.length;
   const onLeaveCount = onLeaveToday.length;
   const absentCount = Math.max(0, totalEmployeesCount - (presentCount + onLeaveCount));
   const attendanceRate = totalEmployeesCount > 0 ? ((presentCount / totalEmployeesCount) * 100).toFixed(1) : "0";
   const absentRate = totalEmployeesCount > 0 ? ((absentCount / totalEmployeesCount) * 100).toFixed(1) : "0";
   const onLeaveRate = totalEmployeesCount > 0 ? ((onLeaveCount / totalEmployeesCount) * 100).toFixed(1) : "0";
 
-  // Department-wise Attendance breakdown calculation
+  // Department-wise Attendance breakdown calculation (strictly attendance-eligible tick-marked employees)
   const deptAttendanceList = React.useMemo(() => {
     // Collect unique department IDs from employees
     const map = new Map<string, { id: string; name: string; total: number; present: number }>();
@@ -112,8 +142,7 @@ export default function AdminOverviewPage() {
     });
 
     // Populate total counts from active attendance-eligible employees
-    employees.forEach((emp) => {
-      if (emp.isDeleted || emp.status === "RESIGNED" || emp.status === "TERMINATED" || emp.status === "SUSPENDED" || emp.attendanceExempt) return;
+    attendanceEligibleEmployees.forEach((emp) => {
       const deptId = emp.department?.id || emp.departmentId || "unassigned";
       const deptName = emp.department?.name || "General";
       if (!map.has(deptId)) {
@@ -124,7 +153,7 @@ export default function AdminOverviewPage() {
     });
 
     // Populate present counts from attendance
-    attendance.forEach((att: any) => {
+    eligibleAttendance.forEach((att: any) => {
       const deptId = att.user?.department?.id || "unassigned";
       if (map.has(deptId)) {
         map.get(deptId)!.present += 1;
@@ -134,7 +163,7 @@ export default function AdminOverviewPage() {
     return Array.from(map.values())
       .filter((d) => d.total > 0)
       .sort((a, b) => b.total - a.total);
-  }, [departments, employees, attendance]);
+  }, [departments, attendanceEligibleEmployees, eligibleAttendance]);
 
   // Status breakdown summary for attendance-eligible employees
   const statusSummaryText = React.useMemo(() => {
@@ -142,16 +171,16 @@ export default function AdminOverviewPage() {
       return dashboardStats.statusSummary;
     }
     const map = new Map<string, number>();
-    employees.forEach((emp) => {
-      if (emp.isDeleted || emp.status === "RESIGNED" || emp.status === "TERMINATED" || emp.status === "SUSPENDED" || emp.attendanceExempt) return;
+    attendanceEligibleEmployees.forEach((emp) => {
       const rawCode = emp.status || "ACTIVE";
-      const rawName = rawCode === "ACTIVE" ? "Permanent" : rawCode.replace(/_/g, " ");
+      const config = configuredStatuses.find((c) => c.code === rawCode);
+      const rawName = config?.name || (rawCode === "ACTIVE" ? "Permanent" : rawCode.replace(/_/g, " "));
       const formatted = rawName.toLowerCase().split(" ").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
       map.set(formatted, (map.get(formatted) || 0) + 1);
     });
     const summary = Array.from(map.entries()).map(([name, count]) => `${name}: ${count}`).join(", ");
     return summary || `${totalEmployeesCount} active personnel count`;
-  }, [dashboardStats?.statusSummary, employees, totalEmployeesCount]);
+  }, [dashboardStats?.statusSummary, attendanceEligibleEmployees, configuredStatuses, totalEmployeesCount]);
 
   // Top KPI Metric Cards (Active, In-Office, Out of Work, Late, On Leave)
   const kpiCards = [
@@ -530,8 +559,8 @@ export default function AdminOverviewPage() {
                   </div>
                 ))}
               </div>
-            ) : attendance.length > 0 ? (
-              attendance.map((record) => (
+            ) : eligibleAttendance.length > 0 ? (
+              eligibleAttendance.map((record) => (
                 <div key={record.id} className="flex items-center justify-between py-2.5">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div className="grid h-8 w-8 place-items-center rounded-full bg-emerald-50 text-xs font-bold text-emerald-700 border border-emerald-100 overflow-hidden shrink-0">

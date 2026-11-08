@@ -172,27 +172,69 @@ export default function DepartmentsPage() {
     }
   };
 
-  // Toggle Roster Off-Day for an Employee with Instant Optimistic UI
-  const handleToggleOffDay = async (employeeUserId: string, currentOffDays: string[] = [], day: string) => {
-    if (!selectedDeptId) return;
-    const effectiveDays = optimisticOffDays[employeeUserId] ?? currentOffDays;
-    const exists = effectiveDays.includes(day);
-    const updated = exists ? effectiveDays.filter((d) => d !== day) : [...effectiveDays, day];
+  // Synchronous ref to prevent stale closures and ensure rapid clicks are never dropped
+  const offDaysRef = React.useRef<Record<string, string[]>>({});
+  const debounceTimersRef = React.useRef<Record<string, NodeJS.Timeout>>({});
 
-    // 1. Instant local optimistic update (no button lag!)
+  // Flush any pending off-day mutations immediately when closing the modal or unmounting
+  const flushPendingOffDays = React.useCallback(() => {
+    const deptId = selectedDeptId;
+    if (!deptId) return;
+    Object.entries(debounceTimersRef.current).forEach(([empId, timer]) => {
+      clearTimeout(timer);
+      const pendingDays = offDaysRef.current[empId];
+      if (pendingDays) {
+        updateRosterOffDaysMutation.mutate({
+          departmentId: deptId,
+          employeeUserId: empId,
+          rosterOffDays: pendingDays,
+        });
+      }
+    });
+    debounceTimersRef.current = {};
+  }, [selectedDeptId, updateRosterOffDaysMutation]);
+
+  React.useEffect(() => {
+    return () => {
+      flushPendingOffDays();
+    };
+  }, [flushPendingOffDays]);
+
+  const handleCloseDeptModal = () => {
+    flushPendingOffDays();
+    setSelectedDeptId(null);
+  };
+
+  // Toggle Roster Off-Day for an Employee with Instant Optimistic UI and Guaranteed Background Persistence
+  const handleToggleOffDay = (employeeUserId: string, currentOffDays: string[] = [], day: string) => {
+    if (!selectedDeptId) return;
+    const current = offDaysRef.current[employeeUserId] ??
+      optimisticOffDays[employeeUserId] ??
+      (Array.isArray(currentOffDays) ? currentOffDays : []);
+
+    const exists = current.includes(day);
+    const updated = exists ? current.filter((d) => d !== day) : [...current, day];
+
+    // 1. Synchronously update ref (so rapid subsequent clicks immediately see the latest array)
+    offDaysRef.current[employeeUserId] = updated;
+
+    // 2. Instant local optimistic state update (immediate responsive UI)
     setOptimisticOffDays((prev) => ({ ...prev, [employeeUserId]: updated }));
 
-    try {
-      await updateRosterOffDaysMutation.mutateAsync({
-        departmentId: selectedDeptId,
+    // 3. Debounce network dispatch by 350ms to consolidate rapid toggles into one single, accurate write
+    if (debounceTimersRef.current[employeeUserId]) {
+      clearTimeout(debounceTimersRef.current[employeeUserId]);
+    }
+
+    const deptId = selectedDeptId;
+    debounceTimersRef.current[employeeUserId] = setTimeout(() => {
+      delete debounceTimersRef.current[employeeUserId];
+      updateRosterOffDaysMutation.mutate({
+        departmentId: deptId,
         employeeUserId,
         rosterOffDays: updated,
       });
-    } catch (err) {
-      // Revert optimistic update on error
-      setOptimisticOffDays((prev) => ({ ...prev, [employeeUserId]: currentOffDays }));
-      alert(parseApiError(err));
-    }
+    }, 350);
   };
 
   // Change Shift for an Employee with Instant Optimistic UI
@@ -415,7 +457,7 @@ export default function DepartmentsPage() {
       </Dialog>
 
       {/* DEPARTMENT DETAILS, HEAD & ROSTER MODAL */}
-      <Dialog open={Boolean(selectedDeptId)} onOpenChange={(open) => !open && setSelectedDeptId(null)}>
+      <Dialog open={Boolean(selectedDeptId)} onOpenChange={(open) => !open && handleCloseDeptModal()}>
         <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto p-6 rounded-lg bg-white space-y-6">
           {isLoadingDeptDetails || !selectedDept ? (
             <div className="py-16 text-center text-xs text-slate-400">Loading department details & members...</div>
