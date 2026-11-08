@@ -764,40 +764,38 @@ export default function DepartmentsPage() {
 
       {/* DEPARTMENT DETAILS, HEAD & ROSTER MODAL */}
       <Dialog open={Boolean(selectedDeptId)} onOpenChange={(open) => !open && handleCloseDeptModal()}>
-        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto p-6 rounded-lg bg-white space-y-6">
+        <DialogContent className="w-[96vw] max-w-4xl max-h-[90vh] overflow-y-auto p-3.5 sm:p-6 rounded-2xl bg-white space-y-4 sm:space-y-6 shadow-2xl">
           {isLoadingDeptDetails || !selectedDept ? (
             <div className="py-16 text-center text-xs text-slate-400">Loading department details & members...</div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Modal Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-bold text-slate-900">{selectedDept.name}</h2>
-                    <span className="font-mono text-xs text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                      {selectedDept.code}
+              <div className="flex flex-col gap-1.5 border-b border-slate-100 pb-3 pr-8 sm:pr-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-base sm:text-lg font-bold text-slate-900 leading-snug">{selectedDept.name}</h2>
+                  <span className="font-mono text-[10px] sm:text-xs text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 shrink-0">
+                    {selectedDept.code}
+                  </span>
+                  {isDeptRosterEnabled && (
+                    <span className="text-[10px] sm:text-xs bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 rounded font-bold shrink-0">
+                      Roster Duty Department
                     </span>
-                    {isDeptRosterEnabled && (
-                      <span className="text-xs bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 rounded font-bold">
-                        Roster Duty Department
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Manage unit employees, designate Department Head, and set roster duty off-days.
-                  </p>
+                  )}
                 </div>
+                <p className="text-[11px] sm:text-xs text-slate-500">
+                  Manage unit employees, designate Department Head, and set roster duty off-days.
+                </p>
               </div>
 
               {/* Department Head Assignment Card */}
-              <div className="p-4 rounded-lg border border-emerald-100 bg-emerald-50/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
+              <div className="p-3 sm:p-4 rounded-xl border border-emerald-100 bg-emerald-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                <div className="flex items-center gap-2.5 sm:gap-3">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0">
                     <ShieldCheck className="w-5 h-5" />
                   </div>
                   <div>
                     <h4 className="text-xs font-bold text-slate-900">Head of Department (In-charge)</h4>
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-[10px] sm:text-[11px] text-slate-500">
                       {isDeptHeadOnly
                         ? "Designated Department Head reviewing leaves and roster off-days."
                         : "The Department Head reviews leave applications and assigns weekly off-days for roster staff."}
@@ -978,127 +976,252 @@ export default function DepartmentsPage() {
                     No active employees currently assigned to {selectedDept.name}. Assign employees to this department from the Employee Directory.
                   </div>
                 ) : (
-                  <div className="border border-slate-200 rounded-lg overflow-hidden shadow-xs">
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs text-slate-800">
-                        <thead className="bg-slate-50 text-[11px] uppercase font-bold text-slate-600 border-b border-slate-200">
-                          <tr>
-                            <th className="py-3 px-4">Employee</th>
-                            <th className="py-3 px-4">Designation</th>
-                            <th className="py-3 px-4">Shift</th>
+                  <>
+                    {/* MOBILE CARD VIEW (Phones & Small Screens) */}
+                    <div className="block md:hidden space-y-2.5">
+                      {activeDepartmentUsers.map((emp) => {
+                        const isHead = selectedDept.headUserId === emp.id;
+                        const empOffDays = optimisticOffDays[emp.id] ?? (Array.isArray(emp.rosterOffDays) ? emp.rosterOffDays : []);
+                        const currentShiftId = optimisticShifts[emp.id] !== undefined ? optimisticShifts[emp.id] : emp.shift?.id || null;
+
+                        const shiftOptions = [
+                          { label: "Default Organization Shift", value: "DEFAULT" },
+                          ...availableShifts.map((s) => ({
+                            label: `${s.shiftName} (${s.startTime} - ${s.endTime})`,
+                            value: s.id,
+                          })),
+                        ];
+
+                        return (
+                          <div
+                            key={emp.id}
+                            className="bg-white border border-slate-200/90 rounded-xl p-3 shadow-2xs space-y-2.5"
+                          >
+                            {/* Employee Info Header */}
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center text-xs font-bold text-slate-700">
+                                {emp.avatarUrl ? (
+                                  <Image
+                                    src={emp.avatarUrl}
+                                    alt=""
+                                    width={36}
+                                    height={36}
+                                    unoptimized
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  emp.fullName?.charAt(0) || "U"
+                                )}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <p className="font-bold text-xs text-slate-900 leading-tight">{emp.fullName}</p>
+                                  {isHead && (
+                                    <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded border border-emerald-300">
+                                      HEAD
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-[10px] text-slate-400 font-mono mt-0.5">
+                                  {emp.employeeId} {emp.designation?.name ? `• ${emp.designation.name}` : ""}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Shift Selector */}
+                            <div className="space-y-1 pt-1 border-t border-slate-100">
+                              <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">
+                                Assigned Shift
+                              </span>
+                              {isDeptRosterEnabled ? (
+                                <Select
+                                  value={currentShiftId || "DEFAULT"}
+                                  options={shiftOptions}
+                                  onValueChange={(val) => handleAssignEmployeeShift(emp.id, emp.shift?.id || null, val)}
+                                  triggerClassName="h-8 text-xs rounded-lg bg-slate-50 border-slate-200 w-full"
+                                  placeholder="Select shift"
+                                />
+                              ) : emp.shift ? (
+                                <p className="text-xs font-semibold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
+                                  {emp.shift.shiftName}{" "}
+                                  <span className="text-[10px] text-slate-400 font-mono">
+                                    ({emp.shift.startTime} - {emp.shift.endTime})
+                                  </span>
+                                </p>
+                              ) : (
+                                <p className="text-xs text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
+                                  Default Organization Shift
+                                </p>
+                              )}
+                            </div>
+
+                            {/* Weekly Roster Off-Days 7-Day Tap Buttons */}
                             {isDeptRosterEnabled ? (
-                              <th className="py-3 px-4">Weekly Roster Off-Days</th>
+                              <div className="space-y-1 pt-1 border-t border-slate-100">
+                                <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                                  <span>Weekly Off-Days</span>
+                                  <span className="text-purple-700 font-mono lowercase">
+                                    {empOffDays.length} off-day{empOffDays.length === 1 ? "" : "s"}
+                                  </span>
+                                </div>
+                                <div className="grid grid-cols-7 gap-1">
+                                  {WEEK_DAYS.map((day) => {
+                                    const isSelected = empOffDays.includes(day);
+                                    const shortDay = day.slice(0, 3);
+                                    return (
+                                      <button
+                                        key={day}
+                                        type="button"
+                                        onClick={() => handleToggleOffDay(emp.id, empOffDays, day)}
+                                        className={`py-1.5 rounded-lg text-[10px] font-bold text-center transition cursor-pointer border active:scale-95 ${
+                                          isSelected
+                                            ? "bg-purple-600 text-white border-purple-600 shadow-xs"
+                                            : "bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200"
+                                        }`}
+                                        title={`Toggle ${day} off-duty for ${emp.fullName}`}
+                                      >
+                                        {shortDay}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
                             ) : (
-                              <th className="py-3 px-4">Role / Status</th>
+                              <div className="pt-1 border-t border-slate-100 flex items-center justify-between text-xs">
+                                <span className="text-[10px] text-slate-400 uppercase font-bold">Role</span>
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-slate-100 text-slate-700">
+                                  {emp.role}
+                                </span>
+                              </div>
                             )}
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {activeDepartmentUsers.map((emp) => {
-                            const isHead = selectedDept.headUserId === emp.id;
-                            const empOffDays = optimisticOffDays[emp.id] ?? (Array.isArray(emp.rosterOffDays) ? emp.rosterOffDays : []);
-                            const currentShiftId = optimisticShifts[emp.id] !== undefined ? optimisticShifts[emp.id] : emp.shift?.id || null;
+                          </div>
+                        );
+                      })}
+                    </div>
 
-                            const shiftOptions = [
-                              { label: "Default Organization Shift", value: "DEFAULT" },
-                              ...availableShifts.map((s) => ({
-                                label: `${s.shiftName} (${s.startTime} - ${s.endTime})`,
-                                value: s.id,
-                              })),
-                            ];
+                    {/* DESKTOP TABLE VIEW (Medium & Large Screens) */}
+                    <div className="hidden md:block border border-slate-200 rounded-lg overflow-hidden shadow-xs">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs text-slate-800">
+                          <thead className="bg-slate-50 text-[11px] uppercase font-bold text-slate-600 border-b border-slate-200">
+                            <tr>
+                              <th className="py-3 px-4">Employee</th>
+                              <th className="py-3 px-4">Designation</th>
+                              <th className="py-3 px-4">Shift</th>
+                              {isDeptRosterEnabled ? (
+                                <th className="py-3 px-4">Weekly Roster Off-Days</th>
+                              ) : (
+                                <th className="py-3 px-4">Role / Status</th>
+                              )}
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {activeDepartmentUsers.map((emp) => {
+                              const isHead = selectedDept.headUserId === emp.id;
+                              const empOffDays = optimisticOffDays[emp.id] ?? (Array.isArray(emp.rosterOffDays) ? emp.rosterOffDays : []);
+                              const currentShiftId = optimisticShifts[emp.id] !== undefined ? optimisticShifts[emp.id] : emp.shift?.id || null;
 
-                            return (
-                              <tr key={emp.id} className="hover:bg-slate-50/70 transition">
-                                <td className="py-3 px-4">
-                                  <div className="flex items-center gap-2.5">
-                                    <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center text-xs font-bold text-slate-700">
-                                      {emp.avatarUrl ? (
-                                        <Image
-                                          src={emp.avatarUrl}
-                                          alt=""
-                                          width={32}
-                                          height={32}
-                                          unoptimized
-                                          className="w-full h-full object-cover"
-                                        />
-                                      ) : (
-                                        emp.fullName?.charAt(0) || "U"
-                                      )}
-                                    </div>
-                                    <div>
-                                      <div className="flex items-center gap-1.5">
-                                        <p className="font-semibold text-slate-900">{emp.fullName}</p>
-                                        {isHead && (
-                                          <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded border border-emerald-300">
-                                            HEAD
-                                          </span>
+                              const shiftOptions = [
+                                { label: "Default Organization Shift", value: "DEFAULT" },
+                                ...availableShifts.map((s) => ({
+                                  label: `${s.shiftName} (${s.startTime} - ${s.endTime})`,
+                                  value: s.id,
+                                })),
+                              ];
+
+                              return (
+                                <tr key={emp.id} className="hover:bg-slate-50/70 transition">
+                                  <td className="py-3 px-4">
+                                    <div className="flex items-center gap-2.5">
+                                      <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center text-xs font-bold text-slate-700">
+                                        {emp.avatarUrl ? (
+                                          <Image
+                                            src={emp.avatarUrl}
+                                            alt=""
+                                            width={32}
+                                            height={32}
+                                            unoptimized
+                                            className="w-full h-full object-cover"
+                                          />
+                                        ) : (
+                                          emp.fullName?.charAt(0) || "U"
                                         )}
                                       </div>
-                                      <p className="text-[10px] text-slate-400 font-mono">{emp.employeeId}</p>
+                                      <div>
+                                        <div className="flex items-center gap-1.5">
+                                          <p className="font-semibold text-slate-900">{emp.fullName}</p>
+                                          {isHead && (
+                                            <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded border border-emerald-300">
+                                              HEAD
+                                            </span>
+                                          )}
+                                        </div>
+                                        <p className="text-[10px] text-slate-400 font-mono">{emp.employeeId}</p>
+                                      </div>
                                     </div>
-                                  </div>
-                                </td>
+                                  </td>
 
-                                <td className="py-3 px-4 text-slate-600 whitespace-nowrap">
-                                  {emp.designation?.name || "—"}
-                                </td>
+                                  <td className="py-3 px-4 text-slate-600 whitespace-nowrap">
+                                    {emp.designation?.name || "—"}
+                                  </td>
 
-                                <td className="py-3 px-4 min-w-[200px]">
+                                  <td className="py-3 px-4 min-w-[200px]">
+                                    {isDeptRosterEnabled ? (
+                                      <Select
+                                        value={currentShiftId || "DEFAULT"}
+                                        options={shiftOptions}
+                                        onValueChange={(val) => handleAssignEmployeeShift(emp.id, emp.shift?.id || null, val)}
+                                        className="w-full text-xs"
+                                        placeholder="Select shift"
+                                      />
+                                    ) : emp.shift ? (
+                                      <span className="text-slate-700">
+                                        {emp.shift.shiftName}{" "}
+                                        <span className="text-[10px] text-slate-400">({emp.shift.startTime} - {emp.shift.endTime})</span>
+                                      </span>
+                                    ) : (
+                                      <span className="text-slate-400">Default Shift</span>
+                                    )}
+                                  </td>
+
                                   {isDeptRosterEnabled ? (
-                                    <Select
-                                      value={currentShiftId || "DEFAULT"}
-                                      options={shiftOptions}
-                                      onValueChange={(val) => handleAssignEmployeeShift(emp.id, emp.shift?.id || null, val)}
-                                      className="w-full text-xs"
-                                      placeholder="Select shift"
-                                    />
-                                  ) : emp.shift ? (
-                                    <span className="text-slate-700">
-                                      {emp.shift.shiftName}{" "}
-                                      <span className="text-[10px] text-slate-400">({emp.shift.startTime} - {emp.shift.endTime})</span>
-                                    </span>
+                                    <td className="py-3 px-4">
+                                      <div className="flex items-center gap-1 flex-wrap">
+                                        {WEEK_DAYS.map((day) => {
+                                          const isSelected = empOffDays.includes(day);
+                                          const shortDay = day.slice(0, 3);
+                                          return (
+                                            <button
+                                              key={day}
+                                              onClick={() => handleToggleOffDay(emp.id, empOffDays, day)}
+                                              className={`px-2 py-0.5 rounded text-[10px] font-bold transition cursor-pointer border ${
+                                                isSelected
+                                                  ? "bg-purple-600 text-white border-purple-600 shadow-xs scale-105"
+                                                  : "bg-white text-slate-500 hover:bg-slate-100 border-slate-200"
+                                              }`}
+                                              title={`Toggle ${day} off-duty for ${emp.fullName}`}
+                                            >
+                                              {shortDay}
+                                            </button>
+                                          );
+                                        })}
+                                      </div>
+                                    </td>
                                   ) : (
-                                    <span className="text-slate-400">Default Shift</span>
+                                    <td className="py-3 px-4">
+                                      <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-slate-100 text-slate-700">
+                                        {emp.role}
+                                      </span>
+                                    </td>
                                   )}
-                                </td>
-
-                                {isDeptRosterEnabled ? (
-                                  <td className="py-3 px-4">
-                                    <div className="flex items-center gap-1 flex-wrap">
-                                      {WEEK_DAYS.map((day) => {
-                                        const isSelected = empOffDays.includes(day);
-                                        const shortDay = day.slice(0, 3);
-                                        return (
-                                          <button
-                                            key={day}
-                                            onClick={() => handleToggleOffDay(emp.id, empOffDays, day)}
-                                            className={`px-2 py-0.5 rounded text-[10px] font-bold transition cursor-pointer border ${
-                                              isSelected
-                                                ? "bg-purple-600 text-white border-purple-600 shadow-xs scale-105"
-                                                : "bg-white text-slate-500 hover:bg-slate-100 border-slate-200"
-                                            }`}
-                                            title={`Toggle ${day} off-duty for ${emp.fullName}`}
-                                          >
-                                            {shortDay}
-                                          </button>
-                                        );
-                                      })}
-                                    </div>
-                                  </td>
-                                ) : (
-                                  <td className="py-3 px-4">
-                                    <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-slate-100 text-slate-700">
-                                      {emp.role}
-                                    </span>
-                                  </td>
-                                )}
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
-                  </div>
+                  </>
                 )}
               </div>
             </div>
