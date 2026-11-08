@@ -11,6 +11,7 @@ import {
   useUpdateEmployeeShift,
   useShifts,
   useEmploymentStatuses,
+  useEmployees,
 } from "@/hooks";
 import {
   useRosterShiftRequests,
@@ -45,6 +46,7 @@ const WEEK_DAYS = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thur
 export default function DepartmentsPage() {
   const { user } = useAuth();
   const { data: allDepartments = [], isLoading } = useDepartments();
+  const { data: allEmployees = [] } = useEmployees();
   const { data: organization } = useOrganization();
   const { data: availableShifts = [] } = useShifts();
   const createDepartmentMutation = useCreateDepartment();
@@ -406,15 +408,24 @@ export default function DepartmentsPage() {
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                  <span className="flex items-center gap-1.5 font-medium">
-                    <Users className="w-3.5 h-3.5 text-slate-400" />
-                    {dept._count?.users ?? 0} {dept._count?.users === 1 ? "Employee" : "Employees"}
-                  </span>
-                  <span className="text-emerald-700 font-semibold flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
-                    View Details <ChevronRight className="w-3.5 h-3.5" />
-                  </span>
-                </div>
+                {(() => {
+                  const activeCount = allEmployees.length > 0
+                    ? allEmployees.filter(
+                        (e) => !e.isDeleted && e.departmentId === dept.id && attendanceEligibleCodes.includes(e.status)
+                      ).length
+                    : (dept._count?.users ?? 0);
+                  return (
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                      <span className="flex items-center gap-1.5 font-medium">
+                        <Users className="w-3.5 h-3.5 text-slate-400" />
+                        {activeCount} {activeCount === 1 ? "Employee" : "Employees"}
+                      </span>
+                      <span className="text-emerald-700 font-semibold flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+                        View Details <ChevronRight className="w-3.5 h-3.5" />
+                      </span>
+                    </div>
+                  );
+                })()}
               </div>
             );
           })}
