@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useOrganization, useRegistrations, useUpdateRegistrationStatus } from "@/hooks";
@@ -22,6 +22,11 @@ import {
   MapPin,
   Building2,
   Share2,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -33,6 +38,9 @@ export default function EmployeeRegistrationAdminPage() {
 
   const [copied, setCopied] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>("ALL");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const { data: registrations = [], isLoading, refetch } = useRegistrations(selectedStatus === "ALL" ? undefined : selectedStatus);
   const updateStatusMutation = useUpdateRegistrationStatus();
@@ -59,6 +67,37 @@ export default function EmployeeRegistrationAdminPage() {
   const pendingCount = registrations.filter((r) => r.status === "PENDING").length;
   const enlistedCount = registrations.filter((r) => r.status === "ENLISTED").length;
   const rejectedCount = registrations.filter((r) => r.status === "REJECTED").length;
+
+  // Filter registrations by search query
+  const filteredRegistrations = useMemo(() => {
+    if (!Array.isArray(registrations)) return [];
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return registrations;
+    return registrations.filter((r) => {
+      return (
+        (r.fullName || "").toLowerCase().includes(q) ||
+        (r.email || "").toLowerCase().includes(q) ||
+        (r.phone || "").toLowerCase().includes(q) ||
+        (r.departmentName || "").toLowerCase().includes(q) ||
+        (r.designationName || "").toLowerCase().includes(q) ||
+        (r.gender || "").toLowerCase().includes(q) ||
+        (r.bloodGroup || "").toLowerCase().includes(q)
+      );
+    });
+  }, [registrations, searchQuery]);
+
+  // Reset to page 1 when filter, search, or pageSize changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedStatus, searchQuery, pageSize]);
+
+  // Pagination calculations
+  const totalItems = filteredRegistrations.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const validCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+  const startIndex = (validCurrentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, totalItems);
+  const paginatedRegistrations = filteredRegistrations.slice(startIndex, endIndex);
 
   const handleReject = async (id: string) => {
     if (!confirm("Are you sure you want to decline this registration application?")) return;
@@ -164,7 +203,7 @@ export default function EmployeeRegistrationAdminPage() {
 
       {/* Submissions Section */}
       <div className="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
-        <div className="p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
+        <div className="p-4 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50/50">
           <div>
             <h3 className="text-sm font-bold text-slate-800">Submitted Registration Applications</h3>
             <p className="text-xs text-slate-500">
@@ -172,129 +211,255 @@ export default function EmployeeRegistrationAdminPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-lg border border-slate-200">
-            {["ALL", "PENDING", "ENLISTED", "REJECTED"].map((st) => (
-              <button
-                key={st}
-                onClick={() => setSelectedStatus(st)}
-                className={`px-3 py-1 rounded-md text-xs font-semibold transition ${
-                  selectedStatus === st
-                    ? "bg-white text-slate-800 shadow-xs"
-                    : "text-slate-500 hover:text-slate-800"
-                }`}
-              >
-                {st.charAt(0) + st.slice(1).toLowerCase()}
-              </button>
-            ))}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2.5">
+            {/* Search Box */}
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search applicant, email, phone..."
+                className="pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-600 w-full sm:w-56 text-slate-800"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold"
+                >
+                  &times;
+                </button>
+              )}
+            </div>
+
+            {/* Status Filter Tabs */}
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200 shrink-0">
+              {["ALL", "PENDING", "ENLISTED", "REJECTED"].map((st) => (
+                <button
+                  key={st}
+                  onClick={() => setSelectedStatus(st)}
+                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
+                    selectedStatus === st
+                      ? "bg-white text-slate-800 shadow-xs"
+                      : "text-slate-500 hover:text-slate-800"
+                  }`}
+                >
+                  {st.charAt(0) + st.slice(1).toLowerCase()}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
         {isLoading ? (
           <div className="p-8 text-center text-xs text-slate-400">Loading registrations...</div>
-        ) : registrations.length === 0 ? (
+        ) : filteredRegistrations.length === 0 ? (
           <div className="p-12 text-center text-slate-400 space-y-2">
             <Users className="w-8 h-8 mx-auto text-slate-300" />
-            <p className="text-xs font-medium text-slate-600">No registration submissions found.</p>
+            <p className="text-xs font-medium text-slate-600">
+              {searchQuery ? "No matching registration submissions found." : "No registration submissions found."}
+            </p>
             <p className="text-[11px] text-slate-400">
-              Share the form link with new hires to receive applications here.
+              {searchQuery ? "Try searching with a different applicant name or keyword." : "Share the form link with new hires to receive applications here."}
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
-                <tr>
-                  <th className="py-3 px-4">Applicant</th>
-                  <th className="py-3 px-4">Contact</th>
-                  <th className="py-3 px-4">Preferred Unit</th>
-                  <th className="py-3 px-4">Submitted Date</th>
-                  <th className="py-3 px-4 text-center">Status</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {registrations.map((reg) => (
-                  <tr key={reg.id} className="hover:bg-slate-50/70 transition">
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-3">
-                        {reg.avatarUrl ? (
-                          <img
-                            src={reg.avatarUrl}
-                            alt={reg.fullName}
-                            className="w-8 h-8 rounded-full object-cover border border-slate-200"
-                          />
-                        ) : (
-                          <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-xs">
-                            {reg.fullName.charAt(0).toUpperCase()}
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
+                  <tr>
+                    <th className="py-3 px-4">Applicant</th>
+                    <th className="py-3 px-4">Contact</th>
+                    <th className="py-3 px-4">Preferred Unit</th>
+                    <th className="py-3 px-4">Submitted Date</th>
+                    <th className="py-3 px-4 text-center">Status</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {paginatedRegistrations.map((reg) => (
+                    <tr key={reg.id} className="hover:bg-slate-50/70 transition">
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-3">
+                          {reg.avatarUrl ? (
+                            <img
+                              src={reg.avatarUrl}
+                              alt={reg.fullName}
+                              className="w-8 h-8 rounded-full object-cover border border-slate-200"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-xs">
+                              {reg.fullName.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-bold text-slate-800">{reg.fullName}</p>
+                            <p className="text-[11px] text-slate-400">
+                              {reg.gender || "Gender N/A"} &bull; Blood: {reg.bloodGroup || "N/A"}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="space-y-0.5">
+                          <p className="text-slate-700 flex items-center gap-1.5">
+                            <Mail className="w-3.5 h-3.5 text-slate-400" />
+                            <span>{reg.email}</span>
+                          </p>
+                          {reg.phone && (
+                            <p className="text-slate-500 flex items-center gap-1.5 font-mono text-[11px]">
+                              <Phone className="w-3.5 h-3.5 text-slate-400" />
+                              <span>{reg.phone}</span>
+                            </p>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="text-slate-700">
+                          <p className="font-medium">{reg.departmentName || "General"}</p>
+                          <p className="text-[11px] text-slate-400">{reg.designationName || "Staff"}</p>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-slate-500 font-mono text-[11px]">
+                        {new Date(reg.createdAt).toLocaleDateString("en-US", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <span
+                          className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                            reg.status === "PENDING"
+                              ? "bg-amber-50 text-amber-700 border-amber-200"
+                              : reg.status === "ENLISTED"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              : "bg-slate-100 text-slate-500 border-slate-200"
+                          }`}
+                        >
+                          {reg.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        {reg.status === "PENDING" && (
+                          <div className="flex items-center justify-end gap-1.5">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleReject(reg.id)}
+                              className="h-7 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                            >
+                              Decline
+                            </Button>
                           </div>
                         )}
-                        <div>
-                          <p className="font-bold text-slate-800">{reg.fullName}</p>
-                          <p className="text-[11px] text-slate-400">
-                            {reg.gender || "Gender N/A"} &bull; Blood: {reg.bloodGroup || "N/A"}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="space-y-0.5">
-                        <p className="text-slate-700 flex items-center gap-1.5">
-                          <Mail className="w-3.5 h-3.5 text-slate-400" />
-                          <span>{reg.email}</span>
-                        </p>
-                        {reg.phone && (
-                          <p className="text-slate-500 flex items-center gap-1.5 font-mono text-[11px]">
-                            <Phone className="w-3.5 h-3.5 text-slate-400" />
-                            <span>{reg.phone}</span>
-                          </p>
-                        )}
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="text-slate-700">
-                        <p className="font-medium">{reg.departmentName || "General"}</p>
-                        <p className="text-[11px] text-slate-400">{reg.designationName || "Staff"}</p>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 text-slate-500 font-mono text-[11px]">
-                      {new Date(reg.createdAt).toLocaleDateString("en-US", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination Controls */}
+            <div className="p-3.5 border-t border-slate-200 bg-slate-50/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span>Showing</span>
+                <strong className="text-slate-800 font-bold">
+                  {totalItems === 0 ? 0 : startIndex + 1}–{endIndex}
+                </strong>
+                <span>of</span>
+                <strong className="text-slate-800 font-bold">{totalItems}</strong>
+                <span>applications</span>
+
+                <span className="text-slate-300 mx-1">|</span>
+
+                <label className="flex items-center gap-1.5 text-slate-500">
+                  <span>Per page:</span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => setPageSize(Number(e.target.value))}
+                    className="bg-white border border-slate-200 rounded-md px-2 py-0.5 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-600 cursor-pointer"
+                  >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                  </select>
+                </label>
+              </div>
+
+              {totalPages > 1 && (
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage(1)}
+                    disabled={validCurrentPage === 1}
+                    className="p-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition text-slate-700"
+                    title="First Page"
+                  >
+                    <ChevronsLeft className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={validCurrentPage === 1}
+                    className="p-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition text-slate-700"
+                    title="Previous Page"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                  </button>
+
+                  {/* Page numbers */}
+                  <div className="flex items-center gap-1 px-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter((p) => {
+                        return p === 1 || p === totalPages || Math.abs(p - validCurrentPage) <= 1;
+                      })
+                      .map((p, idx, arr) => {
+                        const prev = arr[idx - 1];
+                        const showEllipsis = prev && p - prev > 1;
+                        return (
+                          <React.Fragment key={p}>
+                            {showEllipsis && <span className="px-1 text-slate-400">...</span>}
+                            <button
+                              type="button"
+                              onClick={() => setCurrentPage(p)}
+                              className={`w-7 h-7 rounded-md font-bold text-xs transition flex items-center justify-center ${
+                                validCurrentPage === p
+                                  ? "bg-emerald-700 text-white shadow-xs"
+                                  : "bg-white border border-slate-200 hover:bg-slate-100 text-slate-700"
+                              }`}
+                            >
+                              {p}
+                            </button>
+                          </React.Fragment>
+                        );
                       })}
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      <span
-                        className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                          reg.status === "PENDING"
-                            ? "bg-amber-50 text-amber-700 border-amber-200"
-                            : reg.status === "ENLISTED"
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                            : "bg-slate-100 text-slate-500 border-slate-200"
-                        }`}
-                      >
-                        {reg.status}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-right">
-                      {reg.status === "PENDING" && (
-                        <div className="flex items-center justify-end gap-1.5">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleReject(reg.id)}
-                            className="h-7 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50"
-                          >
-                            Decline
-                          </Button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={validCurrentPage === totalPages}
+                    className="p-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition text-slate-700"
+                    title="Next Page"
+                  >
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={validCurrentPage === totalPages}
+                    className="p-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition text-slate-700"
+                    title="Last Page"
+                  >
+                    <ChevronsRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </>
         )}
       </div>
     </div>
