@@ -41,6 +41,15 @@ export default function EmployeesDirectoryPage() {
   const { data: orgData } = useOrganization();
   const ownerEmail = orgData?.ownerEmail?.toLowerCase();
 
+  const isCurrentOwner = Boolean(
+    currentUser?.role === "OWNER" ||
+    currentUser?.isOwner ||
+    currentUser?.role === "PLATFORM_ADMIN" ||
+    (currentUser?.email && ownerEmail && currentUser.email.toLowerCase() === ownerEmail)
+  );
+  const currentUserPerms = Array.isArray(currentUser?.permissions) ? currentUser.permissions : [];
+  const canDeleteEmployees = isCurrentOwner || currentUserPerms.includes("employees.delete");
+
   const { data: employees = [], isLoading } = useEmployees();
   const { data: departments = [] } = useDepartments();
   const { data: configuredStatuses = [] } = useEmploymentStatuses();
@@ -157,7 +166,7 @@ export default function EmployeesDirectoryPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {selectedIds.length > 0 && (
+          {canDeleteEmployees && selectedIds.length > 0 && (
             <Button
               onClick={() => setIsBulkDeleteModalOpen(true)}
               className="h-9 rounded-lg px-3.5 text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white flex items-center gap-1.5 shadow-xs transition"
@@ -396,7 +405,7 @@ export default function EmployeesDirectoryPage() {
                       </button>
                       {emp.email.toLowerCase() === ownerEmail ? (
                         <span className="text-[10px] font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">Owner</span>
-                      ) : (
+                      ) : canDeleteEmployees ? (
                         <button
                           onClick={() => setTargetDeleteEmployee(emp)}
                           className="p-1.5 text-slate-500 hover:text-rose-700 rounded-lg hover:bg-rose-50 active:bg-rose-100 transition"
@@ -404,7 +413,7 @@ export default function EmployeesDirectoryPage() {
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
-                      )}
+                      ) : null}
                     </div>
                   </div>
 
@@ -627,15 +636,15 @@ export default function EmployeesDirectoryPage() {
                           </button>
                           {emp.email.toLowerCase() === ownerEmail ? (
                             <span className="text-[10px] font-medium text-slate-400 italic px-1">Protected</span>
-                          ) : (
+                          ) : canDeleteEmployees ? (
                             <button
                               onClick={() => setTargetDeleteEmployee(emp)}
                               className="p-1.5 text-slate-500 hover:text-rose-700 rounded-lg hover:bg-rose-50 transition"
-                              title="Soft Delete Employee"
+                              title="Delete Employee"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
-                          )}
+                          ) : null}
                         </div>
                       </td>
                     </tr>

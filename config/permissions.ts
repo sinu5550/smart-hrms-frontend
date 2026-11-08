@@ -69,6 +69,12 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
     category: "Employees",
     description: "Can assign system roles (Admin, HR, Employee) and manage user designations.",
   },
+  {
+    id: "employees.delete",
+    name: "Delete & Purge Employees",
+    category: "Employees",
+    description: "Can permanently delete or soft-delete employee records and purge personnel from the directory.",
+  },
 
   // Organization & Settings
   {

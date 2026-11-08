@@ -121,7 +121,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (userPerms.includes(requiredPerm)) return true;
     // If user has no permissions explicitly listed yet and is HR, default to standard HR items
     if (userPerms.length === 0 && user?.role === "HR") {
-      const defaultHrExcluded = ["employees.permissions", "employees.roles", "organization.settings"];
+      const defaultHrExcluded = ["employees.permissions", "employees.roles", "organization.settings", "employees.delete"];
       return !defaultHrExcluded.includes(requiredPerm);
     }
     return false;
