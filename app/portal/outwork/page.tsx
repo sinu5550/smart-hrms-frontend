@@ -164,10 +164,17 @@ export default function OutworkSubmissionPage() {
   };
 
   const isMyRecord = (r: OutworkRecord) => {
-    if (user?.id && (r.userId === user.id || r.user?.id === user.id)) return true;
-    if (user?.email && r.user?.email && r.user.email.toLowerCase() === user.email.toLowerCase()) return true;
-    if (user?.employeeId && r.user?.employeeId && r.user.employeeId === user.employeeId) return true;
-    if (!r.user && !r.userId) return true;
+    const currentUserId = user?.id || (user as any)?.userId;
+    const currentEmail = user?.email?.toLowerCase()?.trim();
+    const currentEmpId = user?.employeeId?.trim();
+
+    const recordUserId = r.userId || (r as any)?.user_id || r.user?.id;
+    const recordEmail = r.user?.email?.toLowerCase()?.trim();
+    const recordEmpId = r.user?.employeeId?.trim();
+
+    if (currentUserId && recordUserId && String(currentUserId).toLowerCase() === String(recordUserId).toLowerCase()) return true;
+    if (currentEmail && recordEmail && currentEmail === recordEmail) return true;
+    if (currentEmpId && recordEmpId && currentEmpId === recordEmpId) return true;
     return false;
   };
 

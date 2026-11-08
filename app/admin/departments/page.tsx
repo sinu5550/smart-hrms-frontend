@@ -33,6 +33,11 @@ import {
   ShieldCheck,
   ChevronRight,
   Info,
+  Clock,
+  XCircle,
+  Search,
+  Filter,
+  RefreshCw,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -56,6 +61,57 @@ export default function DepartmentsPage() {
   const updateEmployeeShiftMutation = useUpdateEmployeeShift();
   const { data: rosterShiftRequests = [] } = useRosterShiftRequests();
   const actionShiftRequestMutation = useActionRosterShiftRequest();
+
+  // Main page tab: "DEPARTMENTS" vs "SHIFT_REQUESTS"
+  const [activeMainTab, setActiveMainTab] = useState<"DEPARTMENTS" | "SHIFT_REQUESTS">("DEPARTMENTS");
+  const [shiftRequestStatusFilter, setShiftRequestStatusFilter] = useState<string>("ALL");
+  const [shiftRequestSearch, setShiftRequestSearch] = useState<string>("");
+  const [processingRequestId, setProcessingRequestId] = useState<string | null>(null);
+
+  const pendingShiftRequests = React.useMemo(() => {
+    return Array.isArray(rosterShiftRequests)
+      ? rosterShiftRequests.filter((r) => r.status === "PENDING")
+      : [];
+  }, [rosterShiftRequests]);
+
+  const pendingShiftCount = pendingShiftRequests.length;
+
+  const filteredShiftRequests = React.useMemo(() => {
+    if (!Array.isArray(rosterShiftRequests)) return [];
+    return rosterShiftRequests.filter((r) => {
+      const q = shiftRequestSearch.toLowerCase().trim();
+      const matchesSearch =
+        !q ||
+        (r.user?.fullName || "").toLowerCase().includes(q) ||
+        (r.user?.employeeId || "").toLowerCase().includes(q) ||
+        (r.user?.department?.name || "").toLowerCase().includes(q) ||
+        (r.targetShift?.shiftName || "").toLowerCase().includes(q) ||
+        (r.reason || "").toLowerCase().includes(q);
+
+      const matchesStatus =
+        shiftRequestStatusFilter === "ALL"
+          ? true
+          : r.status === shiftRequestStatusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [rosterShiftRequests, shiftRequestSearch, shiftRequestStatusFilter]);
+
+  const handleActionShiftRequest = async (id: string, action: "APPROVED" | "REJECTED", employeeName?: string) => {
+    try {
+      setProcessingRequestId(id);
+      await actionShiftRequestMutation.mutateAsync({ id, action });
+      setSuccessMsg(
+        action === "APPROVED"
+          ? `Approved roster shift change for ${employeeName || "employee"}. Shift schedule updated successfully.`
+          : `Rejected roster shift change for ${employeeName || "employee"}.`
+      );
+    } catch (err) {
+      alert(parseApiError(err));
+    } finally {
+      setProcessingRequestId(null);
+    }
+  };
 
   // Optimistic UI state maps
   const [optimisticOffDays, setOptimisticOffDays] = useState<Record<string, string[]>>({});
@@ -294,30 +350,97 @@ export default function DepartmentsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-emerald-700" /> {isDeptHeadOnly ? "My Managed Department" : "Departments & Units"}
+            <Building2 className="w-5 h-5 text-emerald-700" />
+            {isDeptHeadOnly ? "My Department & Shift Requests" : "Departments & Shift Change Requests"}
           </h1>
           <p className="text-xs text-slate-500 mt-1">
             {isDeptHeadOnly
-              ? "Click on your department card below to view team members and manage their weekly roster off-days."
-              : "Organize personnel into functional units. Click any department card to manage its members, appoint Head of Department, and assign roster off-days."}
+              ? "View team members, assign roster off-days, and sanction incoming roster shift change requests."
+              : "Organize personnel into functional units, appoint Department Heads, and review roster shift change requests."}
           </p>
         </div>
-        {!isDeptHeadOnly && (
+        {!isDeptHeadOnly && activeMainTab === "DEPARTMENTS" && (
           <Button onClick={openCreateModal} className="h-9 rounded-lg px-4 text-xs font-semibold">
             <Plus className="w-4 h-4" /> Add Department
           </Button>
         )}
       </div>
 
+      {/* Main Tab Navigation */}
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+        <button
+          type="button"
+          onClick={() => setActiveMainTab("DEPARTMENTS")}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition ${
+            activeMainTab === "DEPARTMENTS"
+              ? "bg-emerald-700 text-white shadow-xs"
+              : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+          }`}
+        >
+          <Building2 className="w-4 h-4" />
+          <span>Departments & Units ({departments.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveMainTab("SHIFT_REQUESTS")}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition relative ${
+            activeMainTab === "SHIFT_REQUESTS"
+              ? "bg-purple-700 text-white shadow-xs"
+              : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+          }`}
+        >
+          <Clock className="w-4 h-4" />
+          <span>Shift Change Requests</span>
+          {pendingShiftCount > 0 && (
+            <span
+              className={`px-2 py-0.5 rounded-full text-[10px] font-black shrink-0 ${
+                activeMainTab === "SHIFT_REQUESTS" ? "bg-white text-purple-900" : "bg-rose-500 text-white animate-pulse"
+              }`}
+            >
+              {pendingShiftCount} Pending
+            </span>
+          )}
+        </button>
+      </div>
+
       {successMsg && (
-        <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-lg flex items-center gap-2 text-xs text-emerald-900 font-semibold shadow-xs">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-          <span>{successMsg}</span>
+        <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-lg flex items-center justify-between gap-2 text-xs text-emerald-900 font-semibold shadow-xs">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{successMsg}</span>
+          </div>
+          <button
+            onClick={() => setSuccessMsg(null)}
+            className="text-emerald-700 hover:text-emerald-900 text-xs underline font-normal"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      {/* Pending Banner inside Departments tab */}
+      {activeMainTab === "DEPARTMENTS" && pendingShiftCount > 0 && (
+        <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-purple-900 shadow-xs">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping shrink-0" />
+            <span>
+              You have <strong>{pendingShiftCount}</strong> pending roster shift change request(s) awaiting review.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setActiveMainTab("SHIFT_REQUESTS")}
+            className="px-3 py-1 bg-purple-700 hover:bg-purple-800 text-white font-bold rounded-md text-[11px] shrink-0 transition"
+          >
+            Review Requests Now →
+          </button>
         </div>
       )}
 
       {/* Departments Grid */}
-      {isLoading ? (
+      {activeMainTab === "DEPARTMENTS" && (
+        isLoading ? (
         <div className="py-12 text-center text-xs text-slate-400">Loading departments...</div>
       ) : departments.length === 0 ? (
         <div className="p-12 text-center bg-white border border-slate-200 rounded-lg space-y-3">
@@ -429,6 +552,160 @@ export default function DepartmentsPage() {
               </div>
             );
           })}
+        </div>
+      ))}
+
+      {/* VIEW 2: Shift Change Requests */}
+      {activeMainTab === "SHIFT_REQUESTS" && (
+        <div className="space-y-4">
+          {/* Filter Bar */}
+          <div className="bg-white border border-slate-200 rounded-lg p-3.5 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div className="relative flex-1">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
+              <Input
+                type="text"
+                value={shiftRequestSearch}
+                onChange={(e) => setShiftRequestSearch(e.target.value)}
+                placeholder="Search by employee name, ID, department, or shift..."
+                className="h-9 pl-8 text-xs rounded-lg"
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Select
+                value={shiftRequestStatusFilter}
+                onValueChange={setShiftRequestStatusFilter}
+                triggerClassName="h-9 text-xs w-[180px]"
+                options={[
+                  { value: "ALL", label: `All Requests (${rosterShiftRequests.length})` },
+                  { value: "PENDING", label: `Pending (${pendingShiftCount})` },
+                  { value: "APPROVED", label: "Approved" },
+                  { value: "REJECTED", label: "Rejected" },
+                ]}
+              />
+            </div>
+          </div>
+
+          {/* Shift Requests List */}
+          {filteredShiftRequests.length === 0 ? (
+            <div className="p-12 text-center bg-white border border-slate-200 rounded-lg space-y-2">
+              <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+                <Clock className="w-5 h-5" />
+              </div>
+              <h3 className="font-bold text-slate-800 text-xs">No Shift Change Requests Found</h3>
+              <p className="text-[11px] text-slate-400">
+                {shiftRequestStatusFilter !== "ALL"
+                  ? `No shift change requests with status "${shiftRequestStatusFilter}".`
+                  : "Employees on roster duty can submit shift change requests from their portal."}
+              </p>
+            </div>
+          ) : (
+            <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-xs divide-y divide-slate-100">
+              {filteredShiftRequests.map((req) => {
+                const isPending = req.status === "PENDING";
+                const isProcessing = processingRequestId === req.id;
+
+                return (
+                  <div
+                    key={req.id}
+                    className="p-4 hover:bg-slate-50/70 transition flex flex-col md:flex-row md:items-center justify-between gap-4"
+                  >
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center text-xs font-bold text-slate-700">
+                        {req.user?.avatarUrl ? (
+                          <Image
+                            src={req.user.avatarUrl}
+                            alt=""
+                            width={36}
+                            height={36}
+                            unoptimized
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          req.user?.fullName?.charAt(0) || "U"
+                        )}
+                      </div>
+
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="text-xs font-bold text-slate-900">{req.user?.fullName}</h4>
+                          <span className="text-[10px] font-mono text-slate-400">
+                            {req.user?.employeeId}
+                          </span>
+                          <span className="text-[10px] bg-slate-100 text-slate-700 font-semibold px-2 py-0.2 rounded border border-slate-200">
+                            {req.user?.department?.name || "General"}
+                          </span>
+                          <span
+                            className={`px-2 py-0.2 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                              req.status === "APPROVED"
+                                ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                                : req.status === "REJECTED"
+                                ? "bg-rose-100 text-rose-800 border border-rose-200"
+                                : "bg-amber-100 text-amber-800 border border-amber-300 animate-pulse"
+                            }`}
+                          >
+                            {req.status}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-xs text-slate-600 flex-wrap">
+                          <span>
+                            Target Shift: <strong className="text-purple-800">{req.targetShift?.shiftName || "Shift"}</strong>{" "}
+                            <span className="font-mono text-slate-400">
+                              ({req.targetShift?.startTime || "--"} - {req.targetShift?.endTime || "--"})
+                            </span>
+                          </span>
+                          <span className="text-slate-300">•</span>
+                          <span>
+                            For Date: <strong className="text-slate-800">{new Date(req.effectiveDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</strong>
+                          </span>
+                        </div>
+
+                        {req.reason && (
+                          <p className="text-[11px] text-slate-600 bg-slate-50 p-2 rounded-md border border-slate-100 italic">
+                            Reason: "{req.reason}"
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Action buttons */}
+                    {isPending ? (
+                      <div className="flex items-center gap-2 shrink-0 self-end md:self-center">
+                        <button
+                          type="button"
+                          disabled={isProcessing}
+                          onClick={() => handleActionShiftRequest(req.id, "APPROVED", req.user?.fullName)}
+                          className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold rounded-lg text-xs shadow-xs active:scale-95 transition flex items-center gap-1.5"
+                        >
+                          {isProcessing ? (
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                          )}
+                          <span>Accept & Apply</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={isProcessing}
+                          onClick={() => handleActionShiftRequest(req.id, "REJECTED", req.user?.fullName)}
+                          className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-bold rounded-lg text-xs shadow-xs active:scale-95 transition flex items-center gap-1.5"
+                        >
+                          <XCircle className="w-3.5 h-3.5" />
+                          <span>Reject</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="text-right text-[11px] text-slate-400 shrink-0">
+                        <span>Resolved</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 

@@ -136,6 +136,8 @@ export function useRosterShiftRequests(status?: string) {
   return useQuery({
     queryKey: ["roster-shift-requests", status || "ALL"],
     queryFn: () => DepartmentService.getRosterShiftRequests(status),
+    refetchInterval: 10000,
+    staleTime: 5000,
   });
 }
 

@@ -137,7 +137,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { label: "Employee Directory", href: "/admin/employees", icon: Users, perm: "employees.view" },
     { label: "Registration Forms", href: "/admin/employee-registration", icon: FileSignature, perm: "employees.registration" },
     { label: "Company Loans", href: "/admin/loans", icon: HandCoins },
-    { label: "Departments", href: "/admin/departments", icon: Building2, perm: "departments.manage" },
+    { label: "Departments / Shift Requests", href: "/admin/departments", icon: Building2, perm: "departments.manage" },
     { label: "Shift Schedules", href: "/admin/shifts", icon: Sliders, perm: "shift.settings" },
     { label: "Biometric & Hardware", href: "/admin/devices", icon: Cpu, perm: "devices.view" },
     { label: "Lifecycle & ATS", href: "/admin/lifecycle", icon: Briefcase, perm: "employees.view" },
@@ -155,9 +155,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { label: "Organization & Branding", href: "/admin/settings/organization", icon: Building2, perm: "organization.settings" },
   ];
 
-  // If user is Department Head (without Admin/HR role), only show Departments & Unit management
+  // If user is Department Head (without Admin/HR role), only show Departments & Shift Requests
   const mainNavItems = isDeptHeadOnly
-    ? [{ label: "My Departments", href: "/admin/departments", icon: Building2 }]
+    ? [{ label: "Departments / Shift Requests", href: "/admin/departments", icon: Building2 }]
     : allMainNavItems.filter((i) => hasPerm(i.perm));
   const settingsNavItems = isDeptHeadOnly ? [] : allSettingsNavItems.filter((i) => hasPerm(i.perm));
 
