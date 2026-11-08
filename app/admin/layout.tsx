@@ -3,7 +3,10 @@
 import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { apiClient } from "@/services/api";
+import { usePendingRegistrationsCount, useRosterShiftRequests } from "@/hooks";
 import {
   Users,
   Sliders,
@@ -157,6 +160,57 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     ? [{ label: "My Departments", href: "/admin/departments", icon: Building2 }]
     : allMainNavItems.filter((i) => hasPerm(i.perm));
   const settingsNavItems = isDeptHeadOnly ? [] : allSettingsNavItems.filter((i) => hasPerm(i.perm));
+
+  // Real-time Pending Activity Badges (Live polls every 10 seconds)
+  const { data: outworkRecords = [] } = useQuery<any[]>({
+    queryKey: ["admin", "outwork"],
+    queryFn: async () => {
+      const { data } = await apiClient.get<any[]>("/outwork");
+      return data;
+    },
+    refetchInterval: 10000,
+    staleTime: 5000,
+  });
+
+  const { data: leaveRecords = [] } = useQuery<any[]>({
+    queryKey: ["admin", "leaves"],
+    queryFn: async () => {
+      const { data } = await apiClient.get<any[]>("/leave");
+      return data;
+    },
+    refetchInterval: 10000,
+    staleTime: 5000,
+  });
+
+  const { count: pendingRegistrationCount = 0 } = usePendingRegistrationsCount();
+
+  const { data: loanRecords = [] } = useQuery<any[]>({
+    queryKey: ["admin", "loans"],
+    queryFn: async () => {
+      const { data } = await apiClient.get<any[]>("/loans");
+      return data;
+    },
+    refetchInterval: 10000,
+    staleTime: 5000,
+  });
+
+  const { data: rosterShiftRequests = [] } = useRosterShiftRequests();
+
+  const pendingOutworkCount = Array.isArray(outworkRecords) ? outworkRecords.filter((r) => r.status === "PENDING").length : 0;
+  const pendingLeaveCount = Array.isArray(leaveRecords) ? leaveRecords.filter((l) => l.status === "PENDING").length : 0;
+  const pendingLoanCount = Array.isArray(loanRecords) ? loanRecords.filter((l) => l.status === "PENDING").length : 0;
+  const pendingRosterShiftCount = Array.isArray(rosterShiftRequests) ? rosterShiftRequests.filter((r) => r.status === "PENDING").length : 0;
+
+  const badgeCounts: Record<string, number> = {
+    "/admin/outwork": pendingOutworkCount,
+    "/admin/leave": pendingLeaveCount,
+    "/admin/employee-registration": pendingRegistrationCount,
+    "/admin/loans": pendingLoanCount,
+    "/admin/departments": pendingRosterShiftCount,
+  };
+
+  const totalPendingBadges =
+    pendingOutworkCount + pendingLeaveCount + pendingRegistrationCount + pendingLoanCount + pendingRosterShiftCount;
 
   const orgName = user?.organization?.name || "Ekhone IT";
   const orgLogo = user?.organization?.logoUrl;
@@ -374,18 +428,41 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {mainNavItems.filter((i) => i.href !== "/admin").map((item) => {
               const Icon = item.icon;
               const isActive = pathname.startsWith(item.href);
+              const badgeCount = badgeCounts[item.href] || 0;
+
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold transition active:scale-[0.99] ${
+                  className={`relative flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-xs font-semibold transition active:scale-[0.99] ${
                     isActive
                       ? "bg-emerald-600 text-white shadow-xs"
                       : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                   }`}
                 >
-                  <Icon className="w-4 h-4 shrink-0" />
-                  {(isSidebarOpen || isMobileMenuOpen) && <span className="truncate">{item.label}</span>}
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Icon className="w-4 h-4 shrink-0" />
+                    {(isSidebarOpen || isMobileMenuOpen) && <span className="truncate">{item.label}</span>}
+                  </div>
+
+                  {(isSidebarOpen || isMobileMenuOpen) && badgeCount > 0 && (
+                    <span
+                      className={`px-1.5 py-0.5 min-w-[20px] text-center text-[10px] font-black rounded-full shrink-0 shadow-xs animate-in zoom-in-75 duration-150 ${
+                        isActive
+                          ? "bg-white text-emerald-800"
+                          : "bg-rose-500 text-white"
+                      }`}
+                    >
+                      {badgeCount > 99 ? "99+" : badgeCount}
+                    </span>
+                  )}
+
+                  {(!isSidebarOpen && !isMobileMenuOpen) && badgeCount > 0 && (
+                    <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                    </span>
+                  )}
                 </Link>
               );
             })}
@@ -584,10 +661,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </Link>
           <button
             onClick={() => setIsMobileMenuOpen(true)}
-            className="flex flex-col items-center py-1 px-3 rounded-lg text-[10px] font-semibold text-slate-400 hover:text-slate-600 transition"
+            className="relative flex flex-col items-center py-1 px-3 rounded-lg text-[10px] font-semibold text-slate-400 hover:text-slate-600 transition"
           >
             <Sliders className="w-4 h-4 mb-0.5" />
             <span>More</span>
+            {totalPendingBadges > 0 && (
+              <span className="absolute top-1 right-2.5 flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+              </span>
+            )}
           </button>
         </div>
       </div>

@@ -11,7 +11,8 @@ export function useRegistrations(status?: string) {
   return useQuery({
     queryKey: REGISTRATION_QUERY_KEYS.list(status),
     queryFn: () => RegistrationService.getRegistrations(status),
-    staleTime: 30 * 1000,
+    staleTime: 10 * 1000,
+    refetchInterval: 10 * 1000,
   });
 }
 
