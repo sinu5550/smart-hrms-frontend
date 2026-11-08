@@ -23,6 +23,7 @@ import { formatDate } from "@/lib/utils";
 
 interface OutworkRecord {
   id: string;
+  userId?: string;
   visitDate: string;
   destination: string;
   purpose: string;
@@ -35,6 +36,7 @@ interface OutworkRecord {
     id: string;
     fullName: string;
     employeeId: string;
+    email?: string;
     avatarUrl?: string | null;
     department?: { name: string } | null;
   };
@@ -161,8 +163,16 @@ export default function OutworkSubmissionPage() {
     });
   };
 
-  const teamRequests = records.filter((r) => r.user && r.user.id !== user?.id);
-  const myRecords = records.filter((r) => !r.user || r.user.id === user?.id);
+  const isMyRecord = (r: OutworkRecord) => {
+    if (user?.id && (r.userId === user.id || r.user?.id === user.id)) return true;
+    if (user?.email && r.user?.email && r.user.email.toLowerCase() === user.email.toLowerCase()) return true;
+    if (user?.employeeId && r.user?.employeeId && r.user.employeeId === user.employeeId) return true;
+    if (!r.user && !r.userId) return true;
+    return false;
+  };
+
+  const teamRequests = isManager ? records.filter((r) => !isMyRecord(r)) : [];
+  const myRecords = isManager ? records.filter(isMyRecord) : records;
   const pendingTeamCount = teamRequests.filter((r) => r.status === "PENDING").length;
 
   return (
