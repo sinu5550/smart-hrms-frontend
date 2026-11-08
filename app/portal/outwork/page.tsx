@@ -78,10 +78,15 @@ export default function OutworkSubmissionPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["portal", "outwork"] });
+      queryClient.invalidateQueries({ queryKey: ["attendance", "today-status"] });
+      queryClient.invalidateQueries({ queryKey: ["attendance"] });
       setDestination("");
       setPurpose("");
       setGpsLocation(null);
-      setMessage({ type: "success", text: "Outwork request submitted successfully for manager approval." });
+      setMessage({
+        type: "success",
+        text: "Outwork request submitted & check-in recorded successfully!",
+      });
     },
     onError: (err) => {
       setMessage({ type: "error", text: parseApiError(err) });

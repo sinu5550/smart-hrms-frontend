@@ -62,6 +62,9 @@ export default function AdminOutworkApprovalsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "outwork"] });
+      queryClient.invalidateQueries({ queryKey: ["attendance"] });
+      queryClient.invalidateQueries({ queryKey: ["attendance", "today-status"] });
+      queryClient.invalidateQueries({ queryKey: ["employees", "dashboard-stats"] });
       setNoteModalTarget(null);
       setApprovalNote("");
       setProcessingId(null);
