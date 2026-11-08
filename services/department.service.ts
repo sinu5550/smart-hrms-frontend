@@ -122,9 +122,12 @@ export const DepartmentService = {
     return data;
   },
 
-  getRosterShiftRequests: async (status?: string): Promise<RosterShiftRequestItem[]> => {
+  getRosterShiftRequests: async (status?: string, mine?: boolean): Promise<RosterShiftRequestItem[]> => {
+    const params: Record<string, string> = {};
+    if (status) params.status = status;
+    if (mine) params.mine = "true";
     const { data } = await apiClient.get<RosterShiftRequestItem[]>("/departments/roster-shift-requests", {
-      params: status ? { status } : undefined,
+      params: Object.keys(params).length > 0 ? params : undefined,
     });
     return data;
   },

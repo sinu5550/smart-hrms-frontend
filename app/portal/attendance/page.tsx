@@ -57,7 +57,18 @@ export default function MobileAttendancePortal() {
 
   // Roster Shift Change Application state
   const { data: availableShifts = [] } = useShifts();
-  const { data: myShiftRequests = [] } = useRosterShiftRequests();
+  const { data: rawShiftRequests = [] } = useRosterShiftRequests("ALL", true);
+  const myShiftRequests = useMemo(() => {
+    if (!Array.isArray(rawShiftRequests)) return [];
+    const currentUserId = user?.id || (user as any)?.userId;
+    const currentEmail = user?.email?.toLowerCase()?.trim();
+    return rawShiftRequests.filter((req) => {
+      if (currentUserId && (req.userId === currentUserId || req.user?.id === currentUserId)) return true;
+      if (currentEmail && req.user?.email && req.user.email.toLowerCase().trim() === currentEmail) return true;
+      if (!req.userId && !req.user) return true;
+      return false;
+    });
+  }, [rawShiftRequests, user]);
   const createShiftRequestMutation = useCreateRosterShiftRequest();
   const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
   const [targetShiftId, setTargetShiftId] = useState("");

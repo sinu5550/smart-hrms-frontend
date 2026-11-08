@@ -132,10 +132,10 @@ export function useUpdateEmployeeShift() {
   });
 }
 
-export function useRosterShiftRequests(status?: string) {
+export function useRosterShiftRequests(status?: string, mine?: boolean) {
   return useQuery({
-    queryKey: ["roster-shift-requests", status || "ALL"],
-    queryFn: () => DepartmentService.getRosterShiftRequests(status),
+    queryKey: ["roster-shift-requests", status || "ALL", mine ? "mine" : "all"],
+    queryFn: () => DepartmentService.getRosterShiftRequests(status, mine),
     refetchInterval: 10000,
     staleTime: 5000,
   });
