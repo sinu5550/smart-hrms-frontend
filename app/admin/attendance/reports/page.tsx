@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from "react";
-import { useAttendanceSummaryReport, useDepartments, useOrganization } from "@/hooks";
+import { useAttendanceSummaryReport, useDepartments, useOrganization, useEmploymentStatuses } from "@/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   FileText,
@@ -37,7 +37,36 @@ export default function AttendanceReportsPage() {
 
   // Selected Department filter ("ALL" or specific department.id)
   const [selectedDeptId, setSelectedDeptId] = useState<string>("ALL");
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [searchTerm, setSearchTerm] = useState<string>("");
+
+  const { data: configuredStatuses = [] } = useEmploymentStatuses();
+
+  // Combine default and user-configured statuses for dynamic dropdown options
+  const statusOptions = useMemo(() => {
+    if (configuredStatuses.length > 0) {
+      return configuredStatuses.map((s) => ({
+        value: s.code,
+        label: s.name,
+      }));
+    }
+    return [
+      { value: "ACTIVE", label: "Active" },
+      { value: "ON_PROBATION", label: "On Probation" },
+      { value: "RESIGNED", label: "Resigned" },
+      { value: "TERMINATED", label: "Terminated" },
+      { value: "RETIRED", label: "Retired" },
+    ];
+  }, [configuredStatuses]);
+
+  // Determine which employment statuses have "count_in_attendance = true" (tick-marked in Core HR)
+  const attendanceEligibleCodes = useMemo(() => {
+    if (configuredStatuses.length > 0) {
+      const eligible = configuredStatuses.filter((s) => s.countInAttendance).map((s) => s.code);
+      if (eligible.length > 0) return eligible;
+    }
+    return ["ACTIVE", "ON_PROBATION"];
+  }, [configuredStatuses]);
 
   // Local dates formatted as YYYY-MM-DD
   const today = new Date();
@@ -87,18 +116,26 @@ export default function AttendanceReportsPage() {
 
   const rows = reportData?.summary || [];
 
-  // Filter rows by employee name, id, or department
+  // Filter rows by employee name, id, department, and status
   const filteredRows = useMemo(() => {
-    return rows.filter((r) => {
+    return rows.filter((r: any) => {
       const q = searchTerm.toLowerCase().trim();
       const matchesSearch =
         !q ||
         (r.employeeName || "").toLowerCase().includes(q) ||
         (r.employeeId || "").toLowerCase().includes(q) ||
         (r.departmentName || "").toLowerCase().includes(q);
-      return matchesSearch;
+
+      const matchesStatus =
+        statusFilter === "ALL"
+          ? attendanceEligibleCodes.includes(r.status)
+          : statusFilter === "EVERYTHING"
+          ? true
+          : r.status === statusFilter;
+
+      return matchesSearch && matchesStatus;
     });
-  }, [rows, searchTerm]);
+  }, [rows, searchTerm, statusFilter, attendanceEligibleCodes]);
 
   // Group filtered rows by Category (General Employees vs Roster Duty Employees)
   const { generalEmployees, rosterEmployees } = useMemo(() => {
@@ -594,8 +631,8 @@ export default function AttendanceReportsPage() {
           )}
         </div>
 
-        {/* Department Filter & Search Bar */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* Department Filter, Employee Status Filter & Search Bar - 1 Row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* Department Filter */}
           <div>
             <label className="text-[12px] font-semibold text-slate-700 block mb-1">Filter by Department</label>
@@ -609,6 +646,21 @@ export default function AttendanceReportsPage() {
                   value: d.id,
                   label: d.name,
                 })),
+              ]}
+            />
+          </div>
+
+          {/* Employee Status Filter (Beside Department Filter) */}
+          <div>
+            <label className="text-[12px] font-semibold text-slate-700 block mb-1">Employee Status</label>
+            <Select
+              value={statusFilter}
+              onValueChange={setStatusFilter}
+              triggerClassName="h-9 text-[12px]"
+              options={[
+                { value: "ALL", label: "All Active Personnel (Default)" },
+                { value: "EVERYTHING", label: "All Statuses (Including Inactive)" },
+                ...statusOptions.map((s) => ({ value: s.value, label: s.label })),
               ]}
             />
           </div>

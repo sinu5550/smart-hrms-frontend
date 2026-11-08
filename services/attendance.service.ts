@@ -95,6 +95,7 @@ export const AttendanceService = {
       serialNo: number;
       employeeId: string;
       employeeName: string;
+      status?: string;
       departmentName: string;
       designation: string;
       branchName: string;

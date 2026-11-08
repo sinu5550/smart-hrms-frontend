@@ -10,6 +10,7 @@ import {
   useUpdateEmployeeRosterOffDays,
   useUpdateEmployeeShift,
   useShifts,
+  useEmploymentStatuses,
 } from "@/hooks";
 import {
   useRosterShiftRequests,
@@ -80,6 +81,23 @@ export default function DepartmentsPage() {
   // Department Details & Roster Modal
   const [selectedDeptId, setSelectedDeptId] = useState<string | null>(null);
   const { data: selectedDept, isLoading: isLoadingDeptDetails } = useDepartmentDetails(selectedDeptId);
+
+  const { data: configuredStatuses = [] } = useEmploymentStatuses();
+
+  // Determine which employment statuses have "count_in_attendance = true" (tick-marked in Core HR)
+  const attendanceEligibleCodes = React.useMemo(() => {
+    if (configuredStatuses.length > 0) {
+      const eligible = configuredStatuses.filter((s) => s.countInAttendance).map((s) => s.code);
+      if (eligible.length > 0) return eligible;
+    }
+    return ["ACTIVE", "ON_PROBATION"];
+  }, [configuredStatuses]);
+
+  // Only active personnel employees (counted in attendance) in department
+  const activeDepartmentUsers = React.useMemo(() => {
+    if (!selectedDept?.users) return [];
+    return selectedDept.users.filter((emp) => attendanceEligibleCodes.includes(emp.status));
+  }, [selectedDept?.users, attendanceEligibleCodes]);
 
   const openCreateModal = () => {
     setEditingDept(null);
@@ -521,7 +539,7 @@ export default function DepartmentsPage() {
                       placeholder="-- Select Department Head --"
                       options={[
                         { value: "NONE", label: "-- No Department Head --" },
-                        ...(selectedDept.users || []).map((u) => ({
+                        ...activeDepartmentUsers.map((u) => ({
                           value: u.id,
                           label: `${u.fullName} (${u.employeeId})`,
                         })),
@@ -663,13 +681,13 @@ export default function DepartmentsPage() {
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                     <Users className="w-4 h-4 text-slate-500" />
-                    Department Personnel ({selectedDept.users?.length || 0})
+                    Department Personnel ({activeDepartmentUsers.length})
                   </h3>
                 </div>
 
-                {(!selectedDept.users || selectedDept.users.length === 0) ? (
+                {activeDepartmentUsers.length === 0 ? (
                   <div className="p-8 text-center bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-400">
-                    No employees currently assigned to {selectedDept.name}. Assign employees to this department from the Employee Directory.
+                    No active employees currently assigned to {selectedDept.name}. Assign employees to this department from the Employee Directory.
                   </div>
                 ) : (
                   <div className="border border-slate-200 rounded-lg overflow-hidden shadow-xs">
@@ -688,7 +706,7 @@ export default function DepartmentsPage() {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                          {selectedDept.users.map((emp) => {
+                          {activeDepartmentUsers.map((emp) => {
                             const isHead = selectedDept.headUserId === emp.id;
                             const empOffDays = optimisticOffDays[emp.id] ?? (Array.isArray(emp.rosterOffDays) ? emp.rosterOffDays : []);
                             const currentShiftId = optimisticShifts[emp.id] !== undefined ? optimisticShifts[emp.id] : emp.shift?.id || null;
