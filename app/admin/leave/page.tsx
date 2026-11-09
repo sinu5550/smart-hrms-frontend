@@ -17,6 +17,8 @@ import {
   ShieldCheck,
   Building2,
   Download,
+  Eye,
+  X,
 } from "lucide-react";
 import Image from "next/image";
 import { formatDate } from "@/lib/utils";
@@ -60,6 +62,7 @@ export default function AdminLeaveManagementPage() {
   const [filterStatus, setFilterStatus] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [viewModalItem, setViewModalItem] = useState<LeaveRequestItem | null>(null);
 
   const { data: leaves = [], isLoading, refetch } = useQuery<LeaveRequestItem[]>({
     queryKey: ["admin", "leaves"],
@@ -466,32 +469,58 @@ export default function AdminLeaveManagementPage() {
                     </div>
                   </div>
 
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${
-                      item.status === "APPROVED"
-                        ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-                        : item.status === "REJECTED"
-                        ? "bg-rose-50 text-rose-800 border-rose-200"
-                        : "bg-amber-50 text-amber-800 border-amber-200"
-                    }`}
-                  >
-                    {item.status}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setViewModalItem(item)}
+                      className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition border border-slate-200"
+                      title="View Details"
+                    >
+                      <Eye className="w-3.5 h-3.5 text-slate-600" />
+                    </button>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${
+                        item.status === "APPROVED"
+                          ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                          : item.status === "REJECTED"
+                          ? "bg-rose-50 text-rose-800 border-rose-200"
+                          : "bg-amber-50 text-amber-800 border-amber-200"
+                      }`}
+                    >
+                      {item.status}
+                    </span>
+                  </div>
                 </div>
 
-                <div className="bg-slate-50 p-2.5 rounded-lg text-xs space-y-1">
+                <div
+                  onClick={() => setViewModalItem(item)}
+                  className="bg-slate-50 p-2.5 rounded-lg text-xs space-y-1 cursor-pointer hover:bg-slate-100/80 transition"
+                  title="Click to view full details"
+                >
                   <div className="flex justify-between items-center text-slate-600">
-                    <span>{item.leaveType?.name || "LEAVE"}</span>
+                    <span className="font-semibold text-slate-800">{item.leaveType?.name || "LEAVE"}</span>
                     <span className="font-semibold text-emerald-700">{item.totalDays} Day{item.totalDays > 1 ? "s" : ""}</span>
                   </div>
                   <p className="text-[11px] text-slate-500">
                     {formatDate(item.startDate)} to {formatDate(item.endDate)}
                   </p>
-                  <p className="text-slate-700 text-[11px] pt-1 border-t border-slate-200/50">Reason: {item.reason}</p>
+                  <p className="text-slate-700 text-[11px] pt-1 border-t border-slate-200/50 line-clamp-2">
+                    <span className="font-medium text-slate-500">Reason: </span>
+                    {item.reason}
+                  </p>
                 </div>
 
-                {/* Mobile Actions: Approve, Reject, and Download PDF */}
+                {/* Mobile Actions: Approve, Reject, View & Download PDF */}
                 <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setViewModalItem(item)}
+                    className="py-1.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition flex items-center justify-center gap-1.5"
+                    title="View Full Details"
+                  >
+                    <Eye className="w-3.5 h-3.5 text-slate-600" />
+                    <span>View</span>
+                  </button>
                   {item.status === "PENDING" && (
                     <>
                       <button
@@ -516,7 +545,7 @@ export default function AdminLeaveManagementPage() {
                     title="Download Official Leave Application Form PDF"
                   >
                     <Download className="w-3.5 h-3.5 text-slate-600" />
-                    <span>Download PDF</span>
+                    <span>PDF</span>
                   </button>
                 </div>
               </div>
@@ -580,7 +609,11 @@ export default function AdminLeaveManagementPage() {
                       {item.totalDays} Day{item.totalDays > 1 ? "s" : ""}
                     </td>
 
-                    <td className="py-3 px-4 text-slate-600 max-w-[180px] truncate" title={item.reason}>
+                    <td 
+                      onClick={() => setViewModalItem(item)}
+                      className="py-3 px-4 text-slate-600 max-w-[200px] truncate cursor-pointer hover:text-emerald-700 hover:underline transition" 
+                      title="Click to view full reason"
+                    >
                       {item.reason}
                     </td>
 
@@ -599,9 +632,19 @@ export default function AdminLeaveManagementPage() {
                       </span>
                     </td>
 
-                    {/* Actions: Approve / Reject and Download PDF */}
+                    {/* Actions: View Details, Approve / Reject, and Download PDF */}
                     <td className="py-3 px-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-1.5">
+                        {/* View Full Application Modal Trigger */}
+                        <button
+                          type="button"
+                          onClick={() => setViewModalItem(item)}
+                          className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 rounded-lg text-xs font-semibold transition border border-slate-200 cursor-pointer"
+                          title="View Full Leave Details & Reason"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-slate-600" />
+                        </button>
+
                         {item.status === "PENDING" && (
                           <>
                             <button
@@ -640,6 +683,176 @@ export default function AdminLeaveManagementPage() {
           </table>
         </div>
       </div>
+
+      {/* Leave Application Details Modal */}
+      {viewModalItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-150">
+          <div 
+            className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                  <FileText className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-slate-900">Leave Application Details</h3>
+                  <p className="text-[11px] text-slate-500">
+                    Submitted on {formatDate(viewModalItem.createdAt)}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewModalItem(null)}
+                className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200 flex items-center justify-center transition"
+                title="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-5 overflow-y-auto space-y-4 text-xs">
+              {/* Employee Header Card */}
+              <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-slate-200 border border-slate-300 overflow-hidden flex items-center justify-center text-xs font-bold text-slate-700 shrink-0">
+                    {viewModalItem.user?.avatarUrl ? (
+                      <Image
+                        src={viewModalItem.user.avatarUrl}
+                        alt=""
+                        width={40}
+                        height={40}
+                        unoptimized
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      viewModalItem.user?.fullName?.charAt(0) || "U"
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-sm">{viewModalItem.user?.fullName}</h4>
+                    <p className="text-[11px] text-slate-500 font-mono">
+                      {viewModalItem.user?.employeeId} • {viewModalItem.user?.department?.name || "General"}
+                    </p>
+                    {viewModalItem.user?.designation?.name && (
+                      <p className="text-[10px] text-slate-400">{viewModalItem.user.designation.name}</p>
+                    )}
+                  </div>
+                </div>
+
+                <span
+                  className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase border shrink-0 ${
+                    viewModalItem.status === "APPROVED"
+                      ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                      : viewModalItem.status === "REJECTED"
+                      ? "bg-rose-50 text-rose-800 border-rose-200"
+                      : "bg-amber-50 text-amber-800 border-amber-200"
+                  }`}
+                >
+                  {viewModalItem.status}
+                </span>
+              </div>
+
+              {/* Leave Info Grid */}
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200/60">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">Leave Type</span>
+                  <p className="font-bold text-slate-900 mt-0.5">{viewModalItem.leaveType?.name || "LEAVE"}</p>
+                </div>
+                <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200/60">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">Total Duration</span>
+                  <p className="font-bold text-emerald-700 mt-0.5">
+                    {viewModalItem.totalDays} Day{viewModalItem.totalDays > 1 ? "s" : ""}
+                  </p>
+                </div>
+                <div className="col-span-2 p-2.5 bg-slate-50 rounded-lg border border-slate-200/60">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">Leave Dates</span>
+                  <p className="font-semibold text-slate-800 mt-0.5">
+                    {formatDate(viewModalItem.startDate)} &mdash; {formatDate(viewModalItem.endDate)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Full Reason Statement */}
+              <div className="space-y-1.5">
+                <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wide">
+                  Reason for Leave / Statement
+                </span>
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 leading-relaxed whitespace-pre-wrap max-h-56 overflow-y-auto font-sans text-xs sm:text-[13px]">
+                  {viewModalItem.reason || "No detailed statement provided."}
+                </div>
+              </div>
+
+              {/* Department Head Recommendation (if present) */}
+              {viewModalItem.deptHeadStatus && (
+                <div className="p-2.5 rounded-lg border border-slate-200 bg-slate-50/70 text-slate-600">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="font-semibold text-slate-700">Dept Head Recommendation:</span>
+                    <span className={`font-bold uppercase ${viewModalItem.deptHeadStatus === "APPROVED" ? "text-emerald-700" : "text-rose-700"}`}>
+                      {viewModalItem.deptHeadStatus}
+                    </span>
+                  </div>
+                  {viewModalItem.deptHeadNote && (
+                    <p className="text-[11px] text-slate-500 mt-1 italic">&ldquo;{viewModalItem.deptHeadNote}&rdquo;</p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Actions Footer */}
+            <div className="px-5 py-3.5 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={() => handleDownloadLeavePDF(viewModalItem)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 font-semibold rounded-lg text-xs border border-slate-300 transition shadow-2xs"
+              >
+                <Download className="w-3.5 h-3.5 text-slate-600" />
+                <span>Download Form (PDF)</span>
+              </button>
+
+              <div className="flex items-center gap-2">
+                {viewModalItem.status === "PENDING" && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleUpdateStatus(viewModalItem.id, "REJECTED");
+                        setViewModalItem(null);
+                      }}
+                      disabled={processingId === viewModalItem.id}
+                      className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-xs transition shadow-xs disabled:opacity-50"
+                    >
+                      Reject
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleUpdateStatus(viewModalItem.id, "APPROVED");
+                        setViewModalItem(null);
+                      }}
+                      disabled={processingId === viewModalItem.id}
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs transition shadow-xs disabled:opacity-50"
+                    >
+                      Approve
+                    </button>
+                  </>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setViewModalItem(null)}
+                  className="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg text-xs transition"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
