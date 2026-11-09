@@ -44,7 +44,6 @@ export default function PublicEmployeeRegistrationPage() {
   const [gender, setGender] = useState("MALE");
   const [bloodGroup, setBloodGroup] = useState("");
   const [departmentId, setDepartmentId] = useState("");
-  const [designationId, setDesignationId] = useState("");
   const [presentAddress, setPresentAddress] = useState("");
   const [permanentAddress, setPermanentAddress] = useState("");
   const [emergencyContactName, setEmergencyContactName] = useState("");
@@ -149,7 +148,6 @@ export default function PublicEmployeeRegistrationPage() {
         gender,
         bloodGroup,
         departmentId,
-        designationId: designationId || undefined,
         presentAddress: presentAddress.trim(),
         permanentAddress: permanentAddress.trim() || undefined,
         emergencyContactName: emergencyContactName.trim(),
@@ -224,11 +222,6 @@ export default function PublicEmployeeRegistrationPage() {
   }
 
   const deptOptions = (org.departments || []).map((d) => ({
-    value: d.id,
-    label: d.name,
-  }));
-
-  const desigOptions = (org.designations || []).map((d) => ({
     value: d.id,
     label: d.name,
   }));
@@ -421,39 +414,22 @@ export default function PublicEmployeeRegistrationPage() {
             </div>
           </div>
 
-          {/* Department Preference */}
+          {/* Department Selection */}
           <div className="space-y-4 pt-2 border-t border-slate-100">
             <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
               <Building2 className="w-3.5 h-3.5 text-slate-400" />
-              <span>Department & Designation</span>
+              <span>Department</span>
             </h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700">Department *</label>
-                <Select
-                  value={departmentId}
-                  onValueChange={setDepartmentId}
-                  placeholder="Select Department *"
-                  triggerClassName="h-9 text-xs"
-                  options={deptOptions}
-                />
-              </div>
-
-              {desigOptions.length > 0 && (
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-700">
-                    Designation / Role <span className="text-[11px] font-normal text-slate-400">(Optional)</span>
-                  </label>
-                  <Select
-                    value={designationId}
-                    onValueChange={setDesignationId}
-                    placeholder="Select Designation"
-                    triggerClassName="h-9 text-xs"
-                    options={desigOptions}
-                  />
-                </div>
-              )}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700">Department *</label>
+              <Select
+                value={departmentId}
+                onValueChange={setDepartmentId}
+                placeholder="Select Department *"
+                triggerClassName="h-9 text-xs"
+                options={deptOptions}
+              />
             </div>
           </div>
 
