@@ -655,26 +655,29 @@ function IndividualReportContent() {
 
             {/* Floating Searchable Menu (Light Theme with fixed height and scroll) */}
             {dropdownOpen && (
-              <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-                {/* Search input pinned at top */}
-                <div className="p-2 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
-                  <Search className="w-4 h-4 text-slate-400 shrink-0" />
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    value={dropdownSearch}
-                    onChange={(e) => setDropdownSearch(e.target.value)}
-                    placeholder="Search by name, ID or department..."
-                    className="w-full bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-hidden"
-                  />
-                  {dropdownSearch && (
-                    <button
-                      onClick={() => setDropdownSearch("")}
-                      className="text-[11px] text-slate-400 hover:text-slate-700 px-1.5 py-0.5 rounded bg-slate-200"
-                    >
-                      Clear
-                    </button>
-                  )}
+              <div className="absolute left-0 w-80 sm:w-96 top-full mt-1.5 z-50 bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                {/* Search input pinned at top with clean rounded input */}
+                <div className="p-2.5 bg-slate-50/80 border-b border-slate-200">
+                  <div className="relative flex items-center">
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 pointer-events-none" />
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      value={dropdownSearch}
+                      onChange={(e) => setDropdownSearch(e.target.value)}
+                      placeholder="Search name, ID or department..."
+                      className="w-full pl-9 pr-7 py-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 placeholder:text-slate-400 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition shadow-2xs"
+                    />
+                    {dropdownSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setDropdownSearch("")}
+                        className="absolute right-2 text-slate-400 hover:text-slate-600 px-1 text-xs font-bold rounded"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Fixed-height scrollable list */}
@@ -696,19 +699,19 @@ function IndividualReportContent() {
                           }}
                           className={`px-3 py-2.5 flex items-center justify-between cursor-pointer transition-colors ${
                             isSelected
-                              ? "bg-emerald-50 text-emerald-900 font-semibold"
+                              ? "bg-emerald-50/80 text-emerald-950 font-semibold border-l-4 border-emerald-600"
                               : "hover:bg-slate-50 text-slate-700"
                           }`}
                         >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="w-6 h-6 rounded-full bg-slate-100 border border-slate-200 text-slate-700 flex items-center justify-center font-bold text-[10px] shrink-0">
+                          <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                            <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 text-slate-700 flex items-center justify-center font-bold text-[10px] shrink-0">
                               {emp.fullName?.slice(0, 2).toUpperCase() || "EM"}
                             </div>
-                            <div className="min-w-0">
-                              <p className="text-xs text-slate-900 truncate">
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs font-semibold text-slate-900 truncate">
                                 {emp.fullName}
                               </p>
-                              <div className="flex items-center gap-2 text-[10px] text-slate-500 font-mono">
+                              <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-mono truncate">
                                 <span>{emp.employeeId}</span>
                                 <span>•</span>
                                 <span className="text-slate-600 font-sans truncate">
