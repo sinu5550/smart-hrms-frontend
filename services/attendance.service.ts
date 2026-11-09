@@ -182,6 +182,15 @@ export interface IndividualAttendanceReportResponse {
     checkIn: string;
     checkOut: string;
     status: "Present" | "Late" | "Absent" | "Leave" | "Off-Day" | "Holiday" | "Upcoming";
+    currentState?: "NOT_CHECKED_IN" | "CHECKED_IN" | "ON_BREAK" | "CHECKED_OUT";
+    totalBreakMinutes?: number;
+    breaks?: Array<{
+      id: string;
+      breakType: string;
+      startTime: string;
+      endTime?: string | null;
+      durationMinutes?: number;
+    }>;
     workMinutes: number;
     workHoursFormatted: string;
     overtimeMinutes: number;
