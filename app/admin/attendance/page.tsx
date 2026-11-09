@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { parseApiError } from "@/services/api";
 import { useAttendanceByDate, QUERY_KEYS } from "@/hooks";
 import { useQueryClient } from "@tanstack/react-query";
@@ -18,6 +19,7 @@ import {
   User,
   Radio,
   Printer,
+  UserCheck,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -198,6 +200,15 @@ export default function AdminAttendancePage() {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap print:hidden">
+          <Link
+            href="/admin/attendance/individual"
+            className="flex items-center gap-2 px-3 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-lg text-xs font-semibold shadow-xs transition"
+            title="Open Individual Attendance Report"
+          >
+            <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Individual Report</span>
+          </Link>
+
           <PremiumDateRangePicker
             value={dateRange}
             onChange={(val) => setDateRange(val)}
@@ -447,7 +458,22 @@ export default function AdminAttendancePage() {
                   {filteredRecords.map((item) => (
                     <tr key={item.id} className="hover:bg-slate-50 transition border-b border-slate-200">
                       <td className="py-3.5 px-4">
-                        <div className="font-semibold text-slate-900">{item.user.fullName}</div>
+                        <div className="flex items-center gap-1.5">
+                          <Link
+                            href={`/admin/attendance/individual?userId=${item.user.id}`}
+                            className="font-semibold text-slate-900 hover:text-emerald-700 transition"
+                            title="Open Individual Report"
+                          >
+                            {item.user.fullName}
+                          </Link>
+                          <Link
+                            href={`/admin/attendance/individual?userId=${item.user.id}`}
+                            className="text-slate-400 hover:text-emerald-600 transition p-0.5 rounded hover:bg-emerald-50 print:hidden"
+                            title="View Individual Attendance Report"
+                          >
+                            <UserCheck className="w-3.5 h-3.5" />
+                          </Link>
+                        </div>
                         <div className="text-[11px] text-slate-500 font-mono">
                           {item.user.employeeId}
                         </div>

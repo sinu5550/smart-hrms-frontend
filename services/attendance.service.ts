@@ -128,4 +128,63 @@ export const AttendanceService = {
     const { data } = await apiClient.get<any>(`/attendance/admin/summary-report?${params.toString()}`);
     return data;
   },
+
+  getIndividualReport: async (query: { userId: string; month?: string; startDate?: string; endDate?: string }): Promise<IndividualAttendanceReportResponse> => {
+    const params = new URLSearchParams();
+    params.append("userId", query.userId);
+    if (query.month) params.append("month", query.month);
+    if (query.startDate) params.append("startDate", query.startDate);
+    if (query.endDate) params.append("endDate", query.endDate);
+    const { data } = await apiClient.get<IndividualAttendanceReportResponse>(`/attendance/admin/individual-report?${params.toString()}`);
+    return data;
+  },
 };
+
+export interface IndividualAttendanceReportResponse {
+  success: boolean;
+  employee: {
+    id: string;
+    fullName: string;
+    employeeId: string;
+    email: string;
+    avatarUrl: string | null;
+    department: string;
+    designation: string;
+    branch: string;
+    shift: {
+      name: string;
+      startTime: string;
+      endTime: string;
+    } | null;
+    offDays: string[];
+  };
+  period: {
+    startDate: string;
+    endDate: string;
+    month: string;
+    monthLabel: string;
+  };
+  stats: {
+    presentDays: number;
+    absentDays: number;
+    lateDays: number;
+    leaveDays: number;
+    offDays: number;
+    holidays: number;
+    totalWorkHours: string;
+    totalWorkMinutes: number;
+    totalOvertimeMinutes: number;
+  };
+  dailyHistory: Array<{
+    date: string;
+    dateFormatted: string;
+    dayName: string;
+    checkIn: string;
+    checkOut: string;
+    status: "Present" | "Late" | "Absent" | "Leave" | "Off-Day" | "Holiday" | "Upcoming";
+    workMinutes: number;
+    workHoursFormatted: string;
+    overtimeMinutes: number;
+    holidayName: string | null;
+  }>;
+}

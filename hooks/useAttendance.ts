@@ -23,6 +23,14 @@ export function useAttendanceSummaryReport(query: { startDate: string; endDate: 
   });
 }
 
+export function useIndividualAttendanceReport(query: { userId?: string; month?: string; startDate?: string; endDate?: string }) {
+  return useQuery({
+    queryKey: ["attendance", "individual-report", query],
+    queryFn: () => AttendanceService.getIndividualReport({ userId: query.userId!, month: query.month, startDate: query.startDate, endDate: query.endDate }),
+    enabled: Boolean(query.userId),
+  });
+}
+
 import { useAuth } from "@/components/auth/AuthProvider";
 
 export function useMyTodayAttendance() {

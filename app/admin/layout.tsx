@@ -31,6 +31,7 @@ import {
   CalendarDays,
   FileSignature,
   Download,
+  UserCheck,
 } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -147,6 +148,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const attendanceSubItems = isDeptHeadOnly ? [] : [
     { label: "Attendance Monitor", href: "/admin/attendance", icon: CalendarCheck, perm: "attendance.view" },
     { label: "Attendance Reports", href: "/admin/attendance/reports", icon: FileText, perm: "attendance.view" },
+    { label: "Individual Report", href: "/admin/attendance/individual", icon: UserCheck, perm: "attendance.view" },
   ];
 
   const allSettingsNavItems = [
