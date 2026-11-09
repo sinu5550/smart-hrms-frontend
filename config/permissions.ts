@@ -90,6 +90,12 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
     description: "Can create, rename, and delete company departments.",
   },
   {
+    id: "designations.manage",
+    name: "Manage Designations & Job Titles",
+    category: "Organization & Settings",
+    description: "Can create, edit, and delete company designations and professional job titles.",
+  },
+  {
     id: "shift.settings",
     name: "Manage Shift Schedules & Grace Period",
     category: "Organization & Settings",

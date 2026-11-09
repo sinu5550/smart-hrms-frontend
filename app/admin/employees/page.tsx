@@ -416,9 +416,16 @@ export default function EmployeesDirectoryPage() {
                       <div className="min-w-0">
                         <p className="font-bold text-xs text-slate-900 truncate">{emp.fullName}</p>
                         <p className="text-[11px] text-slate-500 truncate">{emp.phone || emp.email}</p>
-                        <span className="inline-block mt-0.5 font-mono text-[10px] px-1.5 py-0.2 rounded bg-slate-100 border border-slate-200 text-slate-700 font-medium">
-                          {emp.employeeId}
-                        </span>
+                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                          <span className="font-mono text-[10px] px-1.5 py-0.2 rounded bg-slate-100 border border-slate-200 text-slate-700 font-medium">
+                            {emp.employeeId}
+                          </span>
+                          {emp.designation?.name && (
+                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 font-semibold truncate">
+                              {emp.designation.name}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
@@ -496,6 +503,7 @@ export default function EmployeesDirectoryPage() {
                 </th>
                 <th className="py-3 px-4 bg-slate-100 border-b border-slate-200">Employee</th>
                 <th className="py-3 px-4 bg-slate-100 border-b border-slate-200">Employee ID</th>
+                <th className="py-3 px-4 bg-slate-100 border-b border-slate-200">Designation</th>
                 <th className="py-3 px-4 text-center bg-slate-100 border-b border-slate-200">Biometrics</th>
                 <th className="py-3 px-4 bg-slate-100 border-b border-slate-200">Department / Shift</th>
                 <th className="py-3 px-4 bg-slate-100 border-b border-slate-200">Blood</th>
@@ -519,6 +527,7 @@ export default function EmployeesDirectoryPage() {
                         </div>
                       </td>
                       <td className="py-3 px-4"><div className="h-5 w-24 bg-slate-200/70 rounded animate-pulse" /></td>
+                      <td className="py-3 px-4"><div className="h-5 w-24 bg-slate-200/70 rounded animate-pulse" /></td>
                       <td className="py-3 px-4 text-center"><div className="h-5 w-14 mx-auto bg-slate-200/70 rounded animate-pulse" /></td>
                       <td className="py-3 px-4"><div className="h-4 w-32 bg-slate-200/70 rounded animate-pulse" /></td>
                       <td className="py-3 px-4"><div className="h-4 w-10 bg-slate-200/70 rounded animate-pulse" /></td>
@@ -529,7 +538,7 @@ export default function EmployeesDirectoryPage() {
                 </>
               ) : filteredEmployees.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-8 text-center text-slate-500">
+                  <td colSpan={9} className="py-8 text-center text-slate-500">
                     No matching personnel found.
                   </td>
                 </tr>
@@ -573,6 +582,15 @@ export default function EmployeesDirectoryPage() {
                         <span className="font-mono px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-800 font-medium">
                           {emp.employeeId}
                         </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        {emp.designation?.name ? (
+                          <span className="inline-block px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                            {emp.designation.name}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 text-xs italic">—</span>
+                        )}
                       </td>
                       <td className="py-3 px-4 text-center">
                         {(() => {

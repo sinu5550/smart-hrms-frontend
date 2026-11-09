@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Employee, EmploymentStatus } from "@/services/employee.service";
 import { CloudinaryService } from "@/services/cloudinary.service";
-import { useUpdateEmployee, useDepartments, useShifts, useRoles } from "@/hooks";
+import { useUpdateEmployee, useDepartments, useShifts, useRoles, useDesignations } from "@/hooks";
 import { parseApiError } from "@/services/api";
 import { X, Upload, Check, AlertCircle, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,7 @@ const editEmployeeSchema = z.object({
   phone: z.string().min(10, "Phone number must be at least 10-11 digits"),
   newPassword: z.string().optional(),
   departmentId: z.string().optional(),
+  designationId: z.string().optional(),
   shiftId: z.string().optional(),
   customRoleId: z.string().optional(),
   bloodGroup: z.string().optional(),
@@ -49,11 +50,13 @@ interface Props {
 
 export const EmployeeEditModal: React.FC<Props> = ({ employee, isOpen, onClose, onSuccess }) => {
   const { data: departments = [] } = useDepartments();
+  const { data: designations = [] } = useDesignations();
   const { data: shifts = [] } = useShifts();
   const { data: roles = [] } = useRoles();
   const updateEmployeeMutation = useUpdateEmployee();
 
   const [departmentIdValue, setDepartmentIdValue] = useState<string>("");
+  const [designationIdValue, setDesignationIdValue] = useState<string>("");
   const [shiftIdValue, setShiftIdValue] = useState<string>("");
   const [customRoleIdValue, setCustomRoleIdValue] = useState<string>("");
   const [bloodGroupValue, setBloodGroupValue] = useState("");
@@ -83,6 +86,7 @@ export const EmployeeEditModal: React.FC<Props> = ({ employee, isOpen, onClose, 
         email: employee.email || "",
         phone: employee.phone || "",
         departmentId: employee.departmentId || "",
+        designationId: employee.designationId || "",
         shiftId: employee.shiftId || "",
         customRoleId: employee.customRoleId || "",
         bloodGroup: employee.bloodGroup || "",
@@ -96,6 +100,7 @@ export const EmployeeEditModal: React.FC<Props> = ({ employee, isOpen, onClose, 
         emergencyContactRelation: (employee as any).emergencyContactRelation || "",
       });
       setDepartmentIdValue(employee.departmentId || "");
+      setDesignationIdValue(employee.designationId || "");
       setShiftIdValue(employee.shiftId || "");
       setCustomRoleIdValue(employee.customRoleId || "");
       setBloodGroupValue(employee.bloodGroup || "");
@@ -154,7 +159,8 @@ export const EmployeeEditModal: React.FC<Props> = ({ employee, isOpen, onClose, 
       const payload: any = {
         ...data,
         password: data.newPassword?.trim() ? data.newPassword.trim() : undefined,
-        departmentId: departmentIdValue || undefined,
+        departmentId: departmentIdValue || null,
+        designationId: designationIdValue || null,
         shiftId: shiftIdValue || undefined,
         customRoleId: customRoleIdValue || undefined,
         bloodGroup: bloodGroupValue || undefined,
@@ -333,6 +339,7 @@ export const EmployeeEditModal: React.FC<Props> = ({ employee, isOpen, onClose, 
                 </div>
               )}
 
+              {/* Department & Designation Side-by-Side */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-[11px] font-semibold text-slate-800">Department</label>
@@ -351,24 +358,42 @@ export const EmployeeEditModal: React.FC<Props> = ({ employee, isOpen, onClose, 
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold text-slate-800">Office Shift</label>
+                  <label className="text-[11px] font-semibold text-slate-800">Designation</label>
                   <Select
-                    value={shiftIdValue || undefined}
+                    value={designationIdValue || undefined}
                     onValueChange={(value) => {
-                      setShiftIdValue(value);
-                      setValue("shiftId", value);
+                      setDesignationIdValue(value);
+                      setValue("designationId", value);
                     }}
                     triggerClassName="mt-1 h-10 rounded-lg"
-                    placeholder="Select Shift"
+                    placeholder="Select Designation"
                     options={[
-                      { value: "", label: "Default Office Shift" },
-                      ...shifts.map((s) => ({
-                        value: s.id,
-                        label: `${s.shiftName} (${s.startTime} - ${s.endTime})${s.isDefault ? " [Default]" : ""}`,
-                      })),
+                      { value: "", label: "No Designation" },
+                      ...designations.map((d) => ({ value: d.id, label: `${d.name} (${d.code})` })),
                     ]}
                   />
                 </div>
+              </div>
+
+              {/* Office Shift Schedule */}
+              <div>
+                <label className="text-[11px] font-semibold text-slate-800">Office Shift</label>
+                <Select
+                  value={shiftIdValue || undefined}
+                  onValueChange={(value) => {
+                    setShiftIdValue(value);
+                    setValue("shiftId", value);
+                  }}
+                  triggerClassName="mt-1 h-10 rounded-lg"
+                  placeholder="Select Shift"
+                  options={[
+                    { value: "", label: "Default Office Shift" },
+                    ...shifts.map((s) => ({
+                      value: s.id,
+                      label: `${s.shiftName} (${s.startTime} - ${s.endTime})${s.isDefault ? " [Default]" : ""}`,
+                    })),
+                  ]}
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-3">

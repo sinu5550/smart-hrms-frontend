@@ -8,7 +8,7 @@ import * as z from "zod";
 import { EmployeeService } from "@/services/employee.service";
 import { CloudinaryService } from "@/services/cloudinary.service";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { useCreateEmployee, useUpdateEmployee, useOrganization, useNextEmployeeId, useDepartments, useShifts, useRoles, useRegistrations } from "@/hooks";
+import { useCreateEmployee, useUpdateEmployee, useOrganization, useNextEmployeeId, useDepartments, useShifts, useRoles, useRegistrations, useDesignations } from "@/hooks";
 import { RegistrationService, EmployeeRegistration } from "@/services/registration.service";
 import { CustomRole } from "@/services/role.service";
 import { parseApiError } from "@/services/api";
@@ -45,6 +45,7 @@ const createEmployeeSchema = (expectedPrefix: string) => {
       message: "Password must be at least 6 characters if specified",
     }),
     departmentId: z.string().optional(),
+    designationId: z.string().optional(),
     shiftId: z.string().optional(),
     customRoleId: z.string().optional(),
     bloodGroup: z.string().optional(),
@@ -73,6 +74,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
   const employeePrefix = orgData?.employeePrefix || user?.organization?.employeePrefix || "EKH";
   const { data: nextIdData, isLoading: isLoadingNextId } = useNextEmployeeId();
   const { data: departments = [] } = useDepartments();
+  const { data: designations = [] } = useDesignations();
   const { data: shifts = [] } = useShifts();
   const { data: roles = [] } = useRoles();
   const createEmployeeMutation = useCreateEmployee();
@@ -82,6 +84,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
   const [roleValue, setRoleValue] = useState<EmployeeFormData["role"]>("EMPLOYEE");
   const [customRoleIdValue, setCustomRoleIdValue] = useState<string>("");
   const [departmentIdValue, setDepartmentIdValue] = useState<string>("");
+  const [designationIdValue, setDesignationIdValue] = useState<string>("");
   const [shiftIdValue, setShiftIdValue] = useState<string>("");
   const [bloodGroupValue, setBloodGroupValue] = useState("");
   const [phoneValue, setPhoneValue] = useState("");
@@ -208,6 +211,10 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
       setDepartmentIdValue(applicant.departmentId);
       setValue("departmentId", applicant.departmentId);
     }
+    if ((applicant as any).designationId) {
+      setDesignationIdValue((applicant as any).designationId);
+      setValue("designationId", (applicant as any).designationId);
+    }
     if (applicant.avatarUrl) {
       setAvatarPreview(applicant.avatarUrl);
       setExistingAvatarUrl(applicant.avatarUrl);
@@ -281,6 +288,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
         role: roleValue,
         customRoleId: customRoleIdValue || undefined,
         departmentId: departmentIdValue || undefined,
+        designationId: designationIdValue || undefined,
         shiftId: shiftIdValue || undefined,
       };
 
@@ -339,6 +347,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
       setRoleValue("EMPLOYEE");
       setCustomRoleIdValue("");
       setDepartmentIdValue("");
+      setDesignationIdValue("");
       setShiftIdValue("");
       setBloodGroupValue("");
       setPhoneValue("");
@@ -660,6 +669,7 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
                 )}
               </div>
 
+              {/* Department & Designation Side-by-Side */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-[11px] font-semibold text-slate-800">Department</label>
@@ -678,24 +688,42 @@ export const EmployeeFormDrawer: React.FC<Props> = ({ isOpen, onClose, onSuccess
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold text-slate-800">Office Shift</label>
+                  <label className="text-[11px] font-semibold text-slate-800">Designation</label>
                   <Select
-                    value={shiftIdValue || undefined}
+                    value={designationIdValue || undefined}
                     onValueChange={(value) => {
-                      setShiftIdValue(value);
-                      setValue("shiftId", value);
+                      setDesignationIdValue(value);
+                      setValue("designationId", value);
                     }}
                     triggerClassName="mt-1 h-10 rounded-lg"
-                    placeholder="Select Shift"
+                    placeholder="Select Designation"
                     options={[
-                      { value: "", label: "Default Office Shift" },
-                      ...shifts.map((s) => ({
-                        value: s.id,
-                        label: `${s.shiftName} (${s.startTime} - ${s.endTime})${s.isDefault ? " [Default]" : ""}`,
-                      })),
+                      { value: "", label: "No Designation" },
+                      ...designations.map((d) => ({ value: d.id, label: `${d.name} (${d.code})` })),
                     ]}
                   />
                 </div>
+              </div>
+
+              {/* Office Shift Schedule */}
+              <div>
+                <label className="text-[11px] font-semibold text-slate-800">Office Shift</label>
+                <Select
+                  value={shiftIdValue || undefined}
+                  onValueChange={(value) => {
+                    setShiftIdValue(value);
+                    setValue("shiftId", value);
+                  }}
+                  triggerClassName="mt-1 h-10 rounded-lg"
+                  placeholder="Select Shift"
+                  options={[
+                    { value: "", label: "Default Office Shift" },
+                    ...shifts.map((s) => ({
+                      value: s.id,
+                      label: `${s.shiftName} (${s.startTime} - ${s.endTime})${s.isDefault ? " [Default]" : ""}`,
+                    })),
+                  ]}
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-3">

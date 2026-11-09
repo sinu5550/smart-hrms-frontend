@@ -9,3 +9,4 @@ export * from "./useRoles";
 export * from "./useDevices";
 export * from "./useCoreHr";
 export * from "./useRegistrations";
+export * from "./useDesignations";

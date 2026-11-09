@@ -32,6 +32,7 @@ import {
   FileSignature,
   Download,
   UserCheck,
+  Award,
 } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -139,6 +140,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { label: "Registration Forms", href: "/admin/employee-registration", icon: FileSignature, perm: "employees.registration" },
     { label: "Company Loans", href: "/admin/loans", icon: HandCoins },
     { label: "Departments / Shift Requests", href: "/admin/departments", icon: Building2, perm: "departments.manage" },
+    { label: "Designations", href: "/admin/designations", icon: Award, perm: "designations.manage" },
     { label: "Shift Schedules", href: "/admin/shifts", icon: Sliders, perm: "shift.settings" },
     { label: "Biometric & Hardware", href: "/admin/devices", icon: Cpu, perm: "devices.view" },
     { label: "Lifecycle & ATS", href: "/admin/lifecycle", icon: Briefcase, perm: "employees.view" },

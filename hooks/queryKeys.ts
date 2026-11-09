@@ -17,6 +17,10 @@ export const QUERY_KEYS = {
     all: ["departments"] as const,
     list: () => ["departments", "list"] as const,
   },
+  designations: {
+    all: ["designations"] as const,
+    list: () => ["designations", "list"] as const,
+  },
   shifts: {
     all: ["shifts"] as const,
     list: () => ["shifts", "list"] as const,
