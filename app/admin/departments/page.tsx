@@ -1033,67 +1033,45 @@ export default function DepartmentsPage() {
                               <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">
                                 Assigned Shift
                               </span>
-                              {isDeptRosterEnabled ? (
-                                <Select
-                                  value={currentShiftId || "DEFAULT"}
-                                  options={shiftOptions}
-                                  onValueChange={(val) => handleAssignEmployeeShift(emp.id, emp.shift?.id || null, val)}
-                                  triggerClassName="h-8 text-xs rounded-lg bg-slate-50 border-slate-200 w-full"
-                                  placeholder="Select shift"
-                                />
-                              ) : emp.shift ? (
-                                <p className="text-xs font-semibold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
-                                  {emp.shift.shiftName}{" "}
-                                  <span className="text-[10px] text-slate-400 font-mono">
-                                    ({emp.shift.startTime} - {emp.shift.endTime})
-                                  </span>
-                                </p>
-                              ) : (
-                                <p className="text-xs text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
-                                  Default Organization Shift
-                                </p>
-                              )}
+                              <Select
+                                value={currentShiftId || "DEFAULT"}
+                                options={shiftOptions}
+                                onValueChange={(val) => handleAssignEmployeeShift(emp.id, emp.shift?.id || null, val)}
+                                triggerClassName="h-8 text-xs rounded-lg bg-slate-50 border-slate-200 w-full"
+                                placeholder="Select shift"
+                              />
                             </div>
 
-                            {/* Weekly Roster Off-Days 7-Day Tap Buttons */}
-                            {isDeptRosterEnabled ? (
-                              <div className="space-y-1 pt-1 border-t border-slate-100">
-                                <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                                  <span>Weekly Off-Days</span>
-                                  <span className="text-purple-700 font-mono lowercase">
-                                    {empOffDays.length} off-day{empOffDays.length === 1 ? "" : "s"}
-                                  </span>
-                                </div>
-                                <div className="grid grid-cols-7 gap-1">
-                                  {WEEK_DAYS.map((day) => {
-                                    const isSelected = empOffDays.includes(day);
-                                    const shortDay = day.slice(0, 3);
-                                    return (
-                                      <button
-                                        key={day}
-                                        type="button"
-                                        onClick={() => handleToggleOffDay(emp.id, empOffDays, day)}
-                                        className={`py-1.5 rounded-lg text-[10px] font-bold text-center transition cursor-pointer border active:scale-95 ${
-                                          isSelected
-                                            ? "bg-purple-600 text-white border-purple-600 shadow-xs"
-                                            : "bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200"
-                                        }`}
-                                        title={`Toggle ${day} off-duty for ${emp.fullName}`}
-                                      >
-                                        {shortDay}
-                                      </button>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="pt-1 border-t border-slate-100 flex items-center justify-between text-xs">
-                                <span className="text-[10px] text-slate-400 uppercase font-bold">Role</span>
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-slate-100 text-slate-700">
-                                  {emp.role}
+                            {/* Weekly Off-Days 7-Day Tap Buttons */}
+                            <div className="space-y-1 pt-1 border-t border-slate-100">
+                              <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                                <span>Weekly Off-Days</span>
+                                <span className="text-purple-700 font-mono lowercase">
+                                  {empOffDays.length} off-day{empOffDays.length === 1 ? "" : "s"}
                                 </span>
                               </div>
-                            )}
+                              <div className="grid grid-cols-7 gap-1">
+                                {WEEK_DAYS.map((day) => {
+                                  const isSelected = empOffDays.includes(day);
+                                  const shortDay = day.slice(0, 3);
+                                  return (
+                                    <button
+                                      key={day}
+                                      type="button"
+                                      onClick={() => handleToggleOffDay(emp.id, empOffDays, day)}
+                                      className={`py-1.5 rounded-lg text-[10px] font-bold text-center transition cursor-pointer border active:scale-95 ${
+                                        isSelected
+                                          ? "bg-purple-600 text-white border-purple-600 shadow-xs"
+                                          : "bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200"
+                                      }`}
+                                      title={`Toggle ${day} off-duty for ${emp.fullName}`}
+                                    >
+                                      {shortDay}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
                           </div>
                         );
                       })}
@@ -1108,11 +1086,7 @@ export default function DepartmentsPage() {
                               <th className="py-3 px-4">Employee</th>
                               <th className="py-3 px-4">Designation</th>
                               <th className="py-3 px-4">Shift</th>
-                              {isDeptRosterEnabled ? (
-                                <th className="py-3 px-4">Weekly Roster Off-Days</th>
-                              ) : (
-                                <th className="py-3 px-4">Role / Status</th>
-                              )}
+                              <th className="py-3 px-4">Weekly Off-Days</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100">
@@ -1166,54 +1140,37 @@ export default function DepartmentsPage() {
                                   </td>
 
                                   <td className="py-3 px-4 min-w-[200px]">
-                                    {isDeptRosterEnabled ? (
-                                      <Select
-                                        value={currentShiftId || "DEFAULT"}
-                                        options={shiftOptions}
-                                        onValueChange={(val) => handleAssignEmployeeShift(emp.id, emp.shift?.id || null, val)}
-                                        className="w-full text-xs"
-                                        placeholder="Select shift"
-                                      />
-                                    ) : emp.shift ? (
-                                      <span className="text-slate-700">
-                                        {emp.shift.shiftName}{" "}
-                                        <span className="text-[10px] text-slate-400">({emp.shift.startTime} - {emp.shift.endTime})</span>
-                                      </span>
-                                    ) : (
-                                      <span className="text-slate-400">Default Shift</span>
-                                    )}
+                                    <Select
+                                      value={currentShiftId || "DEFAULT"}
+                                      options={shiftOptions}
+                                      onValueChange={(val) => handleAssignEmployeeShift(emp.id, emp.shift?.id || null, val)}
+                                      className="w-full text-xs"
+                                      placeholder="Select shift"
+                                    />
                                   </td>
 
-                                  {isDeptRosterEnabled ? (
-                                    <td className="py-3 px-4">
-                                      <div className="flex items-center gap-1 flex-wrap">
-                                        {WEEK_DAYS.map((day) => {
-                                          const isSelected = empOffDays.includes(day);
-                                          const shortDay = day.slice(0, 3);
-                                          return (
-                                            <button
-                                              key={day}
-                                              onClick={() => handleToggleOffDay(emp.id, empOffDays, day)}
-                                              className={`px-2 py-0.5 rounded text-[10px] font-bold transition cursor-pointer border ${
-                                                isSelected
-                                                  ? "bg-purple-600 text-white border-purple-600 shadow-xs scale-105"
-                                                  : "bg-white text-slate-500 hover:bg-slate-100 border-slate-200"
-                                              }`}
-                                              title={`Toggle ${day} off-duty for ${emp.fullName}`}
-                                            >
-                                              {shortDay}
-                                            </button>
-                                          );
-                                        })}
-                                      </div>
-                                    </td>
-                                  ) : (
-                                    <td className="py-3 px-4">
-                                      <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-slate-100 text-slate-700">
-                                        {emp.role}
-                                      </span>
-                                    </td>
-                                  )}
+                                  <td className="py-3 px-4">
+                                    <div className="flex items-center gap-1 flex-wrap">
+                                      {WEEK_DAYS.map((day) => {
+                                        const isSelected = empOffDays.includes(day);
+                                        const shortDay = day.slice(0, 3);
+                                        return (
+                                          <button
+                                            key={day}
+                                            onClick={() => handleToggleOffDay(emp.id, empOffDays, day)}
+                                            className={`px-2 py-0.5 rounded text-[10px] font-bold transition cursor-pointer border ${
+                                              isSelected
+                                                ? "bg-purple-600 text-white border-purple-600 shadow-xs scale-105"
+                                                : "bg-white text-slate-500 hover:bg-slate-100 border-slate-200"
+                                            }`}
+                                            title={`Toggle ${day} off-duty for ${emp.fullName}`}
+                                          >
+                                            {shortDay}
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  </td>
                                 </tr>
                               );
                             })}
