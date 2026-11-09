@@ -47,8 +47,8 @@ interface AttendanceRecord {
     employeeId: string;
     fullName: string;
     email: string;
-    department?: { name: string } | null;
-    designation?: { title: string } | null;
+    department?: { id?: string; name: string } | null;
+    designation?: { id?: string; name?: string; title?: string } | null;
   };
   breaks?: Array<{
     id: string;
@@ -484,9 +484,9 @@ export default function AdminAttendancePage() {
                         </td>
                       )}
                       <td className="py-3.5 px-4 text-slate-800">
-                        <div>{item.user.department?.name || "General"}</div>
-                        <div className="text-[11px] text-slate-500">
-                          {item.user.designation?.title || "Staff"}
+                        <div className="font-medium">{item.user.department?.name || "General"}</div>
+                        <div className="text-[11px] text-slate-500 font-medium">
+                          {item.user.designation?.name || item.user.designation?.title || "Staff"}
                         </div>
                       </td>
                       <td className="py-3.5 px-4 text-slate-800 font-mono">

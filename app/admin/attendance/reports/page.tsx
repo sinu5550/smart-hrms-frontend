@@ -179,6 +179,7 @@ export default function AttendanceReportsPage() {
         { header: "Employee Code", key: "code", width: 16 },
         { header: "Employee Name", key: "name", width: 26 },
         { header: "Department", key: "dept", width: 22 },
+        { header: "Designation", key: "designation", width: 22 },
         { header: "Branch", key: "branch", width: 16 },
         { header: "Duty Mode", key: "dutyMode", width: 16 },
         { header: "Office Day", key: "officeDays", width: 14 },
@@ -229,6 +230,7 @@ export default function AttendanceReportsPage() {
           code: r.employeeId,
           name: r.employeeName,
           dept: r.departmentName,
+          designation: r.designation || "Staff",
           branch: r.branchName,
           dutyMode: r.isRoster ? "Roster Duty" : "Regular Shift",
           officeDays: r.officeDays,
@@ -328,6 +330,7 @@ export default function AttendanceReportsPage() {
       "Employee Code",
       "Employee Name",
       "Department",
+      "Designation",
       "Branch",
       "Duty Mode",
       "Office Day",
@@ -355,6 +358,7 @@ export default function AttendanceReportsPage() {
         escape(r.employeeId),
         escape(r.employeeName),
         escape(r.departmentName),
+        escape(r.designation || "Staff"),
         escape(r.branchName),
         escape(r.isRoster ? "Roster Duty" : "Regular Shift"),
         escape(r.officeDays),
@@ -393,6 +397,7 @@ export default function AttendanceReportsPage() {
           <td style="padding: 6px; font-weight: bold;">${r.employeeId}</td>
           <td style="padding: 6px;">${r.employeeName}</td>
           <td style="padding: 6px;">${r.departmentName}</td>
+          <td style="padding: 6px;">${r.designation || "Staff"}</td>
           <td style="padding: 6px; text-align: center;">${r.officeDays}</td>
           <td style="padding: 6px; text-align: center; color: red;">${r.absent}</td>
           <td style="padding: 6px; text-align: center; color: blue;">${r.leave}</td>
@@ -457,6 +462,7 @@ export default function AttendanceReportsPage() {
               <th>Employee Code</th>
               <th>Employee Name</th>
               <th>Department</th>
+              <th>Designation</th>
               <th>Office Day</th>
               <th style="color: #fca5a5;">Absent</th>
               <th style="color: #93c5fd;">Leave</th>
@@ -784,7 +790,9 @@ export default function AttendanceReportsPage() {
                           <td className="py-2.5 px-2 border-r border-slate-100 font-mono font-bold text-slate-800">{row.employeeId}</td>
                           <td className="py-2.5 px-3 border-r border-slate-100 font-semibold text-slate-900">
                             <div>{row.employeeName}</div>
-                            <div className="text-[10px] text-slate-400 font-normal">{row.departmentName}</div>
+                            <div className="text-[10px] text-slate-500 font-normal">
+                              {row.departmentName} &bull; <span className="text-slate-700 font-medium">{row.designation || "Staff"}</span>
+                            </div>
                           </td>
                           <td className="py-2.5 px-2 text-center border-r border-slate-100 font-mono font-bold">{row.officeDays}</td>
                           <td className="py-2.5 px-2 text-center border-r border-slate-100 font-mono text-rose-600 font-bold">{row.absent}</td>
@@ -848,7 +856,9 @@ export default function AttendanceReportsPage() {
                           <td className="py-2.5 px-2 border-r border-indigo-50 font-mono font-bold text-slate-800">{row.employeeId}</td>
                           <td className="py-2.5 px-3 border-r border-indigo-50 font-semibold text-slate-900">
                             <div>{row.employeeName}</div>
-                            <div className="text-[10px] text-slate-400 font-normal">{row.departmentName}</div>
+                            <div className="text-[10px] text-slate-500 font-normal">
+                              {row.departmentName} &bull; <span className="text-indigo-950 font-medium">{row.designation || "Staff"}</span>
+                            </div>
                           </td>
                           <td className="py-2.5 px-2 text-center border-r border-indigo-50 font-mono font-bold">{row.officeDays}</td>
                           <td className="py-2.5 px-2 text-center border-r border-indigo-50 font-mono text-rose-600 font-bold">{row.absent}</td>
