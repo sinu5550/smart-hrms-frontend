@@ -117,7 +117,16 @@ export default function MobileLeavePortalPage() {
     if (!reason.trim()) return;
 
     setIsSubmitting(true);
-    const days = leaveType === "SHORT_LEAVE" ? parseFloat(shortLeaveHours) / 8 : 1;
+    let days = 1;
+    if (leaveType === "SHORT_LEAVE") {
+      days = parseFloat(shortLeaveHours) / 8;
+    } else if (startDate && endDate) {
+      const s = new Date(startDate);
+      const e = new Date(endDate);
+      const diff = Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      days = diff > 0 ? diff : 1;
+    }
+
     leaveMutation.mutate({
       leaveTypeName: leaveType === "SHORT_LEAVE" ? "CASUAL" : leaveType,
       startDate,
@@ -340,25 +349,35 @@ export default function MobileLeavePortalPage() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-bold text-slate-700">Start Date *</label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full mt-1 px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-hidden focus:border-emerald-600"
-                />
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700">Start Date *</label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full mt-1 px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-hidden focus:border-emerald-600"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700">End Date *</label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full mt-1 px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-hidden focus:border-emerald-600"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="text-xs font-bold text-slate-700">End Date *</label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full mt-1 px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-hidden focus:border-emerald-600"
-                />
-              </div>
+              {startDate && endDate && (
+                <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-emerald-50/70 border border-emerald-200 text-xs text-emerald-800 font-medium">
+                  <span>Calculated Duration:</span>
+                  <span className="font-bold">
+                    {Math.max(1, Math.round((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1)} Day(s)
+                  </span>
+                </div>
+              )}
             </div>
           )}
 
