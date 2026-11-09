@@ -5,6 +5,7 @@ import {
   Calendar as CalendarIcon,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Clock,
   Check,
   CalendarDays,
@@ -265,24 +266,22 @@ export const PremiumDateRangePicker: React.FC<PremiumDateRangePickerProps> = ({
 
   return (
     <div className={`relative inline-block ${className}`} ref={containerRef}>
-      {/* Trigger Button */}
+      {/* Trigger Button (Single-line h-9 matching all inputs & buttons) */}
       <button
         type="button"
         onClick={() => {
           setIsOpen(!isOpen);
           setRangeStart(null);
         }}
-        className="flex items-center gap-2.5 px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-lg shadow-xs transition text-xs font-semibold text-slate-800"
+        className="h-9 flex items-center gap-2 px-3 bg-white hover:bg-slate-50 border border-slate-300 hover:border-slate-400 rounded-lg shadow-xs transition text-xs font-semibold text-slate-800 cursor-pointer"
       >
-        <div className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+        <div className="w-5 h-5 rounded bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
           <CalendarIcon className="w-3.5 h-3.5" />
         </div>
-        <div className="flex flex-col text-left">
-          <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">
-            {value.startDate === value.endDate ? "Date" : "Date Range"}
-          </span>
-          <span className="text-xs font-bold text-slate-800 font-mono">{getDisplayLabel()}</span>
-        </div>
+        <span className="text-xs font-bold text-slate-800 font-mono whitespace-nowrap">
+          {getDisplayLabel()}
+        </span>
+        <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isOpen ? "rotate-180 text-emerald-600" : ""}`} />
       </button>
 
       {/* Popover Dropdown (Mobile Centered Modal / Desktop Right-aligned Dropdown) */}

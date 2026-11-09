@@ -202,7 +202,7 @@ export default function AdminAttendancePage() {
         <div className="flex items-center gap-2 flex-wrap print:hidden">
           <Link
             href="/admin/attendance/individual"
-            className="flex items-center gap-2 px-3 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-lg text-xs font-semibold shadow-xs transition"
+            className="h-9 flex items-center gap-2 px-3 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold shadow-xs transition"
             title="Open Individual Attendance Report"
           >
             <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
@@ -217,7 +217,7 @@ export default function AdminAttendancePage() {
           <button
             onClick={() => window.print()}
             disabled={filteredRecords.length === 0}
-            className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-900 disabled:opacity-50 text-white rounded-lg text-xs font-semibold shadow-xs transition cursor-pointer"
+            className="h-9 flex items-center gap-2 px-3 bg-slate-800 hover:bg-slate-900 disabled:opacity-50 text-white rounded-lg text-xs font-semibold shadow-xs transition cursor-pointer"
             title="Print or Export Attendance Table to PDF"
           >
             <Printer className="w-3.5 h-3.5 text-emerald-400" />
@@ -227,7 +227,7 @@ export default function AdminAttendancePage() {
           <button
             onClick={handlePullLatest}
             disabled={isPulling}
-            className="flex items-center gap-2 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white rounded-lg text-xs font-medium shadow-xs transition"
+            className="h-9 flex items-center gap-2 px-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white rounded-lg text-xs font-medium shadow-xs transition"
             title="Fetch latest punches directly from all active biometric machines"
           >
             <Radio className={`w-3.5 h-3.5 ${isPulling ? "animate-ping text-white" : ""}`} />
@@ -236,7 +236,7 @@ export default function AdminAttendancePage() {
 
           <button
             onClick={() => queryClient.invalidateQueries({ queryKey: QUERY_KEYS.attendance.list(queryArg) })}
-            className="p-2.5 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg text-slate-700 transition shadow-xs"
+            className="h-9 w-9 flex items-center justify-center bg-white border border-slate-200 hover:bg-slate-50 rounded-lg text-slate-700 transition shadow-xs"
             title="Refresh logs"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin text-emerald-700" : ""}`} />

@@ -125,16 +125,21 @@ function IndividualReportContent() {
     }
   }, [dropdownOpen]);
 
-  // Filtered employees for dropdown
+  // Filtered employees for dropdown (Sorted Ascending by Employee ID: 1, 2, 3...)
   const filteredEmployees = useMemo(() => {
-    if (!dropdownSearch.trim()) return employees;
-    const term = dropdownSearch.toLowerCase().trim();
-    return employees.filter((emp) => {
-      const name = (emp.fullName || "").toLowerCase();
-      const code = (emp.employeeId || "").toLowerCase();
-      const dept = (emp.department?.name || "").toLowerCase();
-      const desig = (emp.designation?.name || "").toLowerCase();
-      return name.includes(term) || code.includes(term) || dept.includes(term) || desig.includes(term);
+    let list = employees;
+    if (dropdownSearch.trim()) {
+      const term = dropdownSearch.toLowerCase().trim();
+      list = employees.filter((emp) => {
+        const name = (emp.fullName || "").toLowerCase();
+        const code = (emp.employeeId || "").toLowerCase();
+        const dept = (emp.department?.name || "").toLowerCase();
+        const desig = (emp.designation?.name || "").toLowerCase();
+        return name.includes(term) || code.includes(term) || dept.includes(term) || desig.includes(term);
+      });
+    }
+    return [...list].sort((a, b) => {
+      return (a.employeeId || "").localeCompare(b.employeeId || "", undefined, { numeric: true, sensitivity: "base" });
     });
   }, [employees, dropdownSearch]);
 
@@ -627,7 +632,7 @@ function IndividualReportContent() {
             <button
               type="button"
               onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="w-full bg-white hover:bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-left flex items-center justify-between transition shadow-xs cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-emerald-500/30"
+              className="h-9 w-full bg-white hover:bg-slate-50 border border-slate-300 rounded-lg px-3 text-left flex items-center justify-between transition shadow-xs cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-emerald-500/30"
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 {currentEmployee ? (
