@@ -41,3 +41,14 @@ export function useDeleteBiometricDevice() {
     },
   });
 }
+
+export function useUpdateBiometricDevice() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<RegisterDevicePayload> }) =>
+      deviceService.update(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.devices.all });
+    },
+  });
+}

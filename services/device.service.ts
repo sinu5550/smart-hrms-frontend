@@ -55,6 +55,11 @@ export const deviceService = {
     return data;
   },
 
+  async update(id: string, payload: Partial<RegisterDevicePayload>): Promise<BiometricDevice> {
+    const { data } = await apiClient.patch<BiometricDevice>(`/devices/${id}`, payload);
+    return data;
+  },
+
   async delete(id: string): Promise<{ success: boolean }> {
     const { data } = await apiClient.delete<{ success: boolean }>(`/devices/${id}`);
     return data;

@@ -6,6 +6,7 @@ import {
   useBiometricRawLogs,
   useRegisterBiometricDevice,
   useDeleteBiometricDevice,
+  useUpdateBiometricDevice,
   useOfficeNetworks,
   useAddOfficeNetwork,
   useDeleteOfficeNetwork,
@@ -39,6 +40,8 @@ import {
   EyeOff,
   KeyRound,
   Users,
+  Edit2,
+  X,
 } from "lucide-react";
 import { deviceService } from "@/services/device.service";
 import { OrganizationService } from "@/services/organization.service";
@@ -63,6 +66,7 @@ export default function BiometricDevicesAdminPage() {
   const { data: networks = [], isLoading: isLoadingNetworks } = useOfficeNetworks();
 
   const registerDeviceMutation = useRegisterBiometricDevice();
+  const updateDeviceMutation = useUpdateBiometricDevice();
   const deleteDeviceMutation = useDeleteBiometricDevice();
   const addNetworkMutation = useAddOfficeNetwork();
   const deleteNetworkMutation = useDeleteOfficeNetwork();
@@ -70,6 +74,61 @@ export default function BiometricDevicesAdminPage() {
   const [activeTab, setActiveTab] = useState<"DEVICES" | "WIFI_NETWORKS" | "QR_POSTER" | "LIVE_STREAM">("DEVICES");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWifiModalOpen, setIsWifiModalOpen] = useState(false);
+
+  // Edit Device State
+  const [editingDevice, setEditingDevice] = useState<BiometricDevice | null>(null);
+  const [editForm, setEditForm] = useState({
+    deviceName: "",
+    deviceModel: "",
+    ipAddress: "",
+    port: 80,
+    username: "admin",
+    password: "",
+    locationName: "",
+  });
+  const [isUpdatingDevice, setIsUpdatingDevice] = useState(false);
+
+  const handleOpenEditDevice = (dev: BiometricDevice) => {
+    setEditingDevice(dev);
+    setEditForm({
+      deviceName: dev.deviceName,
+      deviceModel: dev.deviceModel || "",
+      ipAddress: dev.ipAddress || "",
+      port: dev.port || 80,
+      username: dev.username || "admin",
+      password: "",
+      locationName: dev.locationName || "",
+    });
+  };
+
+  const handleSaveDevice = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingDevice) return;
+    try {
+      setIsUpdatingDevice(true);
+      const payload: any = {
+        deviceName: editForm.deviceName.trim(),
+        deviceModel: editForm.deviceModel.trim(),
+        ipAddress: editForm.ipAddress.trim(),
+        port: Number(editForm.port) || 80,
+        username: editForm.username.trim(),
+        locationName: editForm.locationName.trim(),
+      };
+      if (editForm.password.trim()) {
+        payload.password = editForm.password.trim();
+      }
+      await updateDeviceMutation.mutateAsync({
+        id: editingDevice.id,
+        payload,
+      });
+      setMessage({ type: "success", text: `Device "${payload.deviceName}" configuration and IP updated successfully.` });
+      setEditingDevice(null);
+    } catch (err: any) {
+      setMessage({ type: "error", text: parseApiError(err) || "Failed to update device." });
+    } finally {
+      setIsUpdatingDevice(false);
+    }
+  };
 
   // QR Code Generation state
   const [qrData, setQrData] = useState<{
@@ -518,6 +577,13 @@ export default function BiometricDevicesAdminPage() {
                         </button>
                       </>
                     )}
+                    <button
+                      onClick={() => handleOpenEditDevice(device)}
+                      className="p-1.5 text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 rounded transition"
+                      title="Edit device configuration / IP"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
                     <button
                       onClick={() => handleDelete(device)}
                       className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition"
@@ -1264,6 +1330,164 @@ export default function BiometricDevicesAdminPage() {
                 <ExternalLink className="w-3 h-3" />
               </a>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Device Modal */}
+      {editingDevice && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-2xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center justify-center">
+                  <Edit2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800">Edit Device Configuration</h3>
+                  <p className="text-[11px] text-slate-500">
+                    Update IP address, ports, and connection credentials for {editingDevice.deviceName}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingDevice(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveDevice} className="space-y-3.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Device Name *
+                  </label>
+                  <input
+                    required
+                    value={editForm.deviceName}
+                    onChange={(e) => setEditForm((p) => ({ ...p, deviceName: e.target.value }))}
+                    placeholder="e.g. Hikvision Main Gate"
+                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium text-slate-800 focus:outline-hidden focus:border-emerald-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Terminal IP Address *
+                  </label>
+                  <input
+                    required
+                    value={editForm.ipAddress}
+                    onChange={(e) => setEditForm((p) => ({ ...p, ipAddress: e.target.value }))}
+                    placeholder="e.g. 192.168.68.69"
+                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-mono font-medium text-slate-800 focus:outline-hidden focus:border-emerald-600"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    Update if router assigned a new IP.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Port (HTTP / ISAPI) *
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    value={editForm.port}
+                    onChange={(e) => setEditForm((p) => ({ ...p, port: Number(e.target.value) || 80 }))}
+                    placeholder="80"
+                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-mono font-medium text-slate-800 focus:outline-hidden focus:border-emerald-600"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    Default is 80 (or 443 for HTTPS).
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Location / Area
+                  </label>
+                  <input
+                    value={editForm.locationName}
+                    onChange={(e) => setEditForm((p) => ({ ...p, locationName: e.target.value }))}
+                    placeholder="e.g. Main Reception"
+                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium text-slate-800 focus:outline-hidden focus:border-emerald-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Device Model
+                  </label>
+                  <input
+                    value={editForm.deviceModel}
+                    onChange={(e) => setEditForm((p) => ({ ...p, deviceModel: e.target.value }))}
+                    placeholder="e.g. MinMoe DS-K1T320EFWX"
+                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-medium text-slate-800 focus:outline-hidden focus:border-emerald-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Device Username
+                  </label>
+                  <input
+                    value={editForm.username}
+                    onChange={(e) => setEditForm((p) => ({ ...p, username: e.target.value }))}
+                    placeholder="admin"
+                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-mono font-medium text-slate-800 focus:outline-hidden focus:border-emerald-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Device Password
+                  </label>
+                  <input
+                    type="password"
+                    value={editForm.password}
+                    onChange={(e) => setEditForm((p) => ({ ...p, password: e.target.value }))}
+                    placeholder="Leave blank to keep current"
+                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs font-mono font-medium text-slate-800 focus:outline-hidden focus:border-emerald-600"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    Only fill if changing terminal password.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  disabled={isUpdatingDevice}
+                  onClick={() => setEditingDevice(null)}
+                  className="h-9 px-3.5 text-xs font-semibold rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdatingDevice}
+                  className="h-9 px-4 text-xs font-bold rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white gap-1.5 shadow-2xs flex items-center justify-center transition cursor-pointer"
+                >
+                  {isUpdatingDevice ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Saving Changes...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Save Device Settings</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

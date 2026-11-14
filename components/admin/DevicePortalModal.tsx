@@ -44,6 +44,12 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
   onClose,
   onSyncSuccess,
 }) => {
+  const [currentDevice, setCurrentDevice] = useState<BiometricDevice>(device);
+
+  useEffect(() => {
+    setCurrentDevice(device);
+  }, [device]);
+
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<{
     device: BiometricDevice;
@@ -69,8 +75,11 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
   const fetchPortalData = async () => {
     try {
       setLoading(true);
-      const res = await deviceService.getDevicePortal(device.id);
+      const res = await deviceService.getDevicePortal(currentDevice.id);
       setData(res);
+      if (res?.device) {
+        setCurrentDevice(res.device);
+      }
     } catch (err: any) {
       console.error("Portal load error:", err);
     } finally {
@@ -82,7 +91,73 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
     if (isOpen) {
       fetchPortalData();
     }
-  }, [isOpen, device.id]);
+  }, [isOpen, currentDevice.id]);
+
+  // Edit Device State
+  const [isEditDeviceOpen, setIsEditDeviceOpen] = useState(false);
+  const [editDeviceForm, setEditDeviceForm] = useState({
+    deviceName: device.deviceName,
+    ipAddress: device.ipAddress || "",
+    port: device.port || 80,
+    deviceModel: device.deviceModel || "",
+    locationName: device.locationName || "",
+    username: device.username || "admin",
+    password: "",
+  });
+  const [isUpdatingDevice, setIsUpdatingDevice] = useState(false);
+  const [editDeviceError, setEditDeviceError] = useState<string | null>(null);
+
+  const handleOpenEditDevice = () => {
+    setEditDeviceForm({
+      deviceName: currentDevice.deviceName,
+      ipAddress: currentDevice.ipAddress || "",
+      port: currentDevice.port || 80,
+      deviceModel: currentDevice.deviceModel || "",
+      locationName: currentDevice.locationName || "",
+      username: currentDevice.username || "admin",
+      password: "",
+    });
+    setEditDeviceError(null);
+    setIsEditDeviceOpen(true);
+  };
+
+  const handleSaveDeviceConfig = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editDeviceForm.deviceName.trim()) {
+      setEditDeviceError("Device Name is required");
+      return;
+    }
+
+    try {
+      setIsUpdatingDevice(true);
+      setEditDeviceError(null);
+
+      const payload: any = {
+        deviceName: editDeviceForm.deviceName.trim(),
+        ipAddress: editDeviceForm.ipAddress.trim(),
+        port: Number(editDeviceForm.port) || 80,
+        deviceModel: editDeviceForm.deviceModel.trim(),
+        locationName: editDeviceForm.locationName.trim(),
+        username: editDeviceForm.username.trim(),
+      };
+      if (editDeviceForm.password.trim()) {
+        payload.password = editDeviceForm.password.trim();
+      }
+
+      const res = await deviceService.update(currentDevice.id, payload);
+      setCurrentDevice(res);
+      setSyncMessage("Device IP and configuration updated successfully!");
+      setIsEditDeviceOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
+      if (onSyncSuccess) onSyncSuccess();
+      // Re-fetch portal diagnostics with new IP
+      fetchPortalData();
+    } catch (err: any) {
+      setEditDeviceError(parseApiError(err) || "Failed to update device configuration.");
+    } finally {
+      setIsUpdatingDevice(false);
+    }
+  };
 
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -105,7 +180,7 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
     setConfirmModal({
       isOpen: true,
       title: "Sync All Persons to HRMS",
-      description: `Pull all registered employees, face IDs, and fingerprints from "${device.deviceName}" into your employee directory?`,
+      description: `Pull all registered employees, face IDs, and fingerprints from "${currentDevice.deviceName}" into your employee directory?`,
       confirmText: "Sync Persons",
       variant: "sync",
       badge: "Hikvision MinMoe",
@@ -113,7 +188,7 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
         try {
           setConfirmModal((prev) => ({ ...prev, isLoading: true }));
           setIsSyncing(true);
-          const res = await deviceService.syncPersons(device.id);
+          const res = await deviceService.syncPersons(currentDevice.id);
           setSyncMessage(res.message);
           fetchPortalData();
           queryClient.invalidateQueries({ queryKey: ["employees"] });
@@ -154,7 +229,7 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
 
     try {
       setIsUpdatingPerson(true);
-      const res = await deviceService.updatePerson(device.id, {
+      const res = await deviceService.updatePerson(currentDevice.id, {
         employeeNo: editingPerson.employeeNo,
         name: editName.trim(),
       });
@@ -174,7 +249,7 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
   const handleDeletePerson = (u: any) => {
     setConfirmModal({
       isOpen: true,
-      title: `Delete Person from ${device.deviceName}`,
+      title: `Delete Person from ${currentDevice.deviceName}`,
       description: `Are you sure you want to delete "${u.name}" (ID: ${u.employeeNo}) from this Hikvision terminal? All biometric templates (faces & fingerprints) for this person on the hardware will be permanently wiped.`,
       confirmText: "Delete from Device",
       variant: "danger",
@@ -182,7 +257,7 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
       onConfirm: async () => {
         try {
           setConfirmModal((prev) => ({ ...prev, isLoading: true }));
-          const res = await deviceService.deletePerson(device.id, u.employeeNo);
+          const res = await deviceService.deletePerson(currentDevice.id, u.employeeNo);
           setSyncMessage(res.message);
           fetchPortalData();
           queryClient.invalidateQueries({ queryKey: ["employees"] });
@@ -200,7 +275,7 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
   const handlePushEmployee = async (employeeId: string, employeeName: string) => {
     try {
       setIsPushing(true);
-      const res = await deviceService.pushEmployee(device.id, { employeeId });
+      const res = await deviceService.pushEmployee(currentDevice.id, { employeeId });
       alert(`Success: ${res.message}`);
       setIsPushingModalOpen(false);
       setSelectedPushEmployeeId("");
@@ -240,13 +315,13 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
           let pushedCount = 0;
           for (const m of missing) {
             try {
-              await deviceService.pushEmployee(device.id, { employeeId: m.employeeId });
+              await deviceService.pushEmployee(currentDevice.id, { employeeId: m.employeeId });
               pushedCount++;
             } catch (e) {
               console.warn(`Could not push ${m.employeeId}:`, e);
             }
           }
-          alert(`Successfully pushed ${pushedCount} of ${missing.length} employee(s) to ${device.deviceName}!`);
+          alert(`Successfully pushed ${pushedCount} of ${missing.length} employee(s) to ${currentDevice.deviceName}!`);
           fetchPortalData();
           if (onSyncSuccess) onSyncSuccess();
           setConfirmModal((prev) => ({ ...prev, isOpen: false, isLoading: false }));
@@ -265,8 +340,8 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
       isOpen: true,
       title: pullAllDays ? "Pull Full Month Punches (Oct 1 - Today)" : "Pull Today's Punches",
       description: pullAllDays
-        ? `Pull all biometric punches from "${device.deviceName}" for the entire month (starting Oct 1) and record all missing attendance?`
-        : `Pull the latest punch verification logs from "${device.deviceName}" for today?`,
+        ? `Pull all biometric punches from "${currentDevice.deviceName}" for the entire month (starting Oct 1) and record all missing attendance?`
+        : `Pull the latest punch verification logs from "${currentDevice.deviceName}" for today?`,
       confirmText: pullAllDays ? "Pull Full Month Punches" : "Pull Punches",
       variant: "sync",
       badge: "AcsEvent Logs",
@@ -275,7 +350,7 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
           setConfirmModal((prev) => ({ ...prev, isLoading: true }));
           setIsSyncingPunches(true);
           setSyncMessage(null);
-          const res = await deviceService.syncPunches(device.id, pullAllDays ? 35 : 1);
+          const res = await deviceService.syncPunches(currentDevice.id, pullAllDays ? 35 : 1);
           setSyncMessage(res.message);
           fetchPortalData();
           queryClient.invalidateQueries({ queryKey: ["attendance"] });
@@ -314,7 +389,7 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <DialogTitle className="text-base font-bold text-slate-900 tracking-tight">
-                  {device.deviceName} Portal
+                  {currentDevice.deviceName} Portal
                 </DialogTitle>
                 <span
                   className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
@@ -327,13 +402,33 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
                   {data?.isTerminalReachable ? "LIVE ONLINE" : "OFFLINE / UNREACHABLE"}
                 </span>
               </div>
-              <DialogDescription className="text-xs text-slate-500 font-mono mt-0.5">
-                IP: {device.ipAddress || "Dynamic"} · Model: {device.deviceModel} · S/N: {device.deviceSerialNumber}
-              </DialogDescription>
+              <div className="flex items-center gap-2 mt-0.5">
+                <DialogDescription className="text-xs text-slate-500 font-mono">
+                  IP: <span className="font-semibold text-slate-800">{currentDevice.ipAddress || "Dynamic"}</span> · Model: {currentDevice.deviceModel} · S/N: {currentDevice.deviceSerialNumber}
+                </DialogDescription>
+                <button
+                  type="button"
+                  onClick={handleOpenEditDevice}
+                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition cursor-pointer"
+                  title="Click to edit device IP and configuration"
+                >
+                  <Edit2 className="w-2.5 h-2.5" />
+                  <span>Edit IP</span>
+                </button>
+              </div>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleOpenEditDevice}
+              className="h-8 rounded-lg text-xs font-semibold gap-1.5 text-slate-700 hover:text-emerald-800 hover:border-emerald-300"
+            >
+              <Edit2 className="w-3.5 h-3.5 text-emerald-700" />
+              <span>Edit Device</span>
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -644,18 +739,28 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
         {activeTab === "SYSTEM" && (
           <div className="p-5 pt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <div className="bg-white p-4 rounded-lg border border-slate-200 space-y-2">
-              <h4 className="font-bold text-slate-800 border-b border-slate-100 pb-2">Network Configuration</h4>
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <h4 className="font-bold text-slate-800">Network Configuration</h4>
+                <button
+                  type="button"
+                  onClick={handleOpenEditDevice}
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 px-2 py-0.5 rounded border border-emerald-200 transition cursor-pointer"
+                >
+                  <Edit2 className="w-3 h-3" />
+                  <span>Edit IP & Port</span>
+                </button>
+              </div>
               <div className="flex justify-between py-1 border-b border-slate-50">
                 <span className="text-slate-400">IP Address:</span>
-                <span className="font-mono font-semibold text-slate-800">{device.ipAddress}</span>
+                <span className="font-mono font-semibold text-slate-800">{currentDevice.ipAddress}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-slate-50">
                 <span className="text-slate-400">ISAPI / HTTPS Port:</span>
-                <span className="font-mono font-semibold text-slate-800">443 / {device.port}</span>
+                <span className="font-mono font-semibold text-slate-800">443 / {currentDevice.port}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-slate-50">
                 <span className="text-slate-400">Username:</span>
-                <span className="font-mono font-semibold text-slate-800">{device.username || "admin"}</span>
+                <span className="font-mono font-semibold text-slate-800">{currentDevice.username || "admin"}</span>
               </div>
               <div className="flex justify-between py-1">
                 <span className="text-slate-400">Auth Scheme:</span>
@@ -664,22 +769,32 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
             </div>
 
             <div className="bg-white p-4 rounded-lg border border-slate-200 space-y-2">
-              <h4 className="font-bold text-slate-800 border-b border-slate-100 pb-2">Device Specification</h4>
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <h4 className="font-bold text-slate-800">Device Specification</h4>
+                <button
+                  type="button"
+                  onClick={handleOpenEditDevice}
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 px-2 py-0.5 rounded border border-slate-200 transition cursor-pointer"
+                >
+                  <Edit2 className="w-3 h-3" />
+                  <span>Edit Details</span>
+                </button>
+              </div>
               <div className="flex justify-between py-1 border-b border-slate-50">
                 <span className="text-slate-400">Terminal Model:</span>
-                <span className="font-semibold text-slate-800">{device.deviceModel}</span>
+                <span className="font-semibold text-slate-800">{currentDevice.deviceModel}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-slate-50">
                 <span className="text-slate-400">Serial Number:</span>
-                <span className="font-mono font-semibold text-slate-800">{device.deviceSerialNumber}</span>
+                <span className="font-mono font-semibold text-slate-800">{currentDevice.deviceSerialNumber}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-slate-50">
                 <span className="text-slate-400">Physical Location:</span>
-                <span className="font-semibold text-slate-800">{device.locationName}</span>
+                <span className="font-semibold text-slate-800">{currentDevice.locationName}</span>
               </div>
               <div className="flex justify-between py-1">
                 <span className="text-slate-400">Device Status:</span>
-                <span className="font-bold text-emerald-700">{device.status}</span>
+                <span className="font-bold text-emerald-700">{currentDevice.status}</span>
               </div>
             </div>
           </div>
@@ -718,7 +833,7 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-slate-900">Push Employee to Machine</h3>
-                    <p className="text-[11px] text-slate-400">Target Terminal: {device.deviceName}</p>
+                    <p className="text-[11px] text-slate-400">Target Terminal: {currentDevice.deviceName}</p>
                   </div>
                 </div>
                 <button
@@ -799,7 +914,7 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
                   <div>
                     <h3 className="text-sm font-bold text-slate-800">Edit Terminal Person</h3>
                     <p className="text-[11px] text-slate-500">
-                      Sync name directly to {device.deviceName}
+                      Sync name directly to {currentDevice.deviceName}
                     </p>
                   </div>
                 </div>
@@ -870,6 +985,174 @@ export const DevicePortalModal: React.FC<DevicePortalModalProps> = ({
                       <>
                         <Check className="w-3.5 h-3.5" />
                         <span>Update Device & HRMS</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Device Configuration Modal */}
+        {isEditDeviceOpen && (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-2xs flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center justify-center">
+                    <Edit2 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-800">Edit Device Configuration</h3>
+                    <p className="text-[11px] text-slate-500">
+                      Update IP address, ports, and connection credentials for {currentDevice.deviceName}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsEditDeviceOpen(false)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {editDeviceError && (
+                <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-xs font-semibold text-rose-800 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                  <span>{editDeviceError}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleSaveDeviceConfig} className="space-y-3.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Device Name *
+                    </label>
+                    <Input
+                      required
+                      value={editDeviceForm.deviceName}
+                      onChange={(e) => setEditDeviceForm((p) => ({ ...p, deviceName: e.target.value }))}
+                      placeholder="e.g. Hikvision Main Gate"
+                      className="text-xs font-medium text-slate-800 focus:border-emerald-600"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Terminal IP Address *
+                    </label>
+                    <Input
+                      required
+                      value={editDeviceForm.ipAddress}
+                      onChange={(e) => setEditDeviceForm((p) => ({ ...p, ipAddress: e.target.value }))}
+                      placeholder="e.g. 192.168.68.69"
+                      className="text-xs font-mono font-medium text-slate-800 focus:border-emerald-600"
+                    />
+                    <p className="text-[10px] text-slate-400 mt-1">
+                      Update if router assigned a new IP.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Port (HTTP / ISAPI) *
+                    </label>
+                    <Input
+                      type="number"
+                      required
+                      value={editDeviceForm.port}
+                      onChange={(e) => setEditDeviceForm((p) => ({ ...p, port: Number(e.target.value) || 80 }))}
+                      placeholder="80"
+                      className="text-xs font-mono font-medium text-slate-800 focus:border-emerald-600"
+                    />
+                    <p className="text-[10px] text-slate-400 mt-1">
+                      Default is 80 (or 443 for HTTPS).
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Location / Area
+                    </label>
+                    <Input
+                      value={editDeviceForm.locationName}
+                      onChange={(e) => setEditDeviceForm((p) => ({ ...p, locationName: e.target.value }))}
+                      placeholder="e.g. Main Reception"
+                      className="text-xs font-medium text-slate-800 focus:border-emerald-600"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Device Model
+                    </label>
+                    <Input
+                      value={editDeviceForm.deviceModel}
+                      onChange={(e) => setEditDeviceForm((p) => ({ ...p, deviceModel: e.target.value }))}
+                      placeholder="e.g. MinMoe DS-K1T320EFWX"
+                      className="text-xs font-medium text-slate-800 focus:border-emerald-600"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Device Username
+                    </label>
+                    <Input
+                      value={editDeviceForm.username}
+                      onChange={(e) => setEditDeviceForm((p) => ({ ...p, username: e.target.value }))}
+                      placeholder="admin"
+                      className="text-xs font-mono font-medium text-slate-800 focus:border-emerald-600"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Device Password
+                    </label>
+                    <Input
+                      type="password"
+                      value={editDeviceForm.password}
+                      onChange={(e) => setEditDeviceForm((p) => ({ ...p, password: e.target.value }))}
+                      placeholder="Leave blank to keep current"
+                      className="text-xs font-mono font-medium text-slate-800 focus:border-emerald-600"
+                    />
+                    <p className="text-[10px] text-slate-400 mt-1">
+                      Only fill if changing terminal password.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={isUpdatingDevice}
+                    onClick={() => setIsEditDeviceOpen(false)}
+                    className="h-9 px-3.5 text-xs font-semibold rounded-lg"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    size="sm"
+                    disabled={isUpdatingDevice}
+                    className="h-9 px-4 text-xs font-bold rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white gap-1.5 shadow-2xs"
+                  >
+                    {isUpdatingDevice ? (
+                      <>
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        <span>Saving Changes...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Save Device Settings</span>
                       </>
                     )}
                   </Button>
