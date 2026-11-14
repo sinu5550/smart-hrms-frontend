@@ -44,6 +44,7 @@ export function FingerprintEnrollModal({ employee, isOpen, onClose, onSuccess }:
   const [terminalEmployeeNo, setTerminalEmployeeNo] = useState<string>("");
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [actionMessage, setActionMessage] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null);
+  const [avatarError, setAvatarError] = useState(false);
 
   // Live polling / listening state
   const [isListening, setIsListening] = useState(false);
@@ -58,6 +59,7 @@ export function FingerprintEnrollModal({ employee, isOpen, onClose, onSuccess }:
     if (isOpen) {
       setActionMessage(null);
       setIsListening(false);
+      setAvatarError(false);
       deviceService
         .getAll()
         .then((devs) => {
@@ -227,17 +229,19 @@ export function FingerprintEnrollModal({ employee, isOpen, onClose, onSuccess }:
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Employee Card */}
             <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-xl bg-emerald-100 border border-emerald-200 overflow-hidden flex items-center justify-center flex-shrink-0 text-emerald-800 font-bold">
-                {employee.avatarUrl ? (
-                  <Image
+              <div className="w-12 h-12 rounded-xl bg-emerald-100 border border-emerald-200 overflow-hidden flex items-center justify-center flex-shrink-0 text-emerald-800 font-bold relative">
+                {employee.avatarUrl && !avatarError ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
                     src={employee.avatarUrl}
                     alt={employee.fullName}
-                    width={48}
-                    height={48}
                     className="w-full h-full object-cover"
+                    onError={() => setAvatarError(true)}
                   />
                 ) : (
-                  employee.fullName.slice(0, 2).toUpperCase()
+                  <span className="text-sm font-bold text-emerald-800">
+                    {employee.fullName.slice(0, 2).toUpperCase()}
+                  </span>
                 )}
               </div>
               <div className="min-w-0 flex-1">
