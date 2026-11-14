@@ -160,6 +160,44 @@ export const deviceService = {
     return data;
   },
 
+  async getEmployeeFingerprints(deviceId: string, employeeId: string): Promise<{
+    success: boolean;
+    terminalEmployeeNo: string;
+    employee: any;
+    fingerprints: Array<{
+      cardReaderNo: number;
+      fingerPrintID: number;
+      fingerType: string;
+      fingerData?: string;
+    }>;
+    totalFP: number;
+    device: { id: string; name: string; model: string; serial: string };
+  }> {
+    const { data } = await apiClient.get(`/devices/${deviceId}/employee-fingerprints/${employeeId}`);
+    return data;
+  },
+
+  async deleteEmployeeFingerprint(deviceId: string, employeeId: string, fingerPrintId: number): Promise<{
+    success: boolean;
+    message: string;
+    fingerprints: any[];
+    totalFP: number;
+  }> {
+    const { data } = await apiClient.delete(`/devices/${deviceId}/employee-fingerprints/${employeeId}/${fingerPrintId}`);
+    return data;
+  },
+
+  async promptEmployeeFingerprint(deviceId: string, employeeId: string): Promise<{
+    success: boolean;
+    terminalEmployeeNo: string;
+    employeeName: string;
+    deviceName: string;
+    message: string;
+  }> {
+    const { data } = await apiClient.post(`/devices/${deviceId}/employee-fingerprints/${employeeId}/prompt`);
+    return data;
+  },
+
   async downloadConfiguredAgent(deviceId: string, deviceName: string): Promise<void> {
     const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
     const rawBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:7000";

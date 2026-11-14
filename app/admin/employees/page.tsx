@@ -35,6 +35,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useEmployees, useChangeEmployeeStatus, useOrganization, useDepartments, useEmploymentStatuses } from "@/hooks";
 import { deviceService } from "@/services/device.service";
 import { exportEmployeesData, ExportFormat } from "@/utils/employeeExport";
+import { FingerprintEnrollModal } from "@/components/admin/FingerprintEnrollModal";
 
 export default function EmployeesDirectoryPage() {
   const { user: currentUser } = useAuth();
@@ -50,7 +51,7 @@ export default function EmployeesDirectoryPage() {
   const currentUserPerms = Array.isArray(currentUser?.permissions) ? currentUser.permissions : [];
   const canDeleteEmployees = isCurrentOwner || currentUserPerms.includes("employees.delete");
 
-  const { data: employees = [], isLoading } = useEmployees();
+  const { data: employees = [], isLoading, refetch } = useEmployees();
   const { data: departments = [] } = useDepartments();
   const { data: configuredStatuses = [] } = useEmploymentStatuses();
   const changeStatusMutation = useChangeEmployeeStatus();
@@ -92,6 +93,7 @@ export default function EmployeesDirectoryPage() {
   const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
   const [targetEditEmployee, setTargetEditEmployee] = useState<Employee | null>(null);
   const [targetDeleteEmployee, setTargetDeleteEmployee] = useState<Employee | null>(null);
+  const [targetFingerprintEmployee, setTargetFingerprintEmployee] = useState<Employee | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const exportMenuRef = React.useRef<HTMLDivElement>(null);
@@ -425,10 +427,53 @@ export default function EmployeesDirectoryPage() {
                               {emp.designation.name}
                             </span>
                           )}
+                          {(() => {
+                            const perms = Array.isArray(emp.permissions) ? emp.permissions : [];
+                            const hasFP = perms.includes("bio:fingerprint");
+                            const hasFace = perms.includes("bio:face");
+                            return (
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setTargetFingerprintEmployee(emp);
+                                  }}
+                                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold border transition active:scale-95 ${
+                                    hasFP
+                                      ? "bg-emerald-50 text-emerald-700 border-emerald-300 ring-1 ring-emerald-400/30"
+                                      : "bg-slate-100 text-slate-400 border-slate-200 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-300"
+                                  }`}
+                                  title={hasFP ? "Fingerprint Registered - Tap to Manage" : "Tap to Enroll Fingerprint on Device"}
+                                >
+                                  <Fingerprint className="w-3 h-3 text-emerald-600" />
+                                  <span>{hasFP ? "FP" : "No FP"}</span>
+                                </button>
+                                <span
+                                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold border ${
+                                    hasFace
+                                      ? "bg-purple-50 text-purple-700 border-purple-300 ring-1 ring-purple-400/30"
+                                      : "bg-slate-100 text-slate-400 border-slate-200"
+                                  }`}
+                                  title={hasFace ? "Face Enrolled on Terminal" : "No Face Enrolled"}
+                                >
+                                  <ScanFace className="w-3 h-3 text-purple-600" />
+                                  <span>{hasFace ? "Face" : "No Face"}</span>
+                                </span>
+                              </div>
+                            );
+                          })()}
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => setTargetFingerprintEmployee(emp)}
+                        className="p-1.5 text-slate-500 hover:text-emerald-700 rounded-lg hover:bg-emerald-50 active:bg-emerald-100 transition"
+                        title="Manage / Enroll Fingerprint"
+                      >
+                        <Fingerprint className="w-4 h-4 text-emerald-600" />
+                      </button>
                       <button
                         onClick={() => setTargetEditEmployee(emp)}
                         className="p-1.5 text-slate-500 hover:text-emerald-700 rounded-lg hover:bg-emerald-50 active:bg-emerald-100 transition"
@@ -599,16 +644,18 @@ export default function EmployeesDirectoryPage() {
                           const hasFace = perms.includes("bio:face");
                           return (
                             <div className="inline-flex items-center gap-1.5 justify-center">
-                              <span
-                                className={`inline-flex items-center justify-center w-6 h-6 rounded-lg border transition ${
+                              <button
+                                type="button"
+                                onClick={() => setTargetFingerprintEmployee(emp)}
+                                className={`inline-flex items-center justify-center w-6 h-6 rounded-lg border transition hover:scale-110 active:scale-95 cursor-pointer ${
                                   hasFP
-                                    ? "bg-emerald-50 text-emerald-700 border-emerald-300"
-                                    : "bg-slate-100 text-slate-300 border-slate-200"
+                                    ? "bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100 ring-2 ring-emerald-400/20"
+                                    : "bg-slate-100 text-slate-300 border-slate-200 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-300"
                                 }`}
-                                title={hasFP ? "Fingerprint Registered on Hardware" : "No Fingerprint Enrolled"}
+                                title={hasFP ? "Fingerprint Registered on Hardware - Click to Manage / Add" : "Click to Enroll Fingerprint on Device"}
                               >
                                 <Fingerprint className="w-3.5 h-3.5" />
-                              </span>
+                              </button>
                               <span
                                 className={`inline-flex items-center justify-center w-6 h-6 rounded-lg border transition ${
                                   hasFace
@@ -672,6 +719,13 @@ export default function EmployeesDirectoryPage() {
                             <Eye className="w-3.5 h-3.5" />
                           </Link>
                           <button
+                            onClick={() => setTargetFingerprintEmployee(emp)}
+                            className="p-1.5 text-slate-500 hover:text-emerald-700 rounded-lg hover:bg-emerald-50 transition"
+                            title="Manage / Enroll Fingerprint"
+                          >
+                            <Fingerprint className="w-3.5 h-3.5 text-emerald-600" />
+                          </button>
+                          <button
                             onClick={() => setTargetEditEmployee(emp)}
                             className="p-1.5 text-slate-500 hover:text-emerald-700 rounded-lg hover:bg-emerald-50 transition"
                             title="Edit Employee Details"
@@ -711,6 +765,15 @@ export default function EmployeesDirectoryPage() {
         isOpen={Boolean(targetEditEmployee)}
         onClose={() => setTargetEditEmployee(null)}
         onSuccess={() => setTargetEditEmployee(null)}
+      />
+
+      <FingerprintEnrollModal
+        employee={targetFingerprintEmployee}
+        isOpen={Boolean(targetFingerprintEmployee)}
+        onClose={() => setTargetFingerprintEmployee(null)}
+        onSuccess={() => {
+          refetch();
+        }}
       />
 
       <BulkImportModal
