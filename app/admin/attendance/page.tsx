@@ -3,10 +3,11 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { parseApiError } from "@/services/api";
-import { useAttendanceByDate, QUERY_KEYS } from "@/hooks";
+import { useAttendanceByDate, useAdminLateRequests, QUERY_KEYS } from "@/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { deviceService } from "@/services/device.service";
+import { AttendanceService } from "@/services/attendance.service";
 import {
   CalendarCheck,
   Search,
@@ -20,6 +21,10 @@ import {
   Radio,
   Printer,
   UserCheck,
+  ShieldAlert,
+  Check,
+  X,
+  MessageSquare,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -42,6 +47,9 @@ interface AttendanceRecord {
   overtimeMinutes?: number;
   ipAddress?: string;
   punchInDeviceType?: string;
+  lateReason?: string | null;
+  lateReasonStatus?: "PENDING" | "APPROVED" | "REJECTED" | null;
+  lateReasonReviewNote?: string | null;
   user: {
     id: string;
     employeeId: string;
@@ -81,6 +89,9 @@ export default function AdminAttendancePage() {
       : { startDate: dateRange.startDate, endDate: dateRange.endDate };
 
   const { data, error, isLoading } = useAttendanceByDate(queryArg);
+  const { data: lateRequests = [], refetch: refetchLateRequests } = useAdminLateRequests();
+  const [activeTab, setActiveTab] = useState<"LOGS" | "LATE_REQUESTS">("LOGS");
+  const [actioningId, setActioningId] = useState<string | null>(null);
 
   // Sync recent punches on page load if date is today
   useEffect(() => {
@@ -299,6 +310,169 @@ export default function AdminAttendancePage() {
         </div>
       </div>
 
+      {/* Mode Tabs */}
+      <div className="shrink-0 flex items-center gap-2 border-b border-slate-200 print:hidden pb-1">
+        <button
+          onClick={() => setActiveTab("LOGS")}
+          className={`px-3 py-1.5 text-xs font-semibold rounded-t-lg transition flex items-center gap-1.5 ${
+            activeTab === "LOGS"
+              ? "bg-white text-emerald-700 border-b-2 border-emerald-600 font-bold"
+              : "text-slate-500 hover:text-slate-800"
+          }`}
+        >
+          <CalendarCheck className="w-3.5 h-3.5" />
+          <span>Attendance Logs</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("LATE_REQUESTS")}
+          className={`px-3 py-1.5 text-xs font-semibold rounded-t-lg transition flex items-center gap-1.5 relative ${
+            activeTab === "LATE_REQUESTS"
+              ? "bg-white text-amber-700 border-b-2 border-amber-600 font-bold"
+              : "text-slate-500 hover:text-slate-800"
+          }`}
+        >
+          <ShieldAlert className="w-3.5 h-3.5" />
+          <span>Late Reason Approvals</span>
+          {lateRequests.filter((r: any) => r.lateReasonStatus === "PENDING").length > 0 && (
+            <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-black bg-amber-500 text-white animate-pulse">
+              {lateRequests.filter((r: any) => r.lateReasonStatus === "PENDING").length}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {activeTab === "LATE_REQUESTS" ? (
+        <div className="flex-1 md:min-h-0 bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm flex flex-col p-4 space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+            <div>
+              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <ShieldAlert className="w-4 h-4 text-amber-600" />
+                <span>Late Arrival Reason Approvals</span>
+              </h2>
+              <p className="text-[11px] text-slate-500">
+                Review employee explanations for late check-in. Approving retains their actual punch-in time; rejecting marks them absent.
+              </p>
+            </div>
+            <button
+              onClick={() => refetchLateRequests()}
+              className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs flex items-center gap-1"
+            >
+              <RefreshCw className="w-3 h-3" />
+              <span>Refresh</span>
+            </button>
+          </div>
+
+          {lateRequests.length === 0 ? (
+            <div className="p-12 text-center text-slate-500 text-xs">
+              No late reason submissions found.
+            </div>
+          ) : (
+            <div className="flex-1 overflow-y-auto space-y-3">
+              {lateRequests.map((req: any) => (
+                <div
+                  key={req.id}
+                  className="p-4 rounded-lg border border-slate-200 bg-white shadow-xs space-y-3"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-xs text-slate-900">{req.user?.fullName}</span>
+                        <span className="text-[10px] text-slate-500 font-mono">({req.user?.employeeId})</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                          {req.user?.department?.name || "General"}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        Date: <span className="font-medium text-slate-700">{formatDate(req.date)}</span> · Shift:{" "}
+                        <span className="font-medium text-slate-700">
+                          {req.user?.shift?.shiftName || "Standard"} ({req.user?.shift?.startTime} - {req.user?.shift?.endTime})
+                        </span>{" "}
+                        · Real Check-In:{" "}
+                        <span className="font-mono font-bold text-rose-600">
+                          {new Date(req.checkInTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      </p>
+                    </div>
+
+                    <span
+                      className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                        req.lateReasonStatus === "APPROVED"
+                          ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                          : req.lateReasonStatus === "REJECTED"
+                          ? "bg-rose-100 text-rose-800 border border-rose-200"
+                          : "bg-amber-100 text-amber-800 border border-amber-200 animate-pulse"
+                      }`}
+                    >
+                      {req.lateReasonStatus === "APPROVED"
+                        ? "Approved"
+                        : req.lateReasonStatus === "REJECTED"
+                        ? "Rejected (Absent)"
+                        : "Pending Action"}
+                    </span>
+                  </div>
+
+                  <div className="p-3 bg-amber-50/70 border border-amber-200 rounded-lg text-xs space-y-1">
+                    <span className="font-bold text-amber-900 flex items-center gap-1.5">
+                      <MessageSquare className="w-3.5 h-3.5 text-amber-600" />
+                      Employee&apos;s Explanation:
+                    </span>
+                    <p className="text-slate-800 pl-5 italic">
+                      &quot;{req.lateReason || "No explanation provided."}&quot;
+                    </p>
+                  </div>
+
+                  {req.lateReasonStatus === "PENDING" && (
+                    <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-100">
+                      <button
+                        disabled={actioningId === req.id}
+                        onClick={async () => {
+                          const note = prompt("Optional note for rejection:") || "";
+                          try {
+                            setActioningId(req.id);
+                            await AttendanceService.actionAdminLateRequest(req.id, "REJECT", note);
+                            await refetchLateRequests();
+                            await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.attendance.list(queryArg) });
+                          } catch (err) {
+                            alert(parseApiError(err));
+                          } finally {
+                            setActioningId(null);
+                          }
+                        }}
+                        className="px-3 py-1.5 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold transition flex items-center gap-1"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                        <span>Reject (Mark Absent)</span>
+                      </button>
+
+                      <button
+                        disabled={actioningId === req.id}
+                        onClick={async () => {
+                          try {
+                            setActioningId(req.id);
+                            await AttendanceService.actionAdminLateRequest(req.id, "APPROVE");
+                            await refetchLateRequests();
+                            await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.attendance.list(queryArg) });
+                          } catch (err) {
+                            alert(parseApiError(err));
+                          } finally {
+                            setActioningId(null);
+                          }
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center gap-1 shadow-xs"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Approve (Keep Real Check-In)</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+      <>
       {/* Filters Bar - Sticky / Fixed */}
       <div className="print:hidden shrink-0 flex flex-col sm:flex-row gap-2.5 bg-white border border-slate-200 p-2.5 rounded-lg shadow-xs">
         <div className="relative flex-1">
@@ -562,6 +736,8 @@ export default function AdminAttendancePage() {
           </div>
         )}
       </div>
+      </>
+      )}
     </div>
   );
 }

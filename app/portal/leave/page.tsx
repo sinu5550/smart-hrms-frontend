@@ -54,19 +54,24 @@ export default function MobileLeavePortalPage() {
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch real leave history for current user
+  // Fetch real leave history for current user (passing portal=true so server strictly filters by role/dept)
   const { data: serverLeaves = [], isLoading, refetch } = useQuery<LeaveRequestItem[]>({
     queryKey: ["portal", "leave"],
     queryFn: async () => {
-      const { data } = await apiClient.get<LeaveRequestItem[]>("/leave");
+      const { data } = await apiClient.get<LeaveRequestItem[]>("/leave?portal=true");
       return data;
     },
   });
 
-  // Check if current user is Department Head of any department or has team members
-  // If user has team requests, server returns requests from their department
+  // Strictly check if current user is an official Department Head or Owner/Admin
+  const isDeptHead = Boolean(
+    (user as any)?.isDeptHead ||
+    (Array.isArray((user as any)?.headedDepartments) && (user as any).headedDepartments.length > 0)
+  );
+
   const teamRequests = serverLeaves.filter((l) => l.user && l.user.id !== user?.id);
-  const isDeptHeadOrManager = teamRequests.length > 0 || user?.role === "HR" || user?.role === "ADMIN" || user?.role === "OWNER";
+  // ONLY official Department Heads (or Owner/Admin) can see the Dept Team tab and actions
+  const isDeptHeadOrManager = isDeptHead || user?.role === "OWNER" || user?.role === "ADMIN";
   const myLeaves = serverLeaves.filter((l) => !l.user || l.user.id === user?.id);
 
   const leaveMutation = useMutation({

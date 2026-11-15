@@ -24,6 +24,9 @@ export interface TodayAttendanceRecord {
   overtimeMinutes?: number;
   status: AttendanceStatus;
   breaks: AttendanceBreakRecord[];
+  lateReason?: string | null;
+  lateReasonStatus?: "PENDING" | "APPROVED" | "REJECTED" | null;
+  lateReasonReviewNote?: string | null;
 }
 
 export interface RosterEmployeeDetails {
@@ -79,6 +82,26 @@ export const AttendanceService = {
       url += `?${params.toString()}`;
     }
     const { data } = await apiClient.get<any[]>(url);
+    return data;
+  },
+
+  submitLateReason: async (reason: string): Promise<TodayAttendanceRecord> => {
+    const { data } = await apiClient.post<TodayAttendanceRecord>("/attendance/submit-late-reason", { reason });
+    return data;
+  },
+
+  getAdminLateRequests: async (status?: string): Promise<any[]> => {
+    const params = new URLSearchParams();
+    if (status && status !== "ALL") params.append("status", status);
+    const { data } = await apiClient.get<any[]>(`/attendance/admin/late-requests?${params.toString()}`);
+    return data;
+  },
+
+  actionAdminLateRequest: async (id: string, action: "APPROVE" | "REJECT", reviewNote?: string): Promise<any> => {
+    const { data } = await apiClient.patch<any>(`/attendance/admin/late-requests/${id}/action`, {
+      action,
+      reviewNote,
+    });
     return data;
   },
 

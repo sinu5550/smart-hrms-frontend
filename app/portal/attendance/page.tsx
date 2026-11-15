@@ -80,6 +80,11 @@ export default function MobileAttendancePortal() {
   const [shiftRequestReason, setShiftRequestReason] = useState("");
   const [shiftSuccessMsg, setShiftSuccessMsg] = useState<string | null>(null);
 
+  // Late reason submission state
+  const [lateReasonInput, setLateReasonInput] = useState("");
+  const [isSubmittingLateReason, setIsSubmittingLateReason] = useState(false);
+  const [lateReasonError, setLateReasonError] = useState<string | null>(null);
+
   const activeRecord = statusData?.attendance;
   const currentState = activeRecord?.currentState;
 
@@ -407,8 +412,123 @@ export default function MobileAttendancePortal() {
         <div className="w-full space-y-6">
           {statusData?.checkedIn && (
             <section className="bg-white/90 border border-slate-200 rounded-lg p-5 shadow-lg">
-              {currentState === "CHECKED_IN" ? (
+              {/* Late check-in explanation required state */}
+              {activeRecord?.lateReasonStatus === "PENDING" && !activeRecord?.lateReason ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-900">
+                    <ShieldAlert className="w-5 h-5 text-amber-600 shrink-0" />
+                    <div>
+                      <p className="text-xs font-bold">Late Arrival Detected</p>
+                      <p className="text-[11px] text-amber-800">
+                        Check-in registered at{" "}
+                        <span className="font-mono font-bold">
+                          {activeRecord?.checkInTime ? new Date(activeRecord.checkInTime).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }) : "--:--"}
+                        </span>
+                        . Please submit your reason for late arrival to HR/Admin.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-xs font-semibold text-slate-700">
+                      Reason for Late Check-in <span className="text-rose-500">*</span>
+                    </label>
+                    <textarea
+                      value={lateReasonInput}
+                      onChange={(e) => {
+                        setLateReasonInput(e.target.value);
+                        setLateReasonError(null);
+                      }}
+                      placeholder="Explain reason for arriving late (e.g. traffic jam, emergency, weather)..."
+                      rows={3}
+                      className="w-full p-2.5 rounded-lg border border-slate-200 bg-white text-slate-800 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                    />
+                    {lateReasonError && (
+                      <p className="text-[11px] text-rose-600 font-medium">{lateReasonError}</p>
+                    )}
+                    <button
+                      type="button"
+                      disabled={isSubmittingLateReason || !lateReasonInput.trim()}
+                      onClick={async () => {
+                        if (!lateReasonInput.trim()) {
+                          setLateReasonError("Please describe your late reason.");
+                          return;
+                        }
+                        try {
+                          setIsSubmittingLateReason(true);
+                          setLateReasonError(null);
+                          await attendanceActions.submitLateReason.mutateAsync(lateReasonInput.trim());
+                        } catch (err) {
+                          setLateReasonError(parseApiError(err));
+                        } finally {
+                          setIsSubmittingLateReason(false);
+                        }
+                      }}
+                      className="w-full py-2.5 rounded-lg bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white text-xs font-bold transition shadow-xs flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
+                    >
+                      <span>{isSubmittingLateReason ? "Submitting Reason..." : "Submit Reason to HR/Admin"}</span>
+                    </button>
+                  </div>
+                </div>
+              ) : activeRecord?.lateReasonStatus === "PENDING" && activeRecord?.lateReason ? (
+                <div className="space-y-3">
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-900">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                      <span className="text-xs font-bold">Late Reason Submitted (Pending HR Review)</span>
+                    </div>
+                    <p className="text-[11px] text-amber-800 italic bg-white/70 p-2 rounded border border-amber-100">
+                      &quot;{activeRecord.lateReason}&quot;
+                    </p>
+                    <p className="text-[10px] text-amber-700 mt-2">
+                      Your original check-in time will be maintained once approved.
+                    </p>
+                  </div>
+
+                  {currentState === "CHECKED_IN" ? (
+                    <div className="text-center pt-2">
+                      <div className="flex items-center justify-center space-x-1.5 text-xs text-slate-800 mb-1">
+                        <Clock className="w-3.5 h-3.5 text-slate-800" />
+                        <span>Shift Counter (Pending HR Action)</span>
+                      </div>
+                      <h3 className="text-3xl font-black tracking-wider text-slate-800 font-mono">
+                        {formatSecondsToHMS(liveWorkSeconds)}
+                      </h3>
+                    </div>
+                  ) : (
+                    <div className="text-center space-y-2 pt-2">
+                      <p className="text-xs font-semibold text-amber-600">On Break: {formatSecondsToHMS(liveBreakSeconds)}</p>
+                      <button
+                        onClick={executeEndBreak}
+                        disabled={isSubmitting}
+                        className="w-full py-2.5 px-4 rounded-lg bg-emerald-600 text-white text-xs font-bold"
+                      >
+                        End Break & Resume Work
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : activeRecord?.lateReasonStatus === "REJECTED" ? (
+                <div className="p-4 bg-rose-50 border border-rose-200 rounded-lg text-center space-y-2">
+                  <ShieldAlert className="w-8 h-8 text-rose-600 mx-auto" />
+                  <h4 className="text-xs font-bold text-rose-900">Late Reason Rejected by HR</h4>
+                  <p className="text-[11px] text-rose-700">
+                    Your late reason submission was rejected. Today&apos;s attendance is marked as Absent.
+                  </p>
+                  {activeRecord?.lateReasonReviewNote && (
+                    <p className="text-[11px] text-slate-600 italic bg-white p-2 rounded border border-rose-100">
+                      Note from HR: &quot;{activeRecord.lateReasonReviewNote}&quot;
+                    </p>
+                  )}
+                </div>
+              ) : currentState === "CHECKED_IN" ? (
                 <div className="text-center">
+                  {activeRecord?.lateReasonStatus === "APPROVED" && (
+                    <div className="mb-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-semibold">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Late Check-In Approved (Original Time Counted)</span>
+                    </div>
+                  )}
                   <div className="flex items-center justify-center space-x-1.5 text-xs text-slate-800 mb-1">
                     <Clock className="w-3.5 h-3.5 text-slate-800" />
                     <span>Net Shift Duration</span>

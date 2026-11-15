@@ -30,6 +30,8 @@ export default function ShiftsPage() {
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("18:00");
   const [gracePeriodMinutes, setGracePeriodMinutes] = useState(30);
+  const [requireLateReason, setRequireLateReason] = useState(false);
+  const [lateReasonThresholdMins, setLateReasonThresholdMins] = useState(30);
   const [isDefault, setIsDefault] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -64,6 +66,8 @@ export default function ShiftsPage() {
     setStartTime("09:00");
     setEndTime("18:00");
     setGracePeriodMinutes(30);
+    setRequireLateReason(false);
+    setLateReasonThresholdMins(30);
     setIsDefault(shifts.length === 0);
     setFormError(null);
     setIsModalOpen(true);
@@ -75,6 +79,8 @@ export default function ShiftsPage() {
     setStartTime(shift.startTime);
     setEndTime(shift.endTime);
     setGracePeriodMinutes(shift.gracePeriodMinutes);
+    setRequireLateReason(Boolean(shift.requireLateReason));
+    setLateReasonThresholdMins(shift.lateReasonThresholdMins ?? 30);
     setIsDefault(shift.isDefault);
     setFormError(null);
     setIsModalOpen(true);
@@ -90,6 +96,8 @@ export default function ShiftsPage() {
       startTime,
       endTime,
       gracePeriodMinutes: Number(gracePeriodMinutes),
+      requireLateReason: Boolean(requireLateReason),
+      lateReasonThresholdMins: Number(lateReasonThresholdMins),
       isDefault,
     };
 
@@ -262,6 +270,14 @@ export default function ShiftsPage() {
                   <p>
                     Late Grace Period: <span className="font-semibold text-slate-800">{shift.gracePeriodMinutes} mins</span>
                   </p>
+                  {shift.requireLateReason && (
+                    <p className="text-amber-700 font-medium flex items-center gap-1">
+                      <span>Reason required after:</span>
+                      <span className="font-bold underline">
+                        {shift.gracePeriodMinutes + (shift.lateReasonThresholdMins ?? 30)} mins
+                      </span>
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -339,6 +355,44 @@ export default function ShiftsPage() {
                 required
               />
               <p className="text-[10px] text-slate-500 mt-1">Arrivals within this grace period are not marked as late.</p>
+            </div>
+
+            {/* Late Reason Requirement Section */}
+            <div className="p-3 bg-amber-50/70 border border-amber-200/80 rounded-lg space-y-2.5">
+              <label className="flex items-center gap-2 text-xs font-semibold text-amber-950 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={requireLateReason}
+                  onChange={(e) => setRequireLateReason(e.target.checked)}
+                  className="rounded border-amber-300 text-amber-600 focus:ring-amber-500 w-4 h-4"
+                />
+                <span>Require Reason for Extreme Delay</span>
+              </label>
+              <p className="text-[11px] text-amber-800/90 leading-relaxed">
+                When enabled, employees arriving beyond the grace period + additional threshold must submit an explanation before their attendance is officially sanctioned by HR/Admin.
+              </p>
+
+              {requireLateReason && (
+                <div className="pt-1.5 border-t border-amber-200/60">
+                  <label className="text-xs font-medium text-slate-800">
+                    Additional Buffer After Grace (Minutes) *
+                  </label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={240}
+                    value={lateReasonThresholdMins}
+                    onChange={(e) => setLateReasonThresholdMins(Number(e.target.value))}
+                    className="mt-1 h-9 rounded-md bg-white border-amber-300"
+                    placeholder="e.g. 30"
+                    required
+                  />
+                  <p className="text-[10px] text-slate-500 mt-1 font-mono">
+                    Total threshold = Grace ({gracePeriodMinutes}m) + Buffer ({lateReasonThresholdMins}m) ={" "}
+                    <strong className="text-amber-900">{Number(gracePeriodMinutes) + Number(lateReasonThresholdMins)} mins</strong> from shift start.
+                  </p>
+                </div>
+              )}
             </div>
 
             <label className="flex items-center gap-2 text-xs font-medium text-slate-800 cursor-pointer pt-1">

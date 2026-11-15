@@ -31,6 +31,14 @@ export function useIndividualAttendanceReport(query: { userId?: string; month?: 
   });
 }
 
+export function useAdminLateRequests(status?: string) {
+  return useQuery({
+    queryKey: ["attendance", "admin-late-requests", status || "ALL"],
+    queryFn: () => AttendanceService.getAdminLateRequests(status),
+    refetchInterval: 10000,
+  });
+}
+
 import { useAuth } from "@/components/auth/AuthProvider";
 
 export function useMyTodayAttendance() {
@@ -86,10 +94,18 @@ export function useAttendanceActions() {
     },
   });
 
+  const submitLateReasonMutation = useMutation({
+    mutationFn: (reason: string) => AttendanceService.submitLateReason(reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.attendance.all });
+    },
+  });
+
   return {
     checkIn: checkInMutation,
     startBreak: startBreakMutation,
     endBreak: endBreakMutation,
     checkOut: checkOutMutation,
+    submitLateReason: submitLateReasonMutation,
   };
 }
