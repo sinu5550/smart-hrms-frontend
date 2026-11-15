@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { apiClient } from "@/services/api";
-import { usePendingRegistrationsCount, useRosterShiftRequests } from "@/hooks";
+import { usePendingRegistrationsCount, useRosterShiftRequests, useAdminLateRequests } from "@/hooks";
 import {
   Users,
   Sliders,
@@ -199,11 +199,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   });
 
   const { data: rosterShiftRequests = [] } = useRosterShiftRequests();
+  const { data: lateRequests = [] } = useAdminLateRequests("PENDING");
 
   const pendingOutworkCount = Array.isArray(outworkRecords) ? outworkRecords.filter((r) => r.status === "PENDING").length : 0;
   const pendingLeaveCount = Array.isArray(leaveRecords) ? leaveRecords.filter((l) => l.status === "PENDING").length : 0;
   const pendingLoanCount = Array.isArray(loanRecords) ? loanRecords.filter((l) => l.status === "PENDING").length : 0;
   const pendingRosterShiftCount = Array.isArray(rosterShiftRequests) ? rosterShiftRequests.filter((r) => r.status === "PENDING").length : 0;
+  const pendingLateReasonCount = Array.isArray(lateRequests) ? lateRequests.length : 0;
 
   const badgeCounts: Record<string, number> = {
     "/admin/outwork": pendingOutworkCount,
@@ -211,10 +213,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     "/admin/employee-registration": pendingRegistrationCount,
     "/admin/loans": pendingLoanCount,
     "/admin/departments": pendingRosterShiftCount,
+    "/admin/attendance": pendingLateReasonCount,
   };
 
   const totalPendingBadges =
-    pendingOutworkCount + pendingLeaveCount + pendingRegistrationCount + pendingLoanCount + pendingRosterShiftCount;
+    pendingOutworkCount + pendingLeaveCount + pendingRegistrationCount + pendingLoanCount + pendingRosterShiftCount + pendingLateReasonCount;
 
   const orgName = user?.organization?.name || "Ekhone IT";
   const orgLogo = user?.organization?.logoUrl;
@@ -393,13 +396,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <CalendarCheck className="w-4 h-4 shrink-0" />
                     {(isSidebarOpen || isMobileMenuOpen) && <span>Attendance</span>}
                   </div>
-                  {(isSidebarOpen || isMobileMenuOpen) && (
-                    <ChevronDown
-                      className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                        isAttendanceOpen ? "rotate-180" : ""
-                      } ${isAttendanceActive ? "text-white" : "text-slate-400"}`}
-                    />
-                  )}
+                  <div className="flex items-center gap-1.5">
+                    {pendingLateReasonCount > 0 && (
+                      <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-amber-500 text-white animate-pulse">
+                        {pendingLateReasonCount}
+                      </span>
+                    )}
+                    {(isSidebarOpen || isMobileMenuOpen) && (
+                      <ChevronDown
+                        className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                          isAttendanceOpen ? "rotate-180" : ""
+                        } ${isAttendanceActive ? "text-white" : "text-slate-400"}`}
+                      />
+                    )}
+                  </div>
                 </button>
 
                 {/* Sub-items for Attendance */}
@@ -412,14 +422,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <Link
                           key={item.href}
                           href={item.href}
-                          className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium transition ${
+                          className={`flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition ${
                             isActive
                               ? "bg-emerald-50 text-emerald-800 font-bold border border-emerald-200"
                               : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
                           }`}
                         >
-                          <Icon className="w-3.5 h-3.5 shrink-0" />
-                          {(isSidebarOpen || isMobileMenuOpen) && <span className="truncate">{item.label}</span>}
+                          <div className="flex items-center gap-2.5 truncate">
+                            <Icon className="w-3.5 h-3.5 shrink-0" />
+                            {(isSidebarOpen || isMobileMenuOpen) && <span className="truncate">{item.label}</span>}
+                          </div>
+                          {item.href === "/admin/attendance" && pendingLateReasonCount > 0 && (
+                            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-amber-500 text-white shrink-0">
+                              {pendingLateReasonCount}
+                            </span>
+                          )}
                         </Link>
                       );
                     })}
@@ -506,14 +523,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <Link
                           key={item.href}
                           href={item.href}
-                          className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium transition ${
+                          className={`flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition ${
                             isActive
                               ? "bg-emerald-50 text-emerald-800 font-bold border border-emerald-200"
                               : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
                           }`}
                         >
-                          <Icon className="w-3.5 h-3.5 shrink-0" />
-                          {(isSidebarOpen || isMobileMenuOpen) && <span className="truncate">{item.label}</span>}
+                          <div className="flex items-center gap-2.5 truncate">
+                            <Icon className="w-3.5 h-3.5 shrink-0" />
+                            {(isSidebarOpen || isMobileMenuOpen) && <span className="truncate">{item.label}</span>}
+                          </div>
+                          {item.href === "/admin/attendance" && pendingLateReasonCount > 0 && (
+                            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-amber-500 text-white shrink-0">
+                              {pendingLateReasonCount}
+                            </span>
+                          )}
                         </Link>
                       );
                     })}
