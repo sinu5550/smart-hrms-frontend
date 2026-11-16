@@ -197,6 +197,10 @@ export interface IndividualAttendanceReportResponse {
     totalWorkHours: string;
     totalWorkMinutes: number;
     totalOvertimeMinutes: number;
+    expectedDutyMinutes?: number;
+    expectedDutyFormatted?: string;
+    balanceMinutes?: number;
+    extraLessBalanceFormatted?: string;
   };
   dailyHistory: Array<{
     date: string;

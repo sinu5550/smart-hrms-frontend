@@ -180,56 +180,69 @@ export default function EmployeeAttendanceLogsPage() {
 
       // KPI Summary Stat Boxes
       const kpiStartY = 55;
-      const boxWidth = 43;
+      const boxWidth = 34.5;
       const boxHeight = 14;
-      const gap = 3.3;
+      const gap = 2.4;
 
       // 1. Present
       doc.setFillColor(236, 253, 245);
       doc.setDrawColor(167, 243, 208);
       doc.roundedRect(14, kpiStartY, boxWidth, boxHeight, 1.5, 1.5, "FD");
-      doc.setFontSize(7);
+      doc.setFontSize(6.5);
       doc.setTextColor(5, 150, 105);
-      doc.text("PRESENT DAYS", 17, kpiStartY + 4.5);
-      doc.setFontSize(11);
+      doc.text("PRESENT DAYS", 16, kpiStartY + 4.5);
+      doc.setFontSize(10.5);
       doc.setFont("helvetica", "bold");
-      doc.text(String(stats.presentDays).padStart(2, "0"), 17, kpiStartY + 10.5);
+      doc.text(String(stats.presentDays).padStart(2, "0"), 16, kpiStartY + 10.5);
 
       // 2. Absent
       doc.setFillColor(254, 242, 242);
       doc.setDrawColor(254, 202, 202);
       doc.roundedRect(14 + boxWidth + gap, kpiStartY, boxWidth, boxHeight, 1.5, 1.5, "FD");
-      doc.setFontSize(7);
+      doc.setFontSize(6.5);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(220, 38, 38);
-      doc.text("ABSENT DAYS", 14 + boxWidth + gap + 3, kpiStartY + 4.5);
-      doc.setFontSize(11);
+      doc.text("ABSENT DAYS", 14 + boxWidth + gap + 2, kpiStartY + 4.5);
+      doc.setFontSize(10.5);
       doc.setFont("helvetica", "bold");
-      doc.text(String(stats.absentDays).padStart(2, "0"), 14 + boxWidth + gap + 3, kpiStartY + 10.5);
+      doc.text(String(stats.absentDays).padStart(2, "0"), 14 + boxWidth + gap + 2, kpiStartY + 10.5);
 
       // 3. Late
       doc.setFillColor(255, 251, 235);
       doc.setDrawColor(253, 230, 138);
       doc.roundedRect(14 + (boxWidth + gap) * 2, kpiStartY, boxWidth, boxHeight, 1.5, 1.5, "FD");
-      doc.setFontSize(7);
+      doc.setFontSize(6.5);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(217, 119, 6);
-      doc.text("LATE DAYS", 14 + (boxWidth + gap) * 2 + 3, kpiStartY + 4.5);
-      doc.setFontSize(11);
+      doc.text("LATE DAYS", 14 + (boxWidth + gap) * 2 + 2, kpiStartY + 4.5);
+      doc.setFontSize(10.5);
       doc.setFont("helvetica", "bold");
-      doc.text(String(stats.lateDays).padStart(2, "0"), 14 + (boxWidth + gap) * 2 + 3, kpiStartY + 10.5);
+      doc.text(String(stats.lateDays).padStart(2, "0"), 14 + (boxWidth + gap) * 2 + 2, kpiStartY + 10.5);
 
       // 4. Total Work Hours
       doc.setFillColor(240, 249, 255);
       doc.setDrawColor(186, 230, 253);
       doc.roundedRect(14 + (boxWidth + gap) * 3, kpiStartY, boxWidth, boxHeight, 1.5, 1.5, "FD");
-      doc.setFontSize(7);
+      doc.setFontSize(6.5);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(2, 132, 199);
-      doc.text("TOTAL WORK HOURS", 14 + (boxWidth + gap) * 3 + 3, kpiStartY + 4.5);
-      doc.setFontSize(11);
+      doc.text("WORK HOURS", 14 + (boxWidth + gap) * 3 + 2, kpiStartY + 4.5);
+      doc.setFontSize(10.5);
       doc.setFont("helvetica", "bold");
-      doc.text(stats.totalWorkHours, 14 + (boxWidth + gap) * 3 + 3, kpiStartY + 10.5);
+      doc.text(stats.totalWorkHours, 14 + (boxWidth + gap) * 3 + 2, kpiStartY + 10.5);
+
+      // 5. Duty Balance (Extra / Less)
+      const balMins = stats.balanceMinutes || 0;
+      doc.setFillColor(balMins >= 0 ? 240 : 255, balMins >= 0 ? 253 : 241, balMins >= 0 ? 244 : 242);
+      doc.setDrawColor(balMins >= 0 ? 187 : 254, balMins >= 0 ? 247 : 202, balMins >= 0 ? 208 : 202);
+      doc.roundedRect(14 + (boxWidth + gap) * 4, kpiStartY, boxWidth, boxHeight, 1.5, 1.5, "FD");
+      doc.setFontSize(6.5);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(balMins >= 0 ? 22 : 220, balMins >= 0 ? 101 : 38, balMins >= 0 ? 52 : 38);
+      doc.text("DUTY BALANCE", 14 + (boxWidth + gap) * 4 + 2, kpiStartY + 4.5);
+      doc.setFontSize(10.5);
+      doc.setFont("helvetica", "bold");
+      doc.text(stats.extraLessBalanceFormatted || "0h 0m", 14 + (boxWidth + gap) * 4 + 2, kpiStartY + 10.5);
 
       // Table of Daily Attendance History
       const tableRows = (filteredRows || []).map((row) => {
@@ -349,7 +362,7 @@ export default function EmployeeAttendanceLogsPage() {
       </div>
 
       {/* KPI Stats Grid */}
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
         <div className="p-2.5 rounded-lg bg-emerald-50/70 border border-emerald-200 text-center">
           <p className="text-[10px] font-bold uppercase text-emerald-800">Present</p>
           <p className="text-lg font-black text-emerald-700 mt-0.5">{stats.presentDays}</p>
@@ -363,8 +376,18 @@ export default function EmployeeAttendanceLogsPage() {
           <p className="text-lg font-black text-rose-700 mt-0.5">{stats.absentDays}</p>
         </div>
         <div className="p-2.5 rounded-lg bg-sky-50/70 border border-sky-200 text-center">
-          <p className="text-[10px] font-bold uppercase text-sky-800">Work Time</p>
+          <p className="text-[10px] font-bold uppercase text-sky-800">Work Hours</p>
           <p className="text-lg font-black text-sky-700 mt-0.5">{stats.totalWorkHours}</p>
+        </div>
+        <div className={`p-2.5 rounded-lg border text-center col-span-2 sm:col-span-1 ${
+          (stats.balanceMinutes || 0) >= 0 ? "bg-emerald-50/70 border-emerald-300 text-emerald-800" : "bg-rose-50/70 border-rose-300 text-rose-800"
+        }`}>
+          <p className="text-[10px] font-bold uppercase">Duty Balance</p>
+          <p className={`text-lg font-black mt-0.5 ${
+            (stats.balanceMinutes || 0) >= 0 ? "text-emerald-700" : "text-rose-700"
+          }`}>
+            {stats.extraLessBalanceFormatted || "0h 0m"}
+          </p>
         </div>
       </div>
 
