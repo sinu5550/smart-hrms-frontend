@@ -105,6 +105,17 @@ export const AttendanceService = {
     return data;
   },
 
+  saveManualAttendance: async (payload: {
+    userId: string;
+    date: string; // YYYY-MM-DD
+    checkInTime?: string; // HH:MM or ISO
+    checkOutTime?: string; // HH:MM or ISO
+    note?: string;
+  }): Promise<any> => {
+    const { data } = await apiClient.post<any>("/attendance/admin/manual-punch", payload);
+    return data;
+  },
+
   checkOut: async (payload: { qrSecret: string; latitude?: number; longitude?: number; address?: string } | string): Promise<TodayAttendanceRecord> => {
     const body = typeof payload === "string" ? { qrSecret: payload } : payload;
     const { data } = await apiClient.post<TodayAttendanceRecord>("/attendance/check-out", body);
