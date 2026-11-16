@@ -30,6 +30,7 @@ import {
   Edit,
   X,
   Save,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -283,59 +284,84 @@ function IndividualReportContent() {
       doc.text(`Shift: ${shiftInfo}`, 140, 45);
       doc.text(`Off-Days: ${reportData.employee.offDays?.join(", ") || "Friday"}`, 140, 51);
 
-      // KPI Summary Stat Boxes
+      // KPI Summary Stat Boxes (6 Cards: Present, Absent, Late, Total Work, Expected Duty, Extra/Less Duty Balance)
       const stats = reportData.stats;
       const kpiStartY = 62;
-      const boxWidth = 43;
+      const boxWidth = 28;
       const boxHeight = 16;
-      const gap = 3.3;
+      const gap = 2.8;
 
       // 1. Present
       doc.setFillColor(236, 253, 245);
       doc.setDrawColor(167, 243, 208);
       doc.roundedRect(14, kpiStartY, boxWidth, boxHeight, 1.5, 1.5, "FD");
-      doc.setFontSize(7.5);
+      doc.setFontSize(7);
       doc.setTextColor(5, 150, 105);
-      doc.text("PRESENT DAYS", 17, kpiStartY + 5);
-      doc.setFontSize(12);
+      doc.text("PRESENT DAYS", 16, kpiStartY + 5);
+      doc.setFontSize(11);
       doc.setFont("helvetica", "bold");
-      doc.text(String(stats.presentDays).padStart(2, "0"), 17, kpiStartY + 12);
+      doc.text(String(stats.presentDays).padStart(2, "0"), 16, kpiStartY + 12);
 
       // 2. Absent
       doc.setFillColor(254, 242, 242);
       doc.setDrawColor(254, 202, 202);
       doc.roundedRect(14 + boxWidth + gap, kpiStartY, boxWidth, boxHeight, 1.5, 1.5, "FD");
-      doc.setFontSize(7.5);
+      doc.setFontSize(7);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(220, 38, 38);
-      doc.text("ABSENT DAYS", 14 + boxWidth + gap + 3, kpiStartY + 5);
-      doc.setFontSize(12);
+      doc.text("ABSENT DAYS", 14 + boxWidth + gap + 2, kpiStartY + 5);
+      doc.setFontSize(11);
       doc.setFont("helvetica", "bold");
-      doc.text(String(stats.absentDays).padStart(2, "0"), 14 + boxWidth + gap + 3, kpiStartY + 12);
+      doc.text(String(stats.absentDays).padStart(2, "0"), 14 + boxWidth + gap + 2, kpiStartY + 12);
 
       // 3. Late
       doc.setFillColor(255, 251, 235);
       doc.setDrawColor(253, 230, 138);
       doc.roundedRect(14 + (boxWidth + gap) * 2, kpiStartY, boxWidth, boxHeight, 1.5, 1.5, "FD");
-      doc.setFontSize(7.5);
+      doc.setFontSize(7);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(217, 119, 6);
-      doc.text("LATE DAYS", 14 + (boxWidth + gap) * 2 + 3, kpiStartY + 5);
-      doc.setFontSize(12);
+      doc.text("LATE DAYS", 14 + (boxWidth + gap) * 2 + 2, kpiStartY + 5);
+      doc.setFontSize(11);
       doc.setFont("helvetica", "bold");
-      doc.text(String(stats.lateDays).padStart(2, "0"), 14 + (boxWidth + gap) * 2 + 3, kpiStartY + 12);
+      doc.text(String(stats.lateDays).padStart(2, "0"), 14 + (boxWidth + gap) * 2 + 2, kpiStartY + 12);
 
-      // 4. Total Work Hours
+      // 4. Expected Duty
+      doc.setFillColor(248, 250, 252);
+      doc.setDrawColor(226, 232, 240);
+      doc.roundedRect(14 + (boxWidth + gap) * 3, kpiStartY, boxWidth, boxHeight, 1.5, 1.5, "FD");
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(71, 85, 105);
+      doc.text("EXPECTED DUTY", 14 + (boxWidth + gap) * 3 + 2, kpiStartY + 5);
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text(stats.expectedDutyFormatted || "0h 0m", 14 + (boxWidth + gap) * 3 + 2, kpiStartY + 12);
+
+      // 5. Total Work Hours
       doc.setFillColor(240, 249, 255);
       doc.setDrawColor(186, 230, 253);
-      doc.roundedRect(14 + (boxWidth + gap) * 3, kpiStartY, boxWidth, boxHeight, 1.5, 1.5, "FD");
-      doc.setFontSize(7.5);
+      doc.roundedRect(14 + (boxWidth + gap) * 4, kpiStartY, boxWidth, boxHeight, 1.5, 1.5, "FD");
+      doc.setFontSize(7);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(2, 132, 199);
-      doc.text("TOTAL WORK HOURS", 14 + (boxWidth + gap) * 3 + 3, kpiStartY + 5);
-      doc.setFontSize(12);
+      doc.text("TOTAL WORK", 14 + (boxWidth + gap) * 4 + 2, kpiStartY + 5);
+      doc.setFontSize(11);
       doc.setFont("helvetica", "bold");
-      doc.text(stats.totalWorkHours, 14 + (boxWidth + gap) * 3 + 3, kpiStartY + 12);
+      doc.text(stats.totalWorkHours, 14 + (boxWidth + gap) * 4 + 2, kpiStartY + 12);
+
+      // 6. Extra / Less Duty Balance
+      const isNegativeBalance = (stats.balanceMinutes ?? 0) < 0;
+      doc.setFillColor(isNegativeBalance ? 255 : 240, isNegativeBalance ? 241 : 253, isNegativeBalance ? 242 : 250);
+      doc.setDrawColor(isNegativeBalance ? 254 : 187, isNegativeBalance ? 205 : 247, isNegativeBalance ? 211 : 208);
+      doc.roundedRect(14 + (boxWidth + gap) * 5, kpiStartY, boxWidth, boxHeight, 1.5, 1.5, "FD");
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(isNegativeBalance ? 225 : 13, isNegativeBalance ? 29 : 148, isNegativeBalance ? 72 : 136);
+      doc.text("DUTY BALANCE", 14 + (boxWidth + gap) * 5 + 2, kpiStartY + 5);
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text(stats.extraLessBalanceFormatted || "0h 0m", 14 + (boxWidth + gap) * 5 + 2, kpiStartY + 12);
 
       // Table of Daily Attendance History matching Attendance Monitor
       const tableRows = (filteredDailyRows || []).map((row) => {
@@ -900,52 +926,80 @@ function IndividualReportContent() {
             </div>
           )}
 
-          {/* 4 KPI Summary Cards (Clean Light Theme with Software Colors) */}
+          {/* 6 KPI Summary Cards (Clean Light Theme with Software Colors) */}
           {reportData?.stats && (
-            <div className="shrink-0 grid grid-cols-2 sm:grid-cols-4 gap-3 print:grid-cols-4">
+            <div className="shrink-0 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               {/* 1. Present Days */}
-              <div className="bg-emerald-50/80 border border-emerald-200 rounded-xl p-3.5 sm:p-4 shadow-xs">
-                <div className="flex items-center justify-between text-xs font-semibold text-emerald-800">
+              <div className="bg-emerald-50/80 border border-emerald-200 rounded-xl p-3 shadow-xs">
+                <div className="flex items-center justify-between text-[11px] font-semibold text-emerald-800">
                   <span>Present Days</span>
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                 </div>
-                <p className="text-2xl sm:text-3xl font-extrabold text-emerald-700 mt-1.5">
+                <p className="text-xl sm:text-2xl font-extrabold text-emerald-700 mt-1">
                   {String(reportData.stats.presentDays).padStart(2, "0")}
                 </p>
               </div>
 
               {/* 2. Absent Days */}
-              <div className="bg-rose-50/80 border border-rose-200 rounded-xl p-3.5 sm:p-4 shadow-xs">
-                <div className="flex items-center justify-between text-xs font-semibold text-rose-800">
+              <div className="bg-rose-50/80 border border-rose-200 rounded-xl p-3 shadow-xs">
+                <div className="flex items-center justify-between text-[11px] font-semibold text-rose-800">
                   <span>Absent Days</span>
-                  <AlertCircle className="w-4 h-4 text-rose-600" />
+                  <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
                 </div>
-                <p className="text-2xl sm:text-3xl font-extrabold text-rose-700 mt-1.5">
+                <p className="text-xl sm:text-2xl font-extrabold text-rose-700 mt-1">
                   {String(reportData.stats.absentDays).padStart(2, "0")}
                 </p>
               </div>
 
               {/* 3. Late Days */}
-              <div className="bg-amber-50/80 border border-amber-200 rounded-xl p-3.5 sm:p-4 shadow-xs">
-                <div className="flex items-center justify-between text-xs font-semibold text-amber-800">
+              <div className="bg-amber-50/80 border border-amber-200 rounded-xl p-3 shadow-xs">
+                <div className="flex items-center justify-between text-[11px] font-semibold text-amber-800">
                   <span>Late Days</span>
-                  <Clock className="w-4 h-4 text-amber-600" />
+                  <Clock className="w-3.5 h-3.5 text-amber-600" />
                 </div>
-                <p className="text-2xl sm:text-3xl font-extrabold text-amber-700 mt-1.5">
+                <p className="text-xl sm:text-2xl font-extrabold text-amber-700 mt-1">
                   {String(reportData.stats.lateDays).padStart(2, "0")}
                 </p>
               </div>
 
-              {/* 4. Total Work Hours */}
-              <div className="bg-sky-50/80 border border-sky-200 rounded-xl p-3.5 sm:p-4 shadow-xs">
-                <div className="flex items-center justify-between text-xs font-semibold text-sky-800">
-                  <span>Total Work Hours</span>
-                  <Clock className="w-4 h-4 text-sky-600" />
+              {/* 4. Expected Duty */}
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 shadow-xs">
+                <div className="flex items-center justify-between text-[11px] font-semibold text-slate-700">
+                  <span>Expected Duty</span>
+                  <Clock className="w-3.5 h-3.5 text-slate-500" />
                 </div>
-                <p className="text-2xl sm:text-3xl font-extrabold text-sky-700 mt-1.5">
+                <p className="text-xl sm:text-2xl font-extrabold text-slate-800 mt-1">
+                  {reportData.stats.expectedDutyFormatted || "0h 0m"}
+                </p>
+              </div>
+
+              {/* 5. Total Work Hours */}
+              <div className="bg-sky-50/80 border border-sky-200 rounded-xl p-3 shadow-xs">
+                <div className="flex items-center justify-between text-[11px] font-semibold text-sky-800">
+                  <span>Total Work Hours</span>
+                  <Clock className="w-3.5 h-3.5 text-sky-600" />
+                </div>
+                <p className="text-xl sm:text-2xl font-extrabold text-sky-700 mt-1">
                   {reportData.stats.totalWorkHours}
                 </p>
               </div>
+
+              {/* 6. Extra / Less Duty Balance */}
+              {(() => {
+                const bal = reportData.stats.balanceMinutes ?? 0;
+                const isNegative = bal < 0;
+                return (
+                  <div className={`border rounded-xl p-3 shadow-xs ${isNegative ? "bg-rose-50/80 border-rose-200 text-rose-900" : "bg-emerald-50/80 border-emerald-200 text-emerald-900"}`}>
+                    <div className="flex items-center justify-between text-[11px] font-semibold">
+                      <span>Duty Balance</span>
+                      <Sparkles className={`w-3.5 h-3.5 ${isNegative ? "text-rose-600" : "text-emerald-600"}`} />
+                    </div>
+                    <p className={`text-xl sm:text-2xl font-extrabold mt-1 ${isNegative ? "text-rose-700" : "text-emerald-700"}`}>
+                      {reportData.stats.extraLessBalanceFormatted || "0h 0m"}
+                    </p>
+                  </div>
+                );
+              })()}
             </div>
           )}
 
