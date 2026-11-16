@@ -180,18 +180,18 @@ export default function EmployeeAttendanceLogsPage() {
 
       // KPI Summary Stat Boxes
       const kpiStartY = 55;
-      const boxWidth = 34.5;
+      const boxWidth = 28.5;
       const boxHeight = 14;
-      const gap = 2.4;
+      const gap = 2.2;
 
       // 1. On Time
       doc.setFillColor(236, 253, 245);
       doc.setDrawColor(167, 243, 208);
       doc.roundedRect(14, kpiStartY, boxWidth, boxHeight, 1.5, 1.5, "FD");
-      doc.setFontSize(6.5);
+      doc.setFontSize(6);
       doc.setTextColor(5, 150, 105);
       doc.text("ON TIME DAYS", 16, kpiStartY + 4.5);
-      doc.setFontSize(10.5);
+      doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
       doc.text(String(stats.presentDays).padStart(2, "0"), 16, kpiStartY + 10.5);
 
@@ -199,50 +199,62 @@ export default function EmployeeAttendanceLogsPage() {
       doc.setFillColor(254, 242, 242);
       doc.setDrawColor(254, 202, 202);
       doc.roundedRect(14 + boxWidth + gap, kpiStartY, boxWidth, boxHeight, 1.5, 1.5, "FD");
-      doc.setFontSize(6.5);
+      doc.setFontSize(6);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(220, 38, 38);
       doc.text("ABSENT DAYS", 14 + boxWidth + gap + 2, kpiStartY + 4.5);
-      doc.setFontSize(10.5);
+      doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
       doc.text(String(stats.absentDays).padStart(2, "0"), 14 + boxWidth + gap + 2, kpiStartY + 10.5);
 
-      // 3. Late
+      // 3. Expected Duty Hour
+      doc.setFillColor(238, 242, 255);
+      doc.setDrawColor(199, 210, 254);
+      doc.roundedRect(14 + (boxWidth + gap) * 2, kpiStartY, boxWidth, boxHeight, 1.5, 1.5, "FD");
+      doc.setFontSize(6);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(67, 56, 202);
+      doc.text("EXPECTED DUTY", 14 + (boxWidth + gap) * 2 + 2, kpiStartY + 4.5);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text(stats.expectedDutyFormatted || "0h", 14 + (boxWidth + gap) * 2 + 2, kpiStartY + 10.5);
+
+      // 4. Late
       doc.setFillColor(255, 251, 235);
       doc.setDrawColor(253, 230, 138);
-      doc.roundedRect(14 + (boxWidth + gap) * 2, kpiStartY, boxWidth, boxHeight, 1.5, 1.5, "FD");
-      doc.setFontSize(6.5);
+      doc.roundedRect(14 + (boxWidth + gap) * 3, kpiStartY, boxWidth, boxHeight, 1.5, 1.5, "FD");
+      doc.setFontSize(6);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(217, 119, 6);
-      doc.text("LATE DAYS", 14 + (boxWidth + gap) * 2 + 2, kpiStartY + 4.5);
-      doc.setFontSize(10.5);
+      doc.text("LATE DAYS", 14 + (boxWidth + gap) * 3 + 2, kpiStartY + 4.5);
+      doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
-      doc.text(String(stats.lateDays).padStart(2, "0"), 14 + (boxWidth + gap) * 2 + 2, kpiStartY + 10.5);
+      doc.text(String(stats.lateDays).padStart(2, "0"), 14 + (boxWidth + gap) * 3 + 2, kpiStartY + 10.5);
 
-      // 4. Total Work Hours
+      // 5. Total Work Hours
       doc.setFillColor(240, 249, 255);
       doc.setDrawColor(186, 230, 253);
-      doc.roundedRect(14 + (boxWidth + gap) * 3, kpiStartY, boxWidth, boxHeight, 1.5, 1.5, "FD");
-      doc.setFontSize(6.5);
+      doc.roundedRect(14 + (boxWidth + gap) * 4, kpiStartY, boxWidth, boxHeight, 1.5, 1.5, "FD");
+      doc.setFontSize(6);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(2, 132, 199);
-      doc.text("WORK HOURS", 14 + (boxWidth + gap) * 3 + 2, kpiStartY + 4.5);
-      doc.setFontSize(10.5);
+      doc.text("WORK HOURS", 14 + (boxWidth + gap) * 4 + 2, kpiStartY + 4.5);
+      doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
-      doc.text(stats.totalWorkHours, 14 + (boxWidth + gap) * 3 + 2, kpiStartY + 10.5);
+      doc.text(stats.totalWorkHours, 14 + (boxWidth + gap) * 4 + 2, kpiStartY + 10.5);
 
-      // 5. Duty Balance (Extra / Less)
+      // 6. Duty Balance (Extra / Less)
       const balMins = stats.balanceMinutes || 0;
       doc.setFillColor(balMins >= 0 ? 240 : 255, balMins >= 0 ? 253 : 241, balMins >= 0 ? 244 : 242);
       doc.setDrawColor(balMins >= 0 ? 187 : 254, balMins >= 0 ? 247 : 202, balMins >= 0 ? 208 : 202);
-      doc.roundedRect(14 + (boxWidth + gap) * 4, kpiStartY, boxWidth, boxHeight, 1.5, 1.5, "FD");
-      doc.setFontSize(6.5);
+      doc.roundedRect(14 + (boxWidth + gap) * 5, kpiStartY, boxWidth, boxHeight, 1.5, 1.5, "FD");
+      doc.setFontSize(6);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(balMins >= 0 ? 22 : 220, balMins >= 0 ? 101 : 38, balMins >= 0 ? 52 : 38);
-      doc.text("DUTY BALANCE", 14 + (boxWidth + gap) * 4 + 2, kpiStartY + 4.5);
-      doc.setFontSize(10.5);
+      doc.text("DUTY BALANCE", 14 + (boxWidth + gap) * 5 + 2, kpiStartY + 4.5);
+      doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
-      doc.text(stats.extraLessBalanceFormatted || "0h 0m", 14 + (boxWidth + gap) * 4 + 2, kpiStartY + 10.5);
+      doc.text(stats.extraLessBalanceFormatted || "0h 0m", 14 + (boxWidth + gap) * 5 + 2, kpiStartY + 10.5);
 
       // Table of Daily Attendance History
       const tableRows = (filteredRows || []).map((row) => {
@@ -362,28 +374,32 @@ export default function EmployeeAttendanceLogsPage() {
       </div>
 
       {/* KPI Stats Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-        <div className="p-2.5 rounded-lg bg-emerald-50/70 border border-emerald-200 text-center">
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+        <div className="p-2 rounded-lg bg-emerald-50/70 border border-emerald-200 text-center">
           <p className="text-[10px] font-bold uppercase text-emerald-800">On Time</p>
-          <p className="text-lg font-black text-emerald-700 mt-0.5">{stats.presentDays}</p>
+          <p className="text-base font-black text-emerald-700 mt-0.5">{stats.presentDays}</p>
         </div>
-        <div className="p-2.5 rounded-lg bg-amber-50/70 border border-amber-200 text-center">
+        <div className="p-2 rounded-lg bg-amber-50/70 border border-amber-200 text-center">
           <p className="text-[10px] font-bold uppercase text-amber-800">Late</p>
-          <p className="text-lg font-black text-amber-700 mt-0.5">{stats.lateDays}</p>
+          <p className="text-base font-black text-amber-700 mt-0.5">{stats.lateDays}</p>
         </div>
-        <div className="p-2.5 rounded-lg bg-rose-50/70 border border-rose-200 text-center">
+        <div className="p-2 rounded-lg bg-rose-50/70 border border-rose-200 text-center">
           <p className="text-[10px] font-bold uppercase text-rose-800">Absent</p>
-          <p className="text-lg font-black text-rose-700 mt-0.5">{stats.absentDays}</p>
+          <p className="text-base font-black text-rose-700 mt-0.5">{stats.absentDays}</p>
         </div>
-        <div className="p-2.5 rounded-lg bg-sky-50/70 border border-sky-200 text-center">
+        <div className="p-2 rounded-lg bg-indigo-50/70 border border-indigo-200 text-center">
+          <p className="text-[10px] font-bold uppercase text-indigo-800">Expected</p>
+          <p className="text-base font-black text-indigo-700 mt-0.5">{stats.expectedDutyFormatted || "0h 0m"}</p>
+        </div>
+        <div className="p-2 rounded-lg bg-sky-50/70 border border-sky-200 text-center">
           <p className="text-[10px] font-bold uppercase text-sky-800">Work Hours</p>
-          <p className="text-lg font-black text-sky-700 mt-0.5">{stats.totalWorkHours}</p>
+          <p className="text-base font-black text-sky-700 mt-0.5">{stats.totalWorkHours}</p>
         </div>
-        <div className={`p-2.5 rounded-lg border text-center col-span-2 sm:col-span-1 ${
+        <div className={`p-2 rounded-lg border text-center ${
           (stats.balanceMinutes || 0) >= 0 ? "bg-emerald-50/70 border-emerald-300 text-emerald-800" : "bg-rose-50/70 border-rose-300 text-rose-800"
         }`}>
           <p className="text-[10px] font-bold uppercase">Duty Balance</p>
-          <p className={`text-lg font-black mt-0.5 ${
+          <p className={`text-base font-black mt-0.5 ${
             (stats.balanceMinutes || 0) >= 0 ? "text-emerald-700" : "text-rose-700"
           }`}>
             {stats.extraLessBalanceFormatted || "0h 0m"}
