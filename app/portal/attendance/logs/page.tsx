@@ -480,33 +480,40 @@ export default function EmployeeAttendanceLogsPage() {
                         : "bg-slate-100 text-slate-600 border-slate-200"
                     }`}
                   >
-                    {isHoliday ? `Holiday: ${row.holidayName || ""}` : isPresent ? "On Time" : row.status}
+                    {isHoliday ? `Holiday: ${row.holidayName || ""}` : isPresent ? "On Time" : (isOffDay && row.checkIn !== "—") ? "Off-Day (Duty)" : row.status}
                   </span>
                 </div>
 
-                {/* Punch Details Grid (Only for Present / Late) */}
-                {(isPresent || isLate) ? (
-                  <div className="grid grid-cols-4 gap-2 p-2 rounded-lg bg-slate-50 border border-slate-100 text-[11px]">
-                    <div>
-                      <span className="text-[10px] text-slate-400 block font-medium">Check In</span>
-                      <span className="font-mono font-bold text-slate-800">{row.checkIn}</span>
+                {/* Punch Details Grid (For Present / Late OR Any Day with recorded Punch) */}
+                {(isPresent || isLate || row.checkIn !== "—" || (row.workMinutes || 0) > 0) ? (
+                  <div className="space-y-1.5">
+                    <div className="grid grid-cols-4 gap-2 p-2 rounded-lg bg-slate-50 border border-slate-100 text-[11px]">
+                      <div>
+                        <span className="text-[10px] text-slate-400 block font-medium">Check In</span>
+                        <span className="font-mono font-bold text-slate-800">{row.checkIn}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 block font-medium">Check Out</span>
+                        <span className="font-mono font-bold text-slate-800">{row.checkOut}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 block font-medium">Duty Hours</span>
+                        <span className="font-mono font-bold text-emerald-700">{row.workHoursFormatted}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 block font-medium">Overtime</span>
+                        <span className={`font-mono font-bold ${(row.overtimeMinutes || 0) > 0 ? "text-indigo-600" : "text-slate-400"}`}>
+                          {(row.overtimeMinutes || 0) > 0
+                            ? `+${Math.floor(row.overtimeMinutes / 60)}h ${row.overtimeMinutes % 60}m`
+                            : "—"}
+                        </span>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-[10px] text-slate-400 block font-medium">Check Out</span>
-                      <span className="font-mono font-bold text-slate-800">{row.checkOut}</span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-slate-400 block font-medium">Duty Hours</span>
-                      <span className="font-mono font-bold text-emerald-700">{row.workHoursFormatted}</span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-slate-400 block font-medium">Overtime</span>
-                      <span className={`font-mono font-bold ${(row.overtimeMinutes || 0) > 0 ? "text-indigo-600" : "text-slate-400"}`}>
-                        {(row.overtimeMinutes || 0) > 0
-                          ? `+${Math.floor(row.overtimeMinutes / 60)}h ${row.overtimeMinutes % 60}m`
-                          : "—"}
-                      </span>
-                    </div>
+                    {isOffDay && (
+                      <div className="text-[10px] font-semibold text-purple-700 bg-purple-50/70 px-2 py-0.5 rounded border border-purple-100 flex items-center gap-1">
+                        <span>★ Designated Off-Day Duty: Check-in/out & duty time fully accounted.</span>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-[11px] text-slate-400 italic">

@@ -1061,8 +1061,10 @@ function IndividualReportContent() {
                               </span>
                             )}
                             {isOffDay && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
-                                Off-Day
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                                row.checkIn !== "—" ? "bg-purple-100 text-purple-900 border-purple-300" : "bg-purple-50 text-purple-700 border-purple-200"
+                              }`}>
+                                {row.checkIn !== "—" ? "Off-Day (Duty)" : "Off-Day"}
                               </span>
                             )}
                             {isHoliday && (
