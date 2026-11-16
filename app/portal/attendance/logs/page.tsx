@@ -184,13 +184,13 @@ export default function EmployeeAttendanceLogsPage() {
       const boxHeight = 14;
       const gap = 2.4;
 
-      // 1. Present
+      // 1. On Time
       doc.setFillColor(236, 253, 245);
       doc.setDrawColor(167, 243, 208);
       doc.roundedRect(14, kpiStartY, boxWidth, boxHeight, 1.5, 1.5, "FD");
       doc.setFontSize(6.5);
       doc.setTextColor(5, 150, 105);
-      doc.text("PRESENT DAYS", 16, kpiStartY + 4.5);
+      doc.text("ON TIME DAYS", 16, kpiStartY + 4.5);
       doc.setFontSize(10.5);
       doc.setFont("helvetica", "bold");
       doc.text(String(stats.presentDays).padStart(2, "0"), 16, kpiStartY + 10.5);
@@ -364,7 +364,7 @@ export default function EmployeeAttendanceLogsPage() {
       {/* KPI Stats Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
         <div className="p-2.5 rounded-lg bg-emerald-50/70 border border-emerald-200 text-center">
-          <p className="text-[10px] font-bold uppercase text-emerald-800">Present</p>
+          <p className="text-[10px] font-bold uppercase text-emerald-800">On Time</p>
           <p className="text-lg font-black text-emerald-700 mt-0.5">{stats.presentDays}</p>
         </div>
         <div className="p-2.5 rounded-lg bg-amber-50/70 border border-amber-200 text-center">
@@ -409,7 +409,7 @@ export default function EmployeeAttendanceLogsPage() {
           triggerClassName="h-8 text-xs min-w-32"
           options={[
             { value: "ALL", label: "All Status" },
-            { value: "PRESENT", label: "Present" },
+            { value: "PRESENT", label: "On Time" },
             { value: "LATE", label: "Late" },
             { value: "ABSENT", label: "Absent" },
             { value: "LEAVE", label: "On Leave" },
@@ -464,7 +464,7 @@ export default function EmployeeAttendanceLogsPage() {
                         : "bg-slate-100 text-slate-600 border-slate-200"
                     }`}
                   >
-                    {isHoliday ? `Holiday: ${row.holidayName || ""}` : row.status}
+                    {isHoliday ? `Holiday: ${row.holidayName || ""}` : isPresent ? "On Time" : row.status}
                   </span>
                 </div>
 
