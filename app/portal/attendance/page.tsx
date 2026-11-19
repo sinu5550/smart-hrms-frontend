@@ -47,7 +47,7 @@ export default function MobileAttendancePortal() {
     user.email.toLowerCase() === user.organization.ownerEmail.toLowerCase()
   );
 
-  const [activeModal, setActiveModal] = useState<"NONE" | "CONFIRM_CHECKIN" | "CONFIRM_CHECKOUT" | "SCAN_CHECKOUT" | "SELECT_BREAK" | "IP_RESTRICTED">("NONE");
+  const [activeModal, setActiveModal] = useState<"NONE" | "CONFIRM_CHECKIN" | "CONFIRM_CHECKOUT" | "CONFIRM_OUTWORK_CHECKOUT" | "SCAN_CHECKOUT" | "SELECT_BREAK" | "IP_RESTRICTED">("NONE");
   const [selectedBreakType, setSelectedBreakType] = useState<BreakType>("LUNCH");
   const [stagedQrSecret, setStagedQrSecret] = useState<string>("");
   const [apiErrorMessage, setApiErrorMessage] = useState<string>("");
@@ -175,17 +175,22 @@ export default function MobileAttendancePortal() {
   };
 
   const promptCheckOutQr = () => {
+    // If employee is on outwork or checked in via OUTWORK, allow direct checkout without QR code!
+    if (statusData?.activeOutwork || activeRecord?.punchInDeviceType === "OUTWORK") {
+      setActiveModal("CONFIRM_OUTWORK_CHECKOUT");
+      return;
+    }
     setStagedQrSecret("");
     setActiveModal("SCAN_CHECKOUT");
   };
 
-  const executeCheckOut = async () => {
+  const executeCheckOut = async (isOutwork = false) => {
     setIsSubmitting(true);
     let gpsCoords = undefined;
     try {
       const posPromise = getCurrentGpsPosition();
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("GPS_TIMEOUT")), 1500)
+        setTimeout(() => reject(new Error("GPS_TIMEOUT")), 2500)
       );
       const pos = await Promise.race([posPromise, timeoutPromise]);
       gpsCoords = { latitude: pos.latitude, longitude: pos.longitude };
@@ -193,12 +198,17 @@ export default function MobileAttendancePortal() {
       console.warn("GPS quick capture skipped or timed out:", e);
     }
 
+    const defaultAddress = isOutwork
+      ? `Outwork Checkout (${statusData?.activeOutwork?.destination || "Client Field"})`
+      : "Office Terminal";
+
     handleApiAction(() =>
       attendanceActions.checkOut.mutateAsync({
-        qrSecret: stagedQrSecret,
+        qrSecret: isOutwork ? "" : stagedQrSecret,
+        isOutworkCheckOut: isOutwork,
         latitude: gpsCoords?.latitude,
         longitude: gpsCoords?.longitude,
-        address: gpsCoords ? "GPS Verified Checkout" : "Office Terminal",
+        address: gpsCoords ? `${defaultAddress} (GPS: ${gpsCoords.latitude.toFixed(4)}, ${gpsCoords.longitude.toFixed(4)})` : defaultAddress,
       })
     );
   };
@@ -592,6 +602,24 @@ export default function MobileAttendancePortal() {
             </div>
           )}
 
+          {/* Outwork Active Notice Badge */}
+          {statusData?.activeOutwork && currentState === "CHECKED_IN" && (
+            <div className="p-3 bg-purple-50 border border-purple-200 rounded-xl flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-purple-600 shrink-0" />
+                <div>
+                  <span className="font-bold text-purple-900 block">Outwork Active</span>
+                  <span className="text-[11px] text-purple-700">
+                    {statusData.activeOutwork.destination} ({statusData.activeOutwork.status})
+                  </span>
+                </div>
+              </div>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-200/70 text-purple-800">
+                Remote Checkout Allowed
+              </span>
+            </div>
+          )}
+
           {currentState === "CHECKED_IN" && (
             <div className="grid grid-cols-2 gap-3">
               <button
@@ -602,9 +630,16 @@ export default function MobileAttendancePortal() {
               </button>
               <button
                 onClick={promptCheckOutQr}
-                className="flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 hover:bg-rose-100/80 text-xs font-semibold transition"
+                className={`flex items-center justify-center gap-2 py-3 px-4 rounded-lg border text-xs font-semibold transition ${
+                  (statusData?.activeOutwork || activeRecord?.punchInDeviceType === "OUTWORK")
+                    ? "bg-purple-600 hover:bg-purple-700 text-white border-purple-700 shadow-xs"
+                    : "bg-rose-50 border-rose-200 text-rose-800 hover:bg-rose-100/80"
+                }`}
               >
-                <LogOut className="w-4 h-4 text-rose-600" /> Clock Out
+                <LogOut className="w-4 h-4" />
+                {(statusData?.activeOutwork || activeRecord?.punchInDeviceType === "OUTWORK")
+                  ? "Clock Out (Outwork)"
+                  : "Clock Out"}
               </button>
             </div>
           )}
@@ -720,6 +755,45 @@ export default function MobileAttendancePortal() {
         </div>
       )}
 
+      {/* MODAL: CONFIRM OUTWORK CLOCK OUT DIRECTLY */}
+      {activeModal === "CONFIRM_OUTWORK_CHECKOUT" && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-lg w-full max-w-sm p-6 text-center space-y-4 shadow-2xl">
+            <div className="w-12 h-12 bg-purple-50 text-purple-600 border border-purple-200 rounded-full flex items-center justify-center mx-auto">
+              <MapPin className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-slate-800">Clock Out from Field/Outwork?</h3>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                You are on field visit/outwork. Your checkout will be verified using your current GPS location without requiring Office Wi-Fi or QR scanning.
+              </p>
+              {statusData?.activeOutwork && (
+                <div className="mt-2.5 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-[11px] text-slate-700 text-left">
+                  <span className="font-semibold block text-slate-900">Destination:</span>
+                  <span>{statusData.activeOutwork.destination}</span>
+                </div>
+              )}
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={() => setActiveModal("NONE")}
+                disabled={isSubmitting}
+                className="flex-1 py-2.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => executeCheckOut(true)}
+                disabled={isSubmitting}
+                className="flex-1 py-2.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-xs font-semibold text-white transition active:scale-[0.99] flex items-center justify-center gap-1.5"
+              >
+                {isSubmitting ? "Ending Shift..." : "Confirm Outwork Clock Out"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* MODAL: CONFIRM CLOCK OUT AFTER QR DETECTED */}
       {activeModal === "CONFIRM_CHECKOUT" && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -742,7 +816,7 @@ export default function MobileAttendancePortal() {
                 Cancel
               </button>
               <button
-                onClick={executeCheckOut}
+                onClick={() => executeCheckOut(false)}
                 disabled={isSubmitting}
                 className="flex-1 py-2.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-xs font-semibold text-white transition active:scale-[0.99]"
               >

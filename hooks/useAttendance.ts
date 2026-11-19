@@ -87,7 +87,7 @@ export function useAttendanceActions() {
   });
 
   const checkOutMutation = useMutation({
-    mutationFn: (payload: { qrSecret: string; latitude?: number; longitude?: number; address?: string } | string) =>
+    mutationFn: (payload: { qrSecret?: string; isOutworkCheckOut?: boolean; latitude?: number; longitude?: number; address?: string } | string) =>
       AttendanceService.checkOut(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.attendance.all });

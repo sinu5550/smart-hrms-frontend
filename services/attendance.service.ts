@@ -24,6 +24,8 @@ export interface TodayAttendanceRecord {
   overtimeMinutes?: number;
   status: AttendanceStatus;
   breaks: AttendanceBreakRecord[];
+  punchInDeviceType?: string | null;
+  punchInAddress?: string | null;
   lateReason?: string | null;
   lateReasonStatus?: "PENDING" | "APPROVED" | "REJECTED" | null;
   lateReasonReviewNote?: string | null;
@@ -43,6 +45,12 @@ export interface TodayStatusResponse {
   attendance: TodayAttendanceRecord | null;
   isExempt?: boolean;
   rosterDetails?: RosterEmployeeDetails | null;
+  activeOutwork?: {
+    id: string;
+    destination: string;
+    purpose: string;
+    status: "PENDING" | "APPROVED" | "REJECTED";
+  } | null;
 }
 
 export const AttendanceService = {
@@ -116,7 +124,7 @@ export const AttendanceService = {
     return data;
   },
 
-  checkOut: async (payload: { qrSecret: string; latitude?: number; longitude?: number; address?: string } | string): Promise<TodayAttendanceRecord> => {
+  checkOut: async (payload: { qrSecret?: string; isOutworkCheckOut?: boolean; latitude?: number; longitude?: number; address?: string } | string): Promise<TodayAttendanceRecord> => {
     const body = typeof payload === "string" ? { qrSecret: payload } : payload;
     const { data } = await apiClient.post<TodayAttendanceRecord>("/attendance/check-out", body);
     return data;
