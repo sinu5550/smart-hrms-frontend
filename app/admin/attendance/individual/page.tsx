@@ -91,6 +91,7 @@ function IndividualReportContent() {
   const [editingRow, setEditingRow] = useState<any | null>(null);
   const [manualCheckIn, setManualCheckIn] = useState<string>("");
   const [manualCheckOut, setManualCheckOut] = useState<string>("");
+  const [manualStatusOverride, setManualStatusOverride] = useState<"AUTO" | "OFF_DAY" | "ABSENT" | "OFF_DAY_DUTY">("AUTO");
   const [manualNote, setManualNote] = useState<string>("");
   const [isSavingManual, setIsSavingManual] = useState<boolean>(false);
   const [manualError, setManualError] = useState<string | null>(null);
@@ -1194,6 +1195,7 @@ function IndividualReportContent() {
                                   // Parse existing checkIn/checkOut times
                                   setManualCheckIn(row.checkIn !== "—" ? row.checkIn : "");
                                   setManualCheckOut(row.checkOut !== "—" ? row.checkOut : "");
+                                  setManualStatusOverride("AUTO");
                                   setManualNote("");
                                   setManualError(null);
                                 }}
@@ -1277,6 +1279,23 @@ function IndividualReportContent() {
 
               <div>
                 <label className="block text-slate-700 font-semibold mb-1">
+                  Status Override (Optional)
+                </label>
+                <select
+                  value={manualStatusOverride}
+                  onChange={(e) => setManualStatusOverride(e.target.value as any)}
+                  className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-600 cursor-pointer"
+                >
+                  <option value="AUTO">Auto (Calculate based on time &amp; schedule)</option>
+                  <option value="OFF_DAY">Day-Off</option>
+                  <option value="ABSENT">Absent</option>
+                  <option value="OFF_DAY_DUTY">Day-Off Duty</option>
+                </select>
+                <p className="text-[10px] text-slate-400 mt-0.5">Optionally force Day-Off, Absent, or Day-Off Duty status</p>
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-semibold mb-1">
                   Adjustment Reason / Note (Optional)
                 </label>
                 <textarea
@@ -1303,7 +1322,7 @@ function IndividualReportContent() {
               </button>
               <button
                 type="button"
-                disabled={isSavingManual || (!manualCheckIn && !manualCheckOut)}
+                disabled={isSavingManual || (!manualCheckIn && !manualCheckOut && manualStatusOverride === "AUTO")}
                 onClick={async () => {
                   try {
                     setIsSavingManual(true);
@@ -1313,6 +1332,7 @@ function IndividualReportContent() {
                       date: editingRow.date,
                       checkInTime: manualCheckIn.trim() || undefined,
                       checkOutTime: manualCheckOut.trim() || undefined,
+                      statusOverride: manualStatusOverride !== "AUTO" ? manualStatusOverride : undefined,
                       note: manualNote.trim() || undefined,
                     });
                     await refetchReport();

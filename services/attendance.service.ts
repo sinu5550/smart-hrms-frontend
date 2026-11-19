@@ -119,6 +119,7 @@ export const AttendanceService = {
     checkInTime?: string; // HH:MM or ISO
     checkOutTime?: string; // HH:MM or ISO
     note?: string;
+    statusOverride?: "AUTO" | "OFF_DAY" | "ABSENT" | "OFF_DAY_DUTY";
   }): Promise<any> => {
     const { data } = await apiClient.post<any>("/attendance/admin/manual-punch", payload);
     return data;
