@@ -116,9 +116,9 @@ export default function AttendanceReportsPage() {
 
   const rows = reportData?.summary || [];
 
-  // Filter rows by employee name, id, department, and status
+  // Filter and sort rows by Employee ID (ASC: 1, 2, 3...)
   const filteredRows = useMemo(() => {
-    return rows.filter((r: any) => {
+    const list = rows.filter((r: any) => {
       const q = searchTerm.toLowerCase().trim();
       const matchesSearch =
         !q ||
@@ -134,6 +134,13 @@ export default function AttendanceReportsPage() {
           : r.status === statusFilter;
 
       return matchesSearch && matchesStatus;
+    });
+
+    return [...list].sort((a: any, b: any) => {
+      return (a.employeeId || "").localeCompare(b.employeeId || "", undefined, {
+        numeric: true,
+        sensitivity: "base",
+      });
     });
   }, [rows, searchTerm, statusFilter, attendanceEligibleCodes]);
 

@@ -135,19 +135,26 @@ export default function AdminAttendancePage() {
 
   const records = data || [];
 
-  const filteredRecords = records.filter((r) => {
-    const q = searchTerm.toLowerCase().trim();
-    const matchesSearch =
-      !q ||
-      (r.user?.fullName || "").toLowerCase().includes(q) ||
-      (r.user?.employeeId || "").toLowerCase().includes(q) ||
-      (r.user?.email || "").toLowerCase().includes(q);
+  const filteredRecords = records
+    .filter((r) => {
+      const q = searchTerm.toLowerCase().trim();
+      const matchesSearch =
+        !q ||
+        (r.user?.fullName || "").toLowerCase().includes(q) ||
+        (r.user?.employeeId || "").toLowerCase().includes(q) ||
+        (r.user?.email || "").toLowerCase().includes(q);
 
-    const matchesStatus =
-      statusFilter === "ALL" || r.status === statusFilter || r.currentState === statusFilter;
+      const matchesStatus =
+        statusFilter === "ALL" || r.status === statusFilter || r.currentState === statusFilter;
 
-    return matchesSearch && matchesStatus;
-  });
+      return matchesSearch && matchesStatus;
+    })
+    .sort((a, b) => {
+      return (a.user?.employeeId || "").localeCompare(b.user?.employeeId || "", undefined, {
+        numeric: true,
+        sensitivity: "base",
+      });
+    });
 
   const stats = {
     totalCheckedIn: records.length,
